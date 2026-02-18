@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
-import { format, startOfWeek, addDays, isSameDay, subWeeks, addWeeks } from 'date-fns';
+import { format, startOfWeek, addDays, isSameDay, subWeeks, addWeeks, subDays } from 'date-fns';
 import api from '../api';
 import SadhanaCard from '../components/SadhanaCard';
 import { ChevronLeft, ChevronRight, CheckCircle, AlertCircle } from 'lucide-react';
 import clsx from 'clsx';
 
 const Dashboard = () => {
-    const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date()));
-    const [selectedDate, setSelectedDate] = useState(new Date());
+    const yesterday = subDays(new Date(), 1);
+    const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(yesterday));
+    const [selectedDate, setSelectedDate] = useState(yesterday);
     const [weeklyLogs, setWeeklyLogs] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -67,7 +68,7 @@ const Dashboard = () => {
                     const log = getLogForDate(day);
                     const isSelected = isSameDay(day, selectedDate);
                     const isToday = isSameDay(day, new Date());
-                    const isFuture = day > new Date() && !isToday;
+                    const isFuture = day >= new Date().setHours(0, 0, 0, 0); // today and future are blocked
 
                     return (
                         <button
@@ -81,7 +82,7 @@ const Dashboard = () => {
                                     : isFuture
                                         ? "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed"
                                         : "bg-white text-gray-600 border-gray-200 hover:border-saffron-300 hover:bg-saffron-50",
-                                isToday && !isSelected && "ring-2 ring-saffron-400 ring-offset-2"
+                                isToday && !isSelected && "ring-2 ring-saffron-400 ring-offset-2 opacity-40"
                             )}
                         >
                             <span className="text-xs font-medium uppercase">{format(day, 'EEE')}</span>
@@ -103,7 +104,7 @@ const Dashboard = () => {
                     date={selectedDate}
                     existingData={getLogForDate(selectedDate)}
                     onSave={fetchWeeklyLogs}
-                    isReadOnly={selectedDate > new Date()}
+                    isReadOnly={selectedDate >= new Date().setHours(0, 0, 0, 0)}
                 />
             </div>
         </div>
