@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Exact VOICE Logo Recreation: Wheel of Knowledge -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 640">
+  <!-- Refined Professional VOICE Logo -->
   <defs>
-    <filter id="subtleGlow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="2" result="blur" />
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
       <feMerge>
         <feMergeNode in="blur" />
         <feMergeNode in="SourceGraphic" />
@@ -10,79 +10,60 @@
     </filter>
   </defs>
 
-  <!-- Open Book at the bottom -->
-  <g transform="translate(106, 380)">
-    <path d="M150 0 C220 -10 300 15 300 40 L300 90 C300 65 220 40 150 50 C80 40 0 65 0 90 L0 40 C0 15 80 -10 150 0Z" 
-          fill="white" stroke="#666" stroke-width="4" />
-    <path d="M150 0 L150 50" stroke="#666" stroke-width="2" />
-    <!-- Page details -->
-    <path d="M150 15 C210 10 270 25 270 25" stroke="#CCC" stroke-width="1" />
-    <path d="M150 30 C210 25 270 40 270 40" stroke="#CCC" stroke-width="1" />
-    <path d="M150 15 C90 10 30 25 30 25" stroke="#CCC" stroke-width="1" />
-    <path d="M150 30 C90 25 30 40 30 40" stroke="#CCC" stroke-width="1" />
-  </g>
+  <!-- ISKCON (Top Header) -->
+  <text x="256" y="50" text-anchor="middle" font-family="serif" font-weight="bold" font-size="32" fill="#CC5500" letter-spacing="4">ISKCON</text>
 
-  <!-- The "Wheel of Knowledge" / Chakra -->
+  <!-- Wheel of Knowledge (Upper Middle) -->
   <g transform="translate(256, 210)">
     <!-- 8 Double-Line Spokes -->
-    <!-- 0 degrees -->
-    <g transform="rotate(0)">
-      <line x1="-8" y1="-120" x2="-8" y2="-20" stroke="#CC5500" stroke-width="5" />
-      <line x1="8" y1="-120" x2="8" y2="-20" stroke="#CC5500" stroke-width="5" />
-    </g>
-    <!-- 45 degrees -->
-    <g transform="rotate(45)">
-      <line x1="-8" y1="-120" x2="-8" y2="-20" stroke="#CC5500" stroke-width="5" />
-      <line x1="8" y1="-120" x2="8" y2="-20" stroke="#CC5500" stroke-width="5" />
-    </g>
-    <!-- 90 degrees -->
-    <g transform="rotate(90)">
-      <line x1="-8" y1="-120" x2="-8" y2="-20" stroke="#CC5500" stroke-width="5" />
-      <line x1="8" y1="-120" x2="8" y2="-20" stroke="#CC5500" stroke-width="5" />
-    </g>
-    <!-- 135 degrees -->
-    <g transform="rotate(135)">
-      <line x1="-8" y1="-120" x2="-8" y2="-20" stroke="#CC5500" stroke-width="5" />
-      <line x1="8" y1="-120" x2="8" y2="-20" stroke="#CC5500" stroke-width="5" />
-    </g>
-    <!-- 180 degrees -->
-    <g transform="rotate(180)">
-      <line x1="-8" y1="-120" x2="-8" y2="-20" stroke="#CC5500" stroke-width="5" />
-      <line x1="8" y1="-120" x2="8" y2="-20" stroke="#CC5500" stroke-width="5" />
-    </g>
-    <!-- 225 degrees -->
-    <g transform="rotate(225)">
-      <line x1="-8" y1="-120" x2="-8" y2="-20" stroke="#CC5500" stroke-width="5" />
-      <line x1="8" y1="-120" x2="8" y2="-20" stroke="#CC5500" stroke-width="5" />
-    </g>
-    <!-- 270 degrees -->
-    <g transform="rotate(270)">
-      <line x1="-8" y1="-120" x2="-8" y2="-20" stroke="#CC5500" stroke-width="5" />
-      <line x1="8" y1="-120" x2="8" y2="-20" stroke="#CC5500" stroke-width="5" />
-    </g>
-    <!-- 315 degrees -->
-    <g transform="rotate(315)">
-      <line x1="-8" y1="-120" x2="-8" y2="-20" stroke="#CC5500" stroke-width="5" />
-      <line x1="8" y1="-120" x2="8" y2="-20" stroke="#CC5500" stroke-width="5" />
+    <g stroke="#CC5500" stroke-width="4">
+      <g transform="rotate(0)"> <line x1="-6" y1="-120" x2="-6" y2="-20"/> <line x1="6" y1="-120" x2="6" y2="-20"/> </g>
+      <g transform="rotate(45)"> <line x1="-6" y1="-120" x2="-6" y2="-20"/> <line x1="6" y1="-120" x2="6" y2="-20"/> </g>
+      <g transform="rotate(90)"> <line x1="-6" y1="-120" x2="-6" y2="-20"/> <line x1="6" y1="-120" x2="6" y2="-20"/> </g>
+      <g transform="rotate(135)"> <line x1="-6" y1="-120" x2="-6" y2="-20"/> <line x1="6" y1="-120" x2="6" y2="-20"/> </g>
+      <g transform="rotate(180)"> <line x1="-6" y1="-120" x2="-6" y2="-20"/> <line x1="6" y1="-120" x2="6" y2="-20"/> </g>
+      <g transform="rotate(225)"> <line x1="-6" y1="-120" x2="-6" y2="-20"/> <line x1="6" y1="-120" x2="6" y2="-20"/> </g>
+      <g transform="rotate(270)"> <line x1="-6" y1="-120" x2="-6" y2="-20"/> <line x1="6" y1="-120" x2="6" y2="-20"/> </g>
+      <g transform="rotate(315)"> <line x1="-6" y1="-120" x2="-6" y2="-20"/> <line x1="6" y1="-120" x2="6" y2="-20"/> </g>
     </g>
 
-    <!-- 8 Circles in the Ring -->
-    <!-- Positioned exactly between the double lines -->
-    <circle cx="0" cy="-70" r="32" fill="none" stroke="#CC5500" stroke-width="5" transform="rotate(22.5)" />
-    <circle cx="0" cy="-70" r="32" fill="none" stroke="#CC5500" stroke-width="5" transform="rotate(67.5)" />
-    <circle cx="0" cy="-70" r="32" fill="none" stroke="#CC5500" stroke-width="5" transform="rotate(112.5)" />
-    <circle cx="0" cy="-70" r="32" fill="none" stroke="#CC5500" stroke-width="5" transform="rotate(157.5)" />
-    <circle cx="0" cy="-70" r="32" fill="none" stroke="#CC5500" stroke-width="5" transform="rotate(202.5)" />
-    <circle cx="0" cy="-70" r="32" fill="none" stroke="#CC5500" stroke-width="5" transform="rotate(247.5)" />
-    <circle cx="0" cy="-70" r="32" fill="none" stroke="#CC5500" stroke-width="5" transform="rotate(292.5)" />
-    <circle cx="0" cy="-70" r="32" fill="none" stroke="#CC5500" stroke-width="5" transform="rotate(337.5)" />
+    <!-- 8 Circles (Middle Ring) -->
+    <g stroke="#CC5500" stroke-width="4" fill="none">
+      <circle cx="0" cy="-75" r="30" transform="rotate(22.5)"/>
+      <circle cx="0" cy="-75" r="30" transform="rotate(67.5)"/>
+      <circle cx="0" cy="-75" r="30" transform="rotate(112.5)"/>
+      <circle cx="0" cy="-75" r="30" transform="rotate(157.5)"/>
+      <circle cx="0" cy="-75" r="30" transform="rotate(202.5)"/>
+      <circle cx="0" cy="-75" r="30" transform="rotate(247.5)"/>
+      <circle cx="0" cy="-75" r="30" transform="rotate(292.5)"/>
+      <circle cx="0" cy="-75" r="30" transform="rotate(337.5)"/>
+    </g>
 
     <!-- Center Hub -->
-    <circle cx="0" cy="0" r="20" fill="white" stroke="#CC5500" stroke-width="4" />
+    <circle cx="0" cy="0" r="18" fill="white" stroke="#CC5500" stroke-width="4"/>
   </g>
 
-  <!-- ISKCON & VOICE Text -->
-  <text x="256" y="70" text-anchor="middle" font-family="serif" font-weight="bold" font-size="36" fill="#CC5500">ISKCON</text>
-  <text x="256" y="340" text-anchor="middle" font-family="serif" font-weight="bold" font-size="84" fill="white" filter="url(#subtleGlow)" stroke="#CC5500" stroke-width="1.5">VOICE</text>
-  <text x="256" y="500" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#CC5500" font-weight="600" letter-spacing="1">Vedic Oasis for Inspiration, Culture and Education</text>
+  <!-- VOICE (Sub-wheel Header) -->
+  <text x="256" y="420" text-anchor="middle" font-family="serif" font-weight="bold" font-size="100" fill="white" stroke="#CC5500" stroke-width="2" filter="url(#glow)">VOICE</text>
+
+  <!-- Open Book (Lower Middle) -->
+  <g transform="translate(256, 520)">
+    <!-- Proper Book Shape -->
+    <path d="M-200 0 Q-200 -20 0 -10 Q200 -20 200 0 L200 90 Q200 70 0 80 Q-200 70 -200 90 Z" 
+          fill="white" stroke="#333" stroke-width="3" />
+    <!-- Spine -->
+    <line x1="0" y1="-10" x2="0" y2="80" stroke="#333" stroke-width="2" />
+    <!-- Page detail lines -->
+    <g stroke="#AAA" stroke-width="1.5">
+      <path d="M-180 20 Q-100 10 -20 20"/>
+      <path d="M-180 40 Q-100 30 -20 40"/>
+      <path d="M-180 60 Q-100 50 -20 60"/>
+      <path d="M180 20 Q100 10 20 20"/>
+      <path d="M180 40 Q100 30 20 40"/>
+      <path d="M180 60 Q100 50 20 60"/>
+    </g>
+  </g>
+
+  <!-- Footer Tagline -->
+  <text x="256" y="630" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="16" fill="#CC5500" letter-spacing="1">Vedic Oasis for Inspiration, Culture and Education</text>
 </svg>

@@ -283,7 +283,7 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
                             initial={{ scale: 0.5, opacity: 0, rotate: -10 }}
                             animate={{ scale: 1.1, opacity: 1, rotate: 0 }}
                             transition={{ duration: 0.8, type: "spring" }}
-                            className="w-64 h-64 mb-8"
+                            className="w-64 h-auto mb-8"
                         />
                         <motion.h2
                             initial={{ scale: 0.5, opacity: 0 }}
