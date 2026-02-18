@@ -2,8 +2,13 @@
 
 @layer base {
   body {
-    @apply bg-devotional-bg text-devotional-text antialiased;
+    @apply transition-colors duration-300 antialiased;
+    @apply bg-devotional-bg text-devotional-text;
   }
+}
+
+.dark body {
+  @apply bg-[#0f0f0f] text-gray-200;
 }
 
 .input-field {

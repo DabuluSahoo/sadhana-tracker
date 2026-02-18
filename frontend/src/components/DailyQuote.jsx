@@ -17,7 +17,7 @@ const DailyQuote = () => {
     if (!dailyQuote) return null;
 
     return (
-        <div className="relative overflow-hidden bg-white/40 backdrop-blur-md border border-white/40 p-6 rounded-2xl shadow-xl animate-in fade-in slide-in-from-top duration-700">
+        <div className="relative overflow-hidden bg-white/40 dark:bg-gray-900/40 backdrop-blur-md border border-white/40 dark:border-gray-700/40 p-6 rounded-2xl shadow-xl animate-in fade-in slide-in-from-top duration-700 transition-colors">
             {/* Decorative background circle */}
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-saffron-200/30 rounded-full blur-3xl"></div>
 
