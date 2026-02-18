@@ -47,7 +47,7 @@ const Login = () => {
                         initial={{ scale: 0.5, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ duration: 1, ease: "easeOut" }}
-                        className="w-48 h-48 mb-8"
+                        className="w-80 h-80 mb-6"
                     />
                     <motion.h1
                         initial={{ y: 20, opacity: 0 }}
