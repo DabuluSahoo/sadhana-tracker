@@ -3,7 +3,7 @@ import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     BarChart, Bar, Legend
 } from 'recharts';
-import { format, parseISO, sort } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 const SadhanaAnalytics = ({ logs }) => {
     const chartData = useMemo(() => {
