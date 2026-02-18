@@ -1,17 +1,9 @@
-const nodemailer = require('nodemailer');
-
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-});
+const https = require('https');
 
 const sendOTP = async (email, otp, subject = 'Your OTP - Sadhana Tracker') => {
-    await transporter.sendMail({
-        from: `"Sadhana Tracker" <${process.env.EMAIL_USER}>`,
-        to: email,
+    const body = JSON.stringify({
+        from: 'Sadhana Tracker <onboarding@resend.dev>',
+        to: [email],
         subject,
         html: `
             <div style="font-family: Arial, sans-serif; max-width: 400px; margin: auto; padding: 24px; border: 1px solid #f0a500; border-radius: 8px;">
@@ -23,6 +15,32 @@ const sendOTP = async (email, otp, subject = 'Your OTP - Sadhana Tracker') => {
                 <p style="color: #888; font-size: 13px; margin-top: 16px;">This OTP is valid for <strong>10 minutes</strong>. Do not share it with anyone.</p>
             </div>
         `,
+    });
+
+    return new Promise((resolve, reject) => {
+        const req = https.request({
+            hostname: 'api.resend.com',
+            path: '/emails',
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(body),
+            },
+        }, (res) => {
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => {
+                if (res.statusCode >= 200 && res.statusCode < 300) {
+                    resolve(JSON.parse(data));
+                } else {
+                    reject(new Error(`Resend API error: ${data}`));
+                }
+            });
+        });
+        req.on('error', reject);
+        req.write(body);
+        req.end();
     });
 };
 
