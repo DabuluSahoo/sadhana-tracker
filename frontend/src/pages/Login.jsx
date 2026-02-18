@@ -6,13 +6,19 @@ import { Lock, User } from 'lucide-react';
 const Login = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
     const { login } = useContext(AuthContext);
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
+        setError('');
         const success = await login(username, password);
+        setLoading(false);
         if (success) navigate('/');
+        else setError('Invalid username or password. Please try again.');
     };
 
     return (
@@ -60,11 +66,18 @@ const Login = () => {
                         </div>
                     </div>
 
+                    {error && (
+                        <div className="text-red-600 text-sm text-center bg-red-50 border border-red-200 rounded-md py-2 px-3">
+                            {error}
+                        </div>
+                    )}
+
                     <button
                         type="submit"
-                        className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-saffron-600 hover:bg-saffron-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-saffron-500 transition-colors"
+                        disabled={loading}
+                        className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-saffron-600 hover:bg-saffron-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-saffron-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                     >
-                        Sign In
+                        {loading ? 'Signing in...' : 'Sign In'}
                     </button>
 
                     <div className="text-center mt-4">
