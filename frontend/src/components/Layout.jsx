@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
-import { LogOut, LayoutDashboard, History, Users, Menu, X, Calendar } from 'lucide-react';
+import { LogOut, LayoutDashboard, History as HistoryIcon, Users, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 
 const Layout = () => {
@@ -17,8 +17,7 @@ const Layout = () => {
 
     const navItems = [
         { label: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
-        { label: 'History', path: '/history', icon: <History size={20} /> },
-        { label: 'Calendar', path: '/calendar', icon: <Calendar size={20} /> },
+        { label: 'History', path: '/history', icon: <HistoryIcon size={20} /> },
         ...(user?.role === 'admin' ? [{ label: 'Admin', path: '/admin', icon: <Users size={20} /> }] : []),
     ];
 

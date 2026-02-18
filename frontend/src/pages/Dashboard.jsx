@@ -3,7 +3,6 @@ import { format, startOfWeek, addDays, isSameDay, subWeeks, addWeeks, subDays } 
 import api from '../api';
 import SadhanaCard from '../components/SadhanaCard';
 import LoadingSpinner from '../components/LoadingSpinner';
-import VaishnavaBanner from '../components/VaishnavaBanner';
 import { ChevronLeft, ChevronRight, CheckCircle, AlertCircle } from 'lucide-react';
 import clsx from 'clsx';
 

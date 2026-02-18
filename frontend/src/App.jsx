@@ -8,8 +8,9 @@ import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from './pages/Dashboard';
 import History from './pages/History';
 import AdminDashboard from './pages/AdminDashboard';
-import CalendarPage from './pages/CalendarPage'; // Added import
+import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
@@ -23,8 +24,7 @@ function App() {
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/history" element={<History />} />
-            <Route path="/calendar" element={<CalendarPage />} /> {/* Added private route */}
-            <Route path="/admin" element={<ProtectedRoute adminOnly={true}><AdminDashboard /></ProtectedRoute>} /> {/* Modified admin route */}
+            <Route path="/admin" element={<AdminDashboard />} />
           </Route>
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
