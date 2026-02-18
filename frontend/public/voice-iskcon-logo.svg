@@ -1,64 +1,88 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
-  <!-- Professional Design for VOICE ISKCON -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Exact VOICE Logo Recreation: Wheel of Knowledge -->
   <defs>
-    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#FFD700" />
-      <stop offset="50%" style="stop-color:#FFB300" />
-      <stop offset="100%" style="stop-color:#FF8C00" />
-    </linearGradient>
-    <linearGradient id="saffronGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" style="stop-color:#FF9933" />
-      <stop offset="100%" style="stop-color:#FF6600" />
-    </linearGradient>
-    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="5" result="blur" />
-      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    <filter id="subtleGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
     </filter>
   </defs>
 
-  <!-- ISKCON Symbol Background Ring -->
-  <circle cx="256" cy="220" r="140" stroke="url(#goldGradient)" stroke-width="4" opacity="0.4" />
-  <circle cx="256" cy="220" r="160" stroke="#FFBC00" stroke-width="1" opacity="0.2" />
-
-  <!-- The Open Book (Knowledge) -->
-  <g transform="translate(106, 320)">
-    <!-- Right Page -->
-    <path d="M150 0 C220 0 300 30 300 30 L300 100 C300 100 220 70 150 70 L150 0Z" fill="white" stroke="#CC5500" stroke-width="3" />
-    <!-- Left Page -->
-    <path d="M150 0 C80 0 0 30 0 30 L0 100 C0 100 80 70 150 70 L150 0Z" fill="white" stroke="#CC5500" stroke-width="3" />
-    <!-- Page Details -->
-    <path d="M150 15 L260 45" stroke="#EEE" stroke-width="1" />
-    <path d="M150 30 L260 60" stroke="#EEE" stroke-width="1" />
-    <path d="M150 45 L260 75" stroke="#EEE" stroke-width="1" />
-    <path d="M150 15 L40 45" stroke="#EEE" stroke-width="1" />
-    <path d="M150 30 L40 60" stroke="#EEE" stroke-width="1" />
-    <path d="M150 45 L40 75" stroke="#EEE" stroke-width="1" />
-    <!-- Spine -->
-    <line x1="150" y1="0" x2="150" y2="70" stroke="#CC5500" stroke-width="4" stroke-linecap="round" />
+  <!-- Open Book at the bottom -->
+  <g transform="translate(106, 380)">
+    <path d="M150 0 C220 -10 300 15 300 40 L300 90 C300 65 220 40 150 50 C80 40 0 65 0 90 L0 40 C0 15 80 -10 150 0Z" 
+          fill="white" stroke="#666" stroke-width="4" />
+    <path d="M150 0 L150 50" stroke="#666" stroke-width="2" />
+    <!-- Page details -->
+    <path d="M150 15 C210 10 270 25 270 25" stroke="#CCC" stroke-width="1" />
+    <path d="M150 30 C210 25 270 40 270 40" stroke="#CCC" stroke-width="1" />
+    <path d="M150 15 C90 10 30 25 30 25" stroke="#CCC" stroke-width="1" />
+    <path d="M150 30 C90 25 30 40 30 40" stroke="#CCC" stroke-width="1" />
   </g>
 
-  <!-- The Lotus (Purity/Spirituality) -->
-  <g transform="translate(256, 310)">
-    <!-- Middle Petals -->
-    <path d="M0 -180 C-40 -120 -20 -40 0 0 C20 -40 40 -120 0 -180Z" fill="url(#saffronGradient)" stroke="#8B4513" stroke-width="0.5" filter="url(#glow)" />
-    
-    <!-- Left Petals -->
-    <path d="M0 0 C-60 -20 -110 -80 -90 -130 C-70 -100 -30 -30 0 0Z" fill="url(#saffronGradient)" opacity="0.9" stroke="#8B4513" stroke-width="0.3" />
-    <path d="M0 0 C-100 10 -150 -30 -140 -80 C-100 -50 -40 -10 0 0Z" fill="url(#saffronGradient)" opacity="0.8" stroke="#8B4513" stroke-width="0.3" />
-    
-    <!-- Right Petals -->
-    <path d="M0 0 C60 -20 110 -80 90 -130 C70 -100 30 -30 0 0Z" fill="url(#saffronGradient)" opacity="0.9" stroke="#8B4513" stroke-width="0.3" />
-    <path d="M0 0 C100 10 150 -30 140 -80 C100 -50 40 -10 0 0Z" fill="url(#saffronGradient)" opacity="0.8" stroke="#8B4513" stroke-width="0.3" />
+  <!-- The "Wheel of Knowledge" / Chakra -->
+  <g transform="translate(256, 210)">
+    <!-- 8 Double-Line Spokes -->
+    <!-- 0 degrees -->
+    <g transform="rotate(0)">
+      <line x1="-8" y1="-120" x2="-8" y2="-20" stroke="#CC5500" stroke-width="5" />
+      <line x1="8" y1="-120" x2="8" y2="-20" stroke="#CC5500" stroke-width="5" />
+    </g>
+    <!-- 45 degrees -->
+    <g transform="rotate(45)">
+      <line x1="-8" y1="-120" x2="-8" y2="-20" stroke="#CC5500" stroke-width="5" />
+      <line x1="8" y1="-120" x2="8" y2="-20" stroke="#CC5500" stroke-width="5" />
+    </g>
+    <!-- 90 degrees -->
+    <g transform="rotate(90)">
+      <line x1="-8" y1="-120" x2="-8" y2="-20" stroke="#CC5500" stroke-width="5" />
+      <line x1="8" y1="-120" x2="8" y2="-20" stroke="#CC5500" stroke-width="5" />
+    </g>
+    <!-- 135 degrees -->
+    <g transform="rotate(135)">
+      <line x1="-8" y1="-120" x2="-8" y2="-20" stroke="#CC5500" stroke-width="5" />
+      <line x1="8" y1="-120" x2="8" y2="-20" stroke="#CC5500" stroke-width="5" />
+    </g>
+    <!-- 180 degrees -->
+    <g transform="rotate(180)">
+      <line x1="-8" y1="-120" x2="-8" y2="-20" stroke="#CC5500" stroke-width="5" />
+      <line x1="8" y1="-120" x2="8" y2="-20" stroke="#CC5500" stroke-width="5" />
+    </g>
+    <!-- 225 degrees -->
+    <g transform="rotate(225)">
+      <line x1="-8" y1="-120" x2="-8" y2="-20" stroke="#CC5500" stroke-width="5" />
+      <line x1="8" y1="-120" x2="8" y2="-20" stroke="#CC5500" stroke-width="5" />
+    </g>
+    <!-- 270 degrees -->
+    <g transform="rotate(270)">
+      <line x1="-8" y1="-120" x2="-8" y2="-20" stroke="#CC5500" stroke-width="5" />
+      <line x1="8" y1="-120" x2="8" y2="-20" stroke="#CC5500" stroke-width="5" />
+    </g>
+    <!-- 315 degrees -->
+    <g transform="rotate(315)">
+      <line x1="-8" y1="-120" x2="-8" y2="-20" stroke="#CC5500" stroke-width="5" />
+      <line x1="8" y1="-120" x2="8" y2="-20" stroke="#CC5500" stroke-width="5" />
+    </g>
+
+    <!-- 8 Circles in the Ring -->
+    <!-- Positioned exactly between the double lines -->
+    <circle cx="0" cy="-70" r="32" fill="none" stroke="#CC5500" stroke-width="5" transform="rotate(22.5)" />
+    <circle cx="0" cy="-70" r="32" fill="none" stroke="#CC5500" stroke-width="5" transform="rotate(67.5)" />
+    <circle cx="0" cy="-70" r="32" fill="none" stroke="#CC5500" stroke-width="5" transform="rotate(112.5)" />
+    <circle cx="0" cy="-70" r="32" fill="none" stroke="#CC5500" stroke-width="5" transform="rotate(157.5)" />
+    <circle cx="0" cy="-70" r="32" fill="none" stroke="#CC5500" stroke-width="5" transform="rotate(202.5)" />
+    <circle cx="0" cy="-70" r="32" fill="none" stroke="#CC5500" stroke-width="5" transform="rotate(247.5)" />
+    <circle cx="0" cy="-70" r="32" fill="none" stroke="#CC5500" stroke-width="5" transform="rotate(292.5)" />
+    <circle cx="0" cy="-70" r="32" fill="none" stroke="#CC5500" stroke-width="5" transform="rotate(337.5)" />
+
+    <!-- Center Hub -->
+    <circle cx="0" cy="0" r="20" fill="white" stroke="#CC5500" stroke-width="4" />
   </g>
 
-  <!-- ISKCON Lotus Logo (Structured) -->
-  <g transform="translate(256, 120) scale(0.6)">
-    <circle cx="0" cy="0" r="60" stroke="#FFD700" stroke-width="2" fill="white" />
-    <path d="M0 -45 L5 -10 L45 0 L5 10 L0 45 L-5 10 L-45 0 L-5 -10 Z" fill="#FF8C00" />
-    <text x="0" y="85" text-anchor="middle" font-family="serif" font-weight="bold" font-size="30" fill="white" stroke="#CC5500" stroke-width="1">ISKCON</text>
-  </g>
-
-  <!-- VOICE Text Branding -->
-  <text x="256" y="440" text-anchor="middle" font-family="serif" font-weight="bold" font-size="64" fill="white" filter="url(#glow)">VOICE</text>
-  <text x="256" y="480" text-anchor="middle" font-family="sans-serif" font-size="18" fill="#FFD700" letter-spacing="2" font-weight="500">VEDIC OASIS FOR INSPIRATION, CULTURE &amp; EDUCATION</text>
+  <!-- ISKCON & VOICE Text -->
+  <text x="256" y="70" text-anchor="middle" font-family="serif" font-weight="bold" font-size="36" fill="#CC5500">ISKCON</text>
+  <text x="256" y="340" text-anchor="middle" font-family="serif" font-weight="bold" font-size="84" fill="white" filter="url(#subtleGlow)" stroke="#CC5500" stroke-width="1.5">VOICE</text>
+  <text x="256" y="500" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#CC5500" font-weight="600" letter-spacing="1">Vedic Oasis for Inspiration, Culture and Education</text>
 </svg>
