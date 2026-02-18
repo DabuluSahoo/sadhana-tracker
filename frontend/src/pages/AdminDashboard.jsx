@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
 import api from '../api';
 import { format } from 'date-fns';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, FileText } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import SadhanaAnalytics from '../components/SadhanaAnalytics';
+import { generateWeeklySadhanaReport } from '../utils/reportUtils';
 
 const AdminDashboard = () => {
     const [users, setUsers] = useState([]);
     const [selectedUser, setSelectedUser] = useState(null);
     const [userLogs, setUserLogs] = useState([]);
     const [loading, setLoading] = useState(true);
+    // ... existing code ...
+    // (Note: Replace only up to the detail header section)
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -68,6 +71,13 @@ const AdminDashboard = () => {
                     <>
                         <div className="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
                             <h3 className="font-semibold text-gray-700">Records for {selectedUser.username}</h3>
+                            <button
+                                onClick={() => generateWeeklySadhanaReport(selectedUser.username, userLogs)}
+                                className="flex items-center px-3 py-1.5 bg-saffron-600 text-white rounded-md hover:bg-saffron-700 transition-colors shadow-sm text-xs font-medium"
+                            >
+                                <FileText size={14} className="mr-1.5" />
+                                Download PDF Report
+                            </button>
                         </div>
                         <div className="overflow-y-auto flex-grow p-6 space-y-8">
                             {userLogs.length > 0 ? (

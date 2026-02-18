@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react';
 import api from '../api';
 import { format } from 'date-fns';
+import { FileText } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import SadhanaAnalytics from '../components/SadhanaAnalytics';
+import { generateWeeklySadhanaReport } from '../utils/reportUtils';
+import { useContext } from 'react';
+import AuthContext from '../context/AuthContext';
 
 const History = () => {
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { user } = useContext(AuthContext);
 
     useEffect(() => {
         const fetchHistory = async () => {
@@ -26,8 +31,15 @@ const History = () => {
 
     return (
         <div className="space-y-8 max-w-7xl mx-auto">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <h2 className="text-3xl font-serif font-bold text-gray-800">Your Sadhana Progress</h2>
+                <button
+                    onClick={() => generateWeeklySadhanaReport(user.username, logs)}
+                    className="flex items-center px-4 py-2 bg-saffron-600 text-white rounded-lg hover:bg-saffron-700 transition-colors shadow-md text-sm font-medium"
+                >
+                    <FileText size={18} className="mr-2" />
+                    Download Weekly Report
+                </button>
             </div>
 
             {logs.length > 0 && <SadhanaAnalytics logs={logs} />}
