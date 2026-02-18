@@ -49,8 +49,11 @@ exports.verifyOtp = async (req, res) => {
 
 // Register (after OTP verified)
 exports.register = async (req, res) => {
-    const { email, username, password } = req.body;
+    let { email, username, password } = req.body;
     try {
+        email = email?.trim().toLowerCase();
+        username = username?.trim();
+
         const [existing] = await db.query('SELECT * FROM users WHERE username = ? OR email = ?', [username, email]);
         if (existing.length > 0) return res.status(400).json({ message: 'Username or email already exists' });
 
@@ -65,9 +68,12 @@ exports.register = async (req, res) => {
 
 // Login
 exports.login = async (req, res) => {
-    const { username, password } = req.body;
+    let { username, password } = req.body;
     try {
-        const [users] = await db.query('SELECT * FROM users WHERE username = ?', [username]);
+        username = username?.trim();
+
+        // Allow login by username OR email
+        const [users] = await db.query('SELECT * FROM users WHERE username = ? OR email = ?', [username, username.toLowerCase()]);
         if (users.length === 0) return res.status(400).json({ message: 'Invalid credentials' });
 
         const user = users[0];
@@ -83,8 +89,9 @@ exports.login = async (req, res) => {
 
 // Forgot Password - Send OTP
 exports.forgotPassword = async (req, res) => {
-    const { email } = req.body;
+    let { email } = req.body;
     try {
+        email = email?.trim().toLowerCase();
         const [users] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
         if (users.length === 0) return res.status(400).json({ message: 'No account found with this email' });
 
@@ -105,8 +112,9 @@ exports.forgotPassword = async (req, res) => {
 
 // Reset Password (after OTP verified)
 exports.resetPassword = async (req, res) => {
-    const { email, otp, newPassword } = req.body;
+    let { email, otp, newPassword } = req.body;
     try {
+        email = email?.trim().toLowerCase();
         const [rows] = await db.query(
             'SELECT * FROM otp_tokens WHERE email = ? AND otp = ? AND expires_at > NOW()',
             [email, otp]
