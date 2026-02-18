@@ -34,42 +34,46 @@
   --color-devotional-card: #ffffff;
   --color-devotional-text: #4a4a4a;
   --color-devotional-accent: #d97706;
+}
 
-  @keyframes fade-out-text {
-    0% {
-      opacity: 1;
-      transform: scale(1.2);
-    }
-
-    70% {
-      opacity: 1;
-      transform: scale(1.1);
-    }
-
-    100% {
-      opacity: 0;
-      transform: scale(2.5);
-      visibility: hidden;
-    }
+@keyframes fade-out-text {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
   }
 
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  20% {
+    opacity: 1;
+    transform: scale(1.1);
   }
 
-  .animate-fade-out-special {
-    animation: fade-out-text 2.5s forwards ease-in-out;
+  80% {
+    opacity: 1;
+    transform: scale(1);
   }
 
-  .animate-fade-in {
-    animation: fade-in 0.8s forwards ease-out;
+  100% {
+    opacity: 0;
+    transform: scale(2);
   }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-out-special {
+  animation: fade-out-text 2.2s forwards ease-in-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s forwards ease-out;
 }
