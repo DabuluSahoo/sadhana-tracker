@@ -41,18 +41,10 @@ const Login = () => {
                     transition={{ duration: 0.8 }}
                     className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-saffron-600 text-white overflow-hidden"
                 >
-                    <motion.img
-                        src="/voice-iskcon-logo.svg"
-                        alt="VOICE ISKCON Logo"
-                        initial={{ scale: 0.5, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ duration: 1, ease: "easeOut" }}
-                        className="w-80 h-auto mb-6"
-                    />
                     <motion.h1
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.5, duration: 0.8 }}
+                        transition={{ delay: 0.2, duration: 0.8 }}
                         className="text-5xl md:text-8xl font-serif font-bold tracking-[0.2em] italic text-center px-4"
                     >
                         HARE KRISHNA
@@ -60,7 +52,7 @@ const Login = () => {
                     <motion.p
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 0.8 }}
-                        transition={{ delay: 1.2, duration: 1 }}
+                        transition={{ delay: 1, duration: 1 }}
                         className="mt-6 text-xl md:text-2xl font-serif italic tracking-widest"
                     >
                         Welcome to Sadhana Tracker
