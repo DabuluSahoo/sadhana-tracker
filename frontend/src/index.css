@@ -2,13 +2,16 @@
 
 @layer base {
   body {
-    @apply transition-colors duration-300 antialiased;
+    @apply transition-colors duration-500 antialiased;
     @apply bg-devotional-bg text-devotional-text;
   }
 }
 
-.dark body {
-  @apply bg-[#0f0f0f] text-gray-200;
+/* Ensure the background changes properly in dark mode */
+html.dark body,
+html.dark .bg-devotional-bg {
+  background-color: #0d0d12 !important;
+  color: #e5e7eb;
 }
 
 .input-field {
@@ -39,6 +42,29 @@
   --color-devotional-card: #ffffff;
   --color-devotional-text: #4a4a4a;
   --color-devotional-accent: #d97706;
+}
+
+@layer base {
+  :root {
+    --bg-primary: #fdfbf7;
+    --bg-card: #ffffff;
+    --text-primary: #4a4a4a;
+    --text-secondary: #6b7280;
+    --border-color: #fce7f3;
+    /* orange-100 */
+  }
+
+  .dark {
+    --bg-primary: #0f1115;
+    /* Deep Charcoal */
+    --bg-card: #181a20;
+    /* Slightly lighter charcoal for cards */
+    --text-primary: #e5e7eb;
+    /* Gray-200 */
+    --text-secondary: #9ca3af;
+    /* Gray-400 */
+    --border-color: #272a34;
+  }
 }
 
 @keyframes fade-out-text {

@@ -50,7 +50,7 @@ const Dashboard = () => {
     return (
         <div className="space-y-6">
             <DailyQuote />
-            <div className="flex flex-col md:flex-row justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors">
+            <div className="flex flex-col md:flex-row justify-between items-center bg-white dark:bg-[#181a20] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-[#272a34] transition-colors duration-300">
                 <div className="flex items-center space-x-4 mb-4 md:mb-0">
                     <button onClick={handlePrevWeek} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-600 dark:text-gray-400 transition-colors">
                         <ChevronLeft size={24} />
@@ -85,9 +85,9 @@ const Dashboard = () => {
                                 isSelected
                                     ? "bg-saffron-600 text-white border-saffron-600 shadow-md transform scale-105"
                                     : isFuture
-                                        ? "bg-gray-50 dark:bg-gray-900 text-gray-300 dark:text-gray-700 border-gray-100 dark:border-gray-800 cursor-not-allowed"
-                                        : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-saffron-300 hover:bg-saffron-50 dark:hover:bg-gray-700",
-                                isToday && !isSelected && "ring-2 ring-saffron-400 ring-offset-2 dark:ring-offset-gray-900 opacity-40"
+                                        ? "bg-gray-50 dark:bg-[#0f1115] text-gray-300 dark:text-gray-600 border-gray-100 dark:border-[#1f222b] cursor-not-allowed"
+                                        : "bg-white dark:bg-[#181a20] text-gray-600 dark:text-gray-300 border-gray-200 dark:border-[#272a34] hover:border-saffron-300 dark:hover:border-saffron-500/50 hover:bg-saffron-50 dark:hover:bg-[#1f222b]",
+                                isToday && !isSelected && "ring-2 ring-saffron-400 ring-offset-2 dark:ring-offset-[#181a20] opacity-40"
                             )}
                         >
                             <span className="text-xs font-medium uppercase">{format(day, 'EEE')}</span>

@@ -83,7 +83,7 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-orange-100 dark:border-gray-700 overflow-hidden transition-colors">
+        <div className="bg-white dark:bg-[#181a20] rounded-xl shadow-lg border border-orange-100 dark:border-[#272a34] overflow-hidden transition-colors duration-300">
             <div className="bg-saffron-50 px-6 py-4 border-b border-orange-100 flex justify-between items-center">
                 <h3 className="text-lg font-serif font-semibold text-saffron-800">
                     Sadhana for {format(date, 'EEEE, MMMM do, yyyy')}

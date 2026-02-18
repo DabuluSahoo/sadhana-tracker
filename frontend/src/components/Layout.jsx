@@ -23,9 +23,9 @@ const Layout = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-devotional-bg flex flex-col">
+        <div className="min-h-screen bg-devotional-bg dark:bg-[#0d0d12] flex flex-col transition-colors duration-500">
             {/* Navbar */}
-            <nav className="bg-saffron-600 text-white shadow-md">
+            <nav className="bg-saffron-600 dark:bg-saffron-800 text-white shadow-md transition-colors">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-16 items-center">
                         <div className="flex items-center">
