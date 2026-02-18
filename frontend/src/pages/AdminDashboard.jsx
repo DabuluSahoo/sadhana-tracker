@@ -98,19 +98,21 @@ const AdminDashboard = () => {
                                                 </div>
                                             ))}
                                         </div>
-                                        ) : (
-                                        <div className="text-center py-10 text-gray-500">No records found for this devotee.</div>
-                            )}
                                     </div>
                                 </>
                             ) : (
-                                <div className="flex items-center justify-center h-full text-gray-400">
-                                    Select a devotee to view their reports
-                                </div>
+                                <div className="text-center py-10 text-gray-500">No records found for this devotee.</div>
                             )}
                         </div>
+                    </>
+                ) : (
+                    <div className="flex items-center justify-center h-full text-gray-400">
+                        Select a devotee to view their reports
                     </div>
-                );
+                )}
+            </div>
+        </div>
+    );
 };
 
-                export default AdminDashboard;
+export default AdminDashboard;
