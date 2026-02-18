@@ -3,6 +3,7 @@ import { format, startOfWeek, addDays, isSameDay, subWeeks, addWeeks, subDays } 
 import api from '../api';
 import SadhanaCard from '../components/SadhanaCard';
 import LoadingSpinner from '../components/LoadingSpinner';
+import VaishnavaBanner from '../components/VaishnavaBanner';
 import { ChevronLeft, ChevronRight, CheckCircle, AlertCircle } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -48,6 +49,8 @@ const Dashboard = () => {
 
     return (
         <div className="space-y-6">
+            <VaishnavaBanner />
+
             <div className="flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                 <div className="flex items-center space-x-4 mb-4 md:mb-0">
                     <button onClick={handlePrevWeek} className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors">

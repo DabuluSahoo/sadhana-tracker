@@ -18,6 +18,7 @@ const Layout = () => {
     const navItems = [
         { label: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
         { label: 'History', path: '/history', icon: <History size={20} /> },
+        { label: 'Calendar', path: '/calendar', icon: <Calendar size={20} /> },
         ...(user?.role === 'admin' ? [{ label: 'Admin', path: '/admin', icon: <Users size={20} /> }] : []),
     ];
 
