@@ -24,6 +24,8 @@ CREATE TABLE IF NOT EXISTS daily_sadhana (
     rounds INT DEFAULT 0,
     reading_time INT DEFAULT 0 COMMENT 'in minutes',
     hearing_time INT DEFAULT 0 COMMENT 'in minutes',
+    study_time INT DEFAULT 0 COMMENT 'in minutes',
+    dayrest_time INT DEFAULT 0 COMMENT 'in minutes',
     mangala_aarti BOOLEAN DEFAULT FALSE,
     wakeup_time TIME,
     sleep_time TIME,

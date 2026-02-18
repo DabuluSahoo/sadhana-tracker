@@ -9,6 +9,8 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
         rounds: 0,
         reading_time: 0,
         hearing_time: 0,
+        study_time: 0,
+        dayrest_time: 0,
         mangala_aarti: false,
         wakeup_time: '',
         sleep_time: '',
@@ -22,6 +24,8 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
                 rounds: existingData.rounds || 0,
                 reading_time: existingData.reading_time || 0,
                 hearing_time: existingData.hearing_time || 0,
+                study_time: existingData.study_time || 0,
+                dayrest_time: existingData.dayrest_time || 0,
                 mangala_aarti: existingData.mangala_aarti || false,
                 wakeup_time: existingData.wakeup_time || '',
                 sleep_time: existingData.sleep_time || '',
@@ -34,6 +38,8 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
                 rounds: 0,
                 reading_time: 0,
                 hearing_time: 0,
+                study_time: 0,
+                dayrest_time: 0,
                 mangala_aarti: false,
                 wakeup_time: '',
                 sleep_time: '',
@@ -172,6 +178,40 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
                             min="0"
                             step="0.5"
                             value={formData.service_hours}
+                            onChange={handleChange}
+                            disabled={isReadOnly}
+                            className="input-field"
+                        />
+                    </div>
+
+                    {/* Study */}
+                    <div className="space-y-2">
+                        <label className="flex items-center text-sm font-medium text-gray-700">
+                            <div className="bg-green-100 p-1.5 rounded-md mr-2 text-green-700"><BookOpen size={16} /></div>
+                            Study (Minutes)
+                        </label>
+                        <input
+                            type="number"
+                            name="study_time"
+                            min="0"
+                            value={formData.study_time}
+                            onChange={handleChange}
+                            disabled={isReadOnly}
+                            className="input-field"
+                        />
+                    </div>
+
+                    {/* Day Rest */}
+                    <div className="space-y-2">
+                        <label className="flex items-center text-sm font-medium text-gray-700">
+                            <div className="bg-yellow-100 p-1.5 rounded-md mr-2 text-yellow-700"><Moon size={16} /></div>
+                            Day Rest (Minutes)
+                        </label>
+                        <input
+                            type="number"
+                            name="dayrest_time"
+                            min="0"
+                            value={formData.dayrest_time}
                             onChange={handleChange}
                             disabled={isReadOnly}
                             className="input-field"

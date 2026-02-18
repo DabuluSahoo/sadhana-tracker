@@ -1,19 +1,19 @@
 const db = require('../config/db');
 
 exports.createOrUpdateLog = async (req, res) => {
-    const { date, rounds, reading_time, hearing_time, mangala_aarti, wakeup_time, sleep_time, service_hours, comments } = req.body;
+    const { date, rounds, reading_time, hearing_time, study_time, dayrest_time, mangala_aarti, wakeup_time, sleep_time, service_hours, comments } = req.body;
     const userId = req.user.id;
 
     try {
         const [existing] = await db.query('SELECT * FROM daily_sadhana WHERE user_id = ? AND date = ?', [userId, date]);
 
         if (existing.length > 0) {
-            await db.query(`UPDATE daily_sadhana SET rounds=?, reading_time=?, hearing_time=?, mangala_aarti=?, wakeup_time=?, sleep_time=?, service_hours=?, comments=? WHERE id=?`,
-                [rounds, reading_time, hearing_time, mangala_aarti, wakeup_time, sleep_time, service_hours, comments, existing[0].id]);
+            await db.query(`UPDATE daily_sadhana SET rounds=?, reading_time=?, hearing_time=?, study_time=?, dayrest_time=?, mangala_aarti=?, wakeup_time=?, sleep_time=?, service_hours=?, comments=? WHERE id=?`,
+                [rounds, reading_time, hearing_time, study_time || 0, dayrest_time || 0, mangala_aarti, wakeup_time, sleep_time, service_hours, comments, existing[0].id]);
             return res.json({ message: 'Report updated' });
         } else {
-            await db.query(`INSERT INTO daily_sadhana (user_id, date, rounds, reading_time, hearing_time, mangala_aarti, wakeup_time, sleep_time, service_hours, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [userId, date, rounds, reading_time, hearing_time, mangala_aarti, wakeup_time, sleep_time, service_hours, comments]);
+            await db.query(`INSERT INTO daily_sadhana (user_id, date, rounds, reading_time, hearing_time, study_time, dayrest_time, mangala_aarti, wakeup_time, sleep_time, service_hours, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [userId, date, rounds, reading_time, hearing_time, study_time || 0, dayrest_time || 0, mangala_aarti, wakeup_time, sleep_time, service_hours, comments]);
             return res.status(201).json({ message: 'Report submitted' });
         }
     } catch (err) {
