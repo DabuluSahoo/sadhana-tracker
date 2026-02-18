@@ -83,7 +83,7 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
     };
 
     return (
-        <div className="bg-white rounded-xl shadow-lg border border-orange-100 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-orange-100 dark:border-gray-700 overflow-hidden transition-colors">
             <div className="bg-saffron-50 px-6 py-4 border-b border-orange-100 flex justify-between items-center">
                 <h3 className="text-lg font-serif font-semibold text-saffron-800">
                     Sadhana for {format(date, 'EEEE, MMMM do, yyyy')}
@@ -113,7 +113,7 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
 
                     {/* Wake up Time */}
                     <div className="space-y-2">
-                        <label className="flex items-center text-sm font-medium text-gray-700">
+                        <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
                             <div className="bg-blue-100 p-1.5 rounded-md mr-2 text-blue-700"><Clock size={16} /></div>
                             Wake Up Time
                         </label>
@@ -129,7 +129,7 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
 
                     {/* Reading */}
                     <div className="space-y-2">
-                        <label className="flex items-center text-sm font-medium text-gray-700">
+                        <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
                             <div className="bg-red-100 p-1.5 rounded-md mr-2 text-red-700"><BookOpen size={16} /></div>
                             Reading (Minutes)
                         </label>
@@ -146,7 +146,7 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
 
                     {/* Sleep Time */}
                     <div className="space-y-2">
-                        <label className="flex items-center text-sm font-medium text-gray-700">
+                        <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
                             <div className="bg-indigo-100 p-1.5 rounded-md mr-2 text-indigo-700"><Moon size={16} /></div>
                             Sleep Time
                         </label>
@@ -162,7 +162,7 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
 
                     {/* Hearing */}
                     <div className="space-y-2">
-                        <label className="flex items-center text-sm font-medium text-gray-700">
+                        <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
                             <div className="bg-purple-100 p-1.5 rounded-md mr-2 text-purple-700"><Music size={16} /></div>
                             Hearing/Kirtan (Minutes)
                         </label>
@@ -179,7 +179,7 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
 
                     {/* Service Hours */}
                     <div className="space-y-2">
-                        <label className="flex items-center text-sm font-medium text-gray-700">
+                        <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
                             <div className="bg-gray-100 p-1.5 rounded-md mr-2 text-gray-700"><Coffee size={16} /></div>
                             Service (Hours)
                         </label>
@@ -197,7 +197,7 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
 
                     {/* Study */}
                     <div className="space-y-2">
-                        <label className="flex items-center text-sm font-medium text-gray-700">
+                        <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
                             <div className="bg-green-100 p-1.5 rounded-md mr-2 text-green-700"><BookOpen size={16} /></div>
                             Study (Minutes)
                         </label>
@@ -214,7 +214,7 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
 
                     {/* Day Rest */}
                     <div className="space-y-2">
-                        <label className="flex items-center text-sm font-medium text-gray-700">
+                        <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
                             <div className="bg-yellow-100 p-1.5 rounded-md mr-2 text-yellow-700"><Moon size={16} /></div>
                             Day Rest (Minutes)
                         </label>
