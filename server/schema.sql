@@ -3,11 +3,19 @@ USE sadhana_db;
 
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) NOT NULL UNIQUE, -- storing email here ideally
+    email VARCHAR(255) UNIQUE,
+    username VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     role ENUM('devotee', 'admin') DEFAULT 'devotee',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS otp_tokens (
+    email VARCHAR(255) PRIMARY KEY,
+    otp VARCHAR(6) NOT NULL,
+    expires_at DATETIME NOT NULL
+);
+
 
 CREATE TABLE IF NOT EXISTS daily_sadhana (
     id INT AUTO_INCREMENT PRIMARY KEY,

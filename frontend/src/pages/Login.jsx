@@ -80,7 +80,13 @@ const Login = () => {
                         {loading ? 'Signing in...' : 'Sign In'}
                     </button>
 
-                    <div className="text-center mt-4">
+                    <div className="text-center mt-2">
+                        <Link to="/forgot-password" className="text-sm text-saffron-600 hover:underline">
+                            Forgot Password?
+                        </Link>
+                    </div>
+
+                    <div className="text-center mt-2">
                         <p className="text-sm text-gray-600">
                             Don't have an account?{' '}
                             <Link to="/register" className="font-medium text-saffron-600 hover:text-saffron-500">
