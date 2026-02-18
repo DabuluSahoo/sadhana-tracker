@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
-import { LogOut, LayoutDashboard, History, Users, Menu, X } from 'lucide-react';
+import { LogOut, LayoutDashboard, History, Users, Menu, X, Calendar } from 'lucide-react';
 import { useState } from 'react';
 
 const Layout = () => {
