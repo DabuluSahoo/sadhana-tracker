@@ -54,9 +54,9 @@ const sendReminderEmail = async (email, username, date) => {
     });
 };
 
-// Run every day at 7:55 AM IST (2:25 UTC) — ensure emails arrive by 8 AM
-cron.schedule('25 2 * * *', async () => {
-    console.log('Running daily sadhana reminder check (scheduled for 7:55 AM IST)');
+// Run every day at 7:59 AM IST (2:29 UTC) — ensure emails are fresh and arrive by 8 AM
+cron.schedule('29 2 * * *', async () => {
+    console.log('Running daily sadhana reminder check (scheduled for 7:59 AM IST)');
     try {
         // Yesterday's date
         const yesterday = new Date();
