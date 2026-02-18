@@ -2,7 +2,7 @@ const https = require('https');
 
 const sendOTP = async (email, otp, subject = 'Your OTP - Sadhana Tracker') => {
     const body = JSON.stringify({
-        from: 'Sadhana Tracker <onboarding@resend.dev>',
+        from: 'Sadhana Tracker <noreply@wsahoo.space>',
         to: [email],
         subject,
         html: `
