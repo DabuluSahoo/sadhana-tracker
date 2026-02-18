@@ -275,12 +275,20 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0, scale: 1.5, filter: 'blur(20px)' }}
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-saffron-600/90 pointer-events-none"
+                        className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-saffron-600/95 pointer-events-none"
                     >
+                        <motion.img
+                            src="/voice-iskcon-logo.svg"
+                            alt="VOICE ISKCON Logo"
+                            initial={{ scale: 0.5, opacity: 0, rotate: -10 }}
+                            animate={{ scale: 1.1, opacity: 1, rotate: 0 }}
+                            transition={{ duration: 0.8, type: "spring" }}
+                            className="w-40 h-40 mb-10"
+                        />
                         <motion.h2
                             initial={{ scale: 0.5, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                            transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
                             className="text-5xl md:text-8xl font-serif font-bold text-white tracking-widest italic px-4 text-center"
                         >
                             HARE KRISHNA
