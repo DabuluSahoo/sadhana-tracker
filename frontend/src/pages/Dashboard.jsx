@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { format, startOfWeek, addDays, isSameDay, subWeeks, addWeeks, subDays } from 'date-fns';
 import api from '../api';
 import SadhanaCard from '../components/SadhanaCard';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { ChevronLeft, ChevronRight, CheckCircle, AlertCircle } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -41,7 +42,9 @@ const Dashboard = () => {
     const handleNextWeek = () => setCurrentWeekStart(addWeeks(currentWeekStart, 1));
 
     // Is this week the current real-time week?
-    const isCurrentWeek = isSameDay(startOfWeek(new Date()), currentWeekStart);
+    const isCurrentWeek = isSameDay(startOfWeek(yesterday), currentWeekStart);
+
+    if (loading) return <LoadingSpinner />;
 
     return (
         <div className="space-y-6">

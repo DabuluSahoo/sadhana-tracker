@@ -8,8 +8,16 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [showGreeting, setShowGreeting] = useState(true);
     const { login } = useContext(AuthContext);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setShowGreeting(false);
+        }, 2200);
+        return () => clearTimeout(timer);
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -21,12 +29,23 @@ const Login = () => {
         else setError('Invalid username or password. Please try again.');
     };
 
+    if (showGreeting) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-saffron-600 overflow-hidden">
+                <h1 className="text-6xl md:text-8xl font-serif font-bold text-white tracking-[0.2em] italic animate-fade-out-special px-4 text-center">
+                    HARE KRISHNA
+                </h1>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-saffron-50 px-4">
-            <div className="max-w-md w-full bg-white rounded-xl shadow-xl overflow-hidden md:max-w-lg border border-saffron-100">
+            <div className="max-w-md w-full bg-white rounded-xl shadow-xl overflow-hidden md:max-w-lg border border-saffron-100 animate-fade-in">
                 <div className="bg-saffron-600 py-6 px-8 text-center">
-                    <h2 className="text-2xl font-serif font-bold text-white">Sadhana Tracker</h2>
-                    <p className="text-saffron-100 mt-2">Sign in to your account</p>
+                    <h1 className="text-3xl font-serif font-bold text-white tracking-widest mb-1 italic">HARE KRISHNA</h1>
+                    <h2 className="text-xl font-serif font-semibold text-saffron-100">Sadhana Tracker</h2>
+                    <p className="text-saffron-200 mt-2 text-sm italic">Sign in to your account</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="py-8 px-8 space-y-6">

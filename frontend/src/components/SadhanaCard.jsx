@@ -49,6 +49,15 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
         }
     }, [existingData, date]);
 
+    const [showSuccess, setShowSuccess] = useState(false);
+
+    useEffect(() => {
+        if (showSuccess) {
+            const timer = setTimeout(() => setShowSuccess(false), 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [showSuccess]);
+
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData(prev => ({
@@ -64,6 +73,7 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
         try {
             await api.post('/sadhana', { ...formData, date: format(date, 'yyyy-MM-dd') });
             toast.success('Sadhana report saved successfully');
+            setShowSuccess(true);
             if (onSave) onSave();
         } catch (error) {
             toast.error('Failed to save report');
@@ -257,6 +267,14 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
                     </div>
                 )}
             </form>
+
+            {showSuccess && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-saffron-600/90 pointer-events-none">
+                    <h2 className="text-4xl md:text-7xl font-serif font-bold text-white tracking-widest italic animate-fade-out-special px-4 text-center">
+                        HARE KRISHNA
+                    </h2>
+                </div>
+            )}
         </div>
     );
 };

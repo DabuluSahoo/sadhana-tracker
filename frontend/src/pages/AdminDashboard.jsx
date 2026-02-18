@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../api';
 import { format } from 'date-fns';
 import { ChevronRight } from 'lucide-react';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const AdminDashboard = () => {
     const [users, setUsers] = useState([]);
@@ -32,6 +33,8 @@ const AdminDashboard = () => {
             console.error('Error fetching user logs:', error);
         }
     };
+
+    if (loading) return <LoadingSpinner />;
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-140px)]">

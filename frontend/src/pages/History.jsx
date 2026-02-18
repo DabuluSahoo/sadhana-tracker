@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api';
 import { format } from 'date-fns';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const History = () => {
     const [logs, setLogs] = useState([]);
@@ -20,7 +21,7 @@ const History = () => {
         fetchHistory();
     }, []);
 
-    if (loading) return <div className="text-center py-10">Loading history...</div>;
+    if (loading) return <LoadingSpinner />;
 
     return (
         <div className="space-y-6">
