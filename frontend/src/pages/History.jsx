@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../api';
 import { format } from 'date-fns';
 import LoadingSpinner from '../components/LoadingSpinner';
+import SadhanaAnalytics from '../components/SadhanaAnalytics';
 
 const History = () => {
     const [logs, setLogs] = useState([]);
@@ -24,10 +25,17 @@ const History = () => {
     if (loading) return <LoadingSpinner />;
 
     return (
-        <div className="space-y-6">
-            <h2 className="text-2xl font-serif font-bold text-gray-800">Your Sadhana History</h2>
+        <div className="space-y-8 max-w-7xl mx-auto">
+            <div className="flex justify-between items-center">
+                <h2 className="text-3xl font-serif font-bold text-gray-800">Your Sadhana Progress</h2>
+            </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            {logs.length > 0 && <SadhanaAnalytics logs={logs} />}
+
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-8">
+                <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+                    <h3 className="font-serif font-bold text-gray-700">Detailed Logs</h3>
+                </div>
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
