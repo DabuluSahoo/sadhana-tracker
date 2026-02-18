@@ -3,15 +3,13 @@
 @layer base {
   body {
     @apply transition-colors duration-500 antialiased;
-    @apply bg-devotional-bg text-devotional-text;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
   }
 }
 
-/* Ensure the background changes properly in dark mode */
-html.dark body,
-html.dark .bg-devotional-bg {
-  background-color: #0d0d12 !important;
-  color: #e5e7eb;
+.bg-devotional-bg {
+  background-color: var(--bg-primary);
 }
 
 .input-field {

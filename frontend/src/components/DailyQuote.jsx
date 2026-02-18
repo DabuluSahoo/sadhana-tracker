@@ -23,13 +23,13 @@ const DailyQuote = () => {
 
             <div className="relative flex items-start space-x-4">
                 <div className="bg-saffron-500/10 p-2 rounded-lg">
-                    <Quote className="text-saffron-600 w-6 h-6" />
+                    <Quote className="text-saffron-600 dark:text-saffron-400 w-6 h-6" />
                 </div>
                 <div>
-                    <p className="text-lg font-serif italic text-gray-800 leading-relaxed">
-                        \"{dailyQuote.text}\"
+                    <p className="text-lg font-serif italic text-gray-800 dark:text-gray-100 leading-relaxed">
+                        {dailyQuote.text}
                     </p>
-                    <p className="mt-2 text-sm font-bold text-saffron-700 tracking-wide uppercase">
+                    <p className="mt-2 text-sm font-bold text-saffron-700 dark:text-saffron-400 tracking-wide uppercase">
                         — {dailyQuote.source}
                     </p>
                 </div>

@@ -35,7 +35,6 @@ const SadhanaAnalytics = ({ logs }) => {
     if (!logs || logs.length === 0) return null;
 
     return (
-    return (
         <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-700 transition-colors duration-300">
             {/* Stats Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
