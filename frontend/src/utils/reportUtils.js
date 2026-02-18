@@ -1,22 +1,39 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import { format, subDays, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
+import { format, subWeeks, startOfWeek, endOfWeek, isWithinInterval, startOfDay, endOfDay, isAfter } from 'date-fns';
+import toast from 'react-hot-toast';
 
 export const generateWeeklySadhanaReport = (username, logs) => {
-    const doc = jsPDF();
     const now = new Date();
-    const lastWeek = subDays(now, 7);
 
-    // Filter last 7 days of logs
+    // Logic: If today is Sunday or later, we can get "Last Week" (Previous Sun-Sat)
+    // We'll define "Last Full Week" as the most recent Sunday to Saturday period.
+    const lastWeekStart = startOfWeek(subWeeks(now, 1), { weekStartsOn: 0 }); // Sunday
+    const lastWeekEnd = endOfWeek(subWeeks(now, 1), { weekStartsOn: 0 });   // Saturday
+
+    // Filter logs for that specific week
     const weeklyLogs = logs
         .filter(log => {
             const logDate = new Date(log.date);
             return isWithinInterval(logDate, {
-                start: startOfDay(lastWeek),
-                end: endOfDay(now)
+                start: startOfDay(lastWeekStart),
+                end: endOfDay(lastWeekEnd)
             });
         })
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    if (weeklyLogs.length === 0) {
+        toast.error(`No sadhana logs found for the week: ${format(lastWeekStart, 'MMM d')} - ${format(lastWeekEnd, 'MMM d')}`);
+        return;
+    }
+
+    if (weeklyLogs.length < 7) {
+        toast(`Note: Only ${weeklyLogs.length}/7 days are filled for this week.`, {
+            icon: '⚠️',
+        });
+    }
+
+    const doc = jsPDF();
 
     // Header section
     doc.setFont('serif');
@@ -31,34 +48,32 @@ export const generateWeeklySadhanaReport = (username, logs) => {
     doc.setFontSize(12);
     doc.setTextColor(60);
     doc.text(`Devotee: ${username}`, 20, 45);
-    doc.text(`Generated: ${format(now, 'PPP')}`, 20, 52);
-    doc.text(`Period: ${format(lastWeek, 'MMM d')} - ${format(now, 'MMM d, yyyy')}`, 20, 59);
+    doc.text(`Generated: ${format(now, 'PPP p')}`, 20, 52);
+    doc.text(`Week Range: ${format(lastWeekStart, 'EEEE, MMM d')} to ${format(lastWeekEnd, 'EEEE, MMM d, yyyy')}`, 20, 59);
 
     // Summary Box
-    if (weeklyLogs.length > 0) {
-        const totalRounds = weeklyLogs.reduce((sum, l) => sum + (l.rounds || 0), 0);
-        const avgRounds = (totalRounds / weeklyLogs.length).toFixed(1);
-        const totalStudy = weeklyLogs.reduce((sum, l) => sum + (l.study_time || 0), 0);
-        const mangalaCount = weeklyLogs.filter(l => l.mangala_aarti).length;
+    const totalRounds = weeklyLogs.reduce((sum, l) => sum + (l.rounds || 0), 0);
+    const avgRounds = (totalRounds / weeklyLogs.length).toFixed(1);
+    const totalStudy = weeklyLogs.reduce((sum, l) => sum + (l.study_time || 0), 0);
+    const mangalaCount = weeklyLogs.filter(l => l.mangala_aarti).length;
 
-        doc.setDrawColor(241, 140, 0);
-        doc.setFillColor(255, 247, 237);
-        doc.rect(20, 65, 170, 25, 'FD');
+    doc.setDrawColor(241, 140, 0);
+    doc.setFillColor(255, 247, 237);
+    doc.rect(20, 65, 170, 25, 'FD');
 
-        doc.setTextColor(234, 88, 12);
-        doc.setFontSize(10);
-        doc.text('SUMMARY', 25, 72);
+    doc.setTextColor(234, 88, 12);
+    doc.setFontSize(10);
+    doc.text('WEEKLY SUMMARY', 25, 72);
 
-        doc.setTextColor(60);
-        doc.text(`Avg Rounds: ${avgRounds}`, 30, 80);
-        doc.text(`Total Study: ${totalStudy}m`, 80, 80);
-        doc.text(`Mangala Aarti: ${mangalaCount}/${weeklyLogs.length}`, 140, 80);
-    }
+    doc.setTextColor(60);
+    doc.text(`Avg Rounds: ${avgRounds}`, 30, 80);
+    doc.text(`Total Study: ${totalStudy}m`, 80, 80);
+    doc.text(`Mangala Aarti: ${mangalaCount}/${weeklyLogs.length}`, 140, 80);
 
     // Table
     const tableColumn = ["Date", "Rounds", "Reading", "Study", "Rest", "Mangala", "Comments"];
     const tableRows = weeklyLogs.map(log => [
-        format(new Date(log.date), 'MMM d'),
+        format(new Date(log.date), 'EEE, MMM d'),
         log.rounds || 0,
         `${log.reading_time || 0}m`,
         `${log.study_time || 0}m`,
@@ -74,6 +89,7 @@ export const generateWeeklySadhanaReport = (username, logs) => {
         theme: 'striped',
         headStyles: { fillColor: [234, 88, 12] },
         alternateRowStyles: { fillColor: [255, 252, 240] },
+        styles: { font: 'serif' },
         columnStyles: {
             6: { cellWidth: 50 }, // Comments column
         }
@@ -83,7 +99,8 @@ export const generateWeeklySadhanaReport = (username, logs) => {
     const finalY = doc.previousAutoTable.finalY + 10;
     doc.setFontSize(10);
     doc.setTextColor(150);
-    doc.text('Your spiritual progress is a gift to the world.', 105, finalY + 10, { align: 'center' });
+    doc.text('Your spiritual progress is a gift to the world.', 105, 285, { align: 'center' });
 
-    doc.save(`Sadhana_Report_${username}_${format(now, 'yyyy_MM_dd')}.pdf`);
+    doc.save(`Weekly_Sadhana_${username}_${format(lastWeekStart, 'MMM_d')}_To_${format(lastWeekEnd, 'MMM_d')}.pdf`);
+    toast.success('Weekly report downloaded!');
 };
