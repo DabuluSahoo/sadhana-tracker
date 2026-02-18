@@ -5,31 +5,43 @@ import toast from 'react-hot-toast';
 
 export const generateWeeklySadhanaReport = (username, logs) => {
     const now = new Date();
+    const dayOfWeek = now.getDay(); // 0 (Sun) to 6 (Sat)
 
-    // Logic: If today is Sunday or later, we can get "Last Week" (Previous Sun-Sat)
-    // We'll define "Last Full Week" as the most recent Sunday to Saturday period.
-    const lastWeekStart = startOfWeek(subWeeks(now, 1), { weekStartsOn: 0 }); // Sunday
-    const lastWeekEnd = endOfWeek(subWeeks(now, 1), { weekStartsOn: 0 });   // Saturday
+    let targetStart, targetEnd;
+
+    // Logic: If it's Sunday (0) or Monday (1), the user likely wants the RECENTLY COMPLETED week.
+    // Otherwise, they likely want the CURRENT week (even if partial).
+    if (dayOfWeek <= 1) {
+        targetStart = startOfDay(startOfWeek(subWeeks(now, 1), { weekStartsOn: 0 }));
+        targetEnd = endOfDay(endOfWeek(subWeeks(now, 1), { weekStartsOn: 0 }));
+    } else {
+        targetStart = startOfDay(startOfWeek(now, { weekStartsOn: 0 }));
+        targetEnd = endOfDay(endOfWeek(now, { weekStartsOn: 0 }));
+    }
 
     // Filter logs for that specific week
     const weeklyLogs = logs
         .filter(log => {
             const logDate = new Date(log.date);
             return isWithinInterval(logDate, {
-                start: startOfDay(lastWeekStart),
-                end: endOfDay(lastWeekEnd)
+                start: targetStart,
+                end: targetEnd
             });
         })
         .sort((a, b) => new Date(a.date) - new Date(b.date));
 
+    // Validations & Alerts
     if (weeklyLogs.length === 0) {
-        toast.error(`No sadhana logs found for the week: ${format(lastWeekStart, 'MMM d')} - ${format(lastWeekEnd, 'MMM d')}`);
+        toast.error(`No sadhana logs found for the week: ${format(targetStart, 'MMM d')} - ${format(targetEnd, 'MMM d')}`);
         return;
     }
 
-    if (weeklyLogs.length < 7) {
-        toast(`Note: Only ${weeklyLogs.length}/7 days are filled for this week.`, {
-            icon: '⚠️',
+    // Alert if week hasn't ended (Saturday is the last day)
+    const isWeekComplete = isAfter(now, endOfDay(targetEnd));
+    if (!isWeekComplete) {
+        toast(`Progress Report: This week (${format(targetStart, 'MMM d')} - ${format(targetEnd, 'MMM d')}) is still in progress.`, {
+            icon: 'ℹ️',
+            duration: 4000
         });
     }
 
@@ -49,7 +61,7 @@ export const generateWeeklySadhanaReport = (username, logs) => {
     doc.setTextColor(60);
     doc.text(`Devotee: ${username}`, 20, 45);
     doc.text(`Generated: ${format(now, 'PPP p')}`, 20, 52);
-    doc.text(`Week Range: ${format(lastWeekStart, 'EEEE, MMM d')} to ${format(lastWeekEnd, 'EEEE, MMM d, yyyy')}`, 20, 59);
+    doc.text(`Week Range: ${format(targetStart, 'EEEE, MMM d')} to ${format(targetEnd, 'EEEE, MMM d, yyyy')}`, 20, 59);
 
     // Summary Box
     const totalRounds = weeklyLogs.reduce((sum, l) => sum + (l.rounds || 0), 0);
