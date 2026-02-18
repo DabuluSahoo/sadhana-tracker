@@ -8,9 +8,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from './pages/Dashboard';
 import History from './pages/History';
 import AdminDashboard from './pages/AdminDashboard';
-import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
-import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
