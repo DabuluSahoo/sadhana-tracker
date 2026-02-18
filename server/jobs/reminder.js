@@ -3,7 +3,7 @@ const db = require('../config/db');
 const { sendOTP } = require('../config/mailer');
 
 // Send a reminder email (reusing mailer's HTTP helper)
-const sendReminderEmail = async (email, username) => {
+const sendReminderEmail = async (email, username, date) => {
     const https = require('https');
     const body = JSON.stringify({
         from: 'Sadhana Tracker <noreply@wsahoo.space>',
@@ -14,13 +14,13 @@ const sendReminderEmail = async (email, username) => {
                 <h2 style="color: #c47a00; text-align: center;">🪷 Sadhana Tracker</h2>
                 <p style="font-size: 16px;">Hare Krishna, <strong>${username}</strong>! 🙏</p>
                 <p style="font-size: 15px; color: #444;">
-                    You haven't filled in your sadhana report for today yet.<br/>
-                    Please take a moment to log your spiritual activities before the day ends.
+                    You haven't filled in your sadhana report for <strong>${date}</strong> yet.<br/>
+                    Please take a moment to log yesterday's spiritual activities.
                 </p>
                 <div style="text-align: center; margin: 24px 0;">
                     <a href="https://sadhana.wsahoo.space" 
                        style="background: #c47a00; color: white; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-size: 15px; font-weight: bold;">
-                        Fill Today's Sadhana
+                        Fill Yesterday's Sadhana
                     </a>
                 </div>
                 <p style="color: #888; font-size: 12px; text-align: center;">
@@ -54,13 +54,16 @@ const sendReminderEmail = async (email, username) => {
     });
 };
 
-// Run every day at 8:00 PM IST (14:30 UTC)
-cron.schedule('30 14 * * *', async () => {
-    console.log('Running daily sadhana reminder at 8 PM IST');
+// Run every day at 8:00 AM IST (2:30 UTC) — remind to fill YESTERDAY's sadhana
+cron.schedule('30 2 * * *', async () => {
+    console.log('Running daily sadhana reminder at 8 AM IST');
     try {
-        const today = new Date().toISOString().slice(0, 10);
+        // Yesterday's date
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().slice(0, 10);
 
-        // Find users with email who have NOT submitted sadhana today
+        // Find users with email who have NOT submitted sadhana for yesterday
         const [users] = await db.query(`
             SELECT u.id, u.username, u.email
             FROM users u
@@ -68,13 +71,13 @@ cron.schedule('30 14 * * *', async () => {
               AND u.id NOT IN (
                   SELECT user_id FROM daily_sadhana WHERE date = ?
               )
-        `, [today]);
+        `, [yesterdayStr]);
 
-        console.log(`Found ${users.length} users who haven't filled sadhana for ${today}`);
+        console.log(`Found ${users.length} users who haven't filled sadhana for ${yesterdayStr}`);
 
         for (const user of users) {
             try {
-                await sendReminderEmail(user.email, user.username);
+                await sendReminderEmail(user.email, user.username, yesterdayStr);
                 console.log(`Reminder sent to ${user.email}`);
             } catch (err) {
                 console.error(`Failed to send reminder to ${user.email}:`, err.message);
