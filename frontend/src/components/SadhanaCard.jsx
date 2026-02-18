@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import api from '../api';
 import toast from 'react-hot-toast';
 import { Save, Clock, BookOpen, Music, Moon, Sun, Coffee } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
     const [formData, setFormData] = useState({
@@ -268,13 +269,25 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
                 )}
             </form>
 
-            {showSuccess && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-saffron-600/90 pointer-events-none">
-                    <h2 className="text-4xl md:text-7xl font-serif font-bold text-white tracking-widest italic animate-fade-out-special px-4 text-center">
-                        HARE KRISHNA
-                    </h2>
-                </div>
-            )}
+            <AnimatePresence>
+                {showSuccess && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0, scale: 1.5, filter: 'blur(20px)' }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-saffron-600/90 pointer-events-none"
+                    >
+                        <motion.h2
+                            initial={{ scale: 0.5, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                            className="text-5xl md:text-8xl font-serif font-bold text-white tracking-widest italic px-4 text-center"
+                        >
+                            HARE KRISHNA
+                        </motion.h2>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
