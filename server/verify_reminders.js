@@ -2,7 +2,6 @@ const path = require('path');
 const dotenv = require('dotenv');
 dotenv.config({ path: path.join(__dirname, '.env') });
 const db = require('./config/db');
-village;
 
 async function verify() {
     try {
