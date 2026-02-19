@@ -11,6 +11,9 @@ const AdminDashboard = () => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [userLogs, setUserLogs] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [loadingLogs, setLoadingLogs] = useState(false);
     // ... existing code ...
     // (Note: Replace only up to the detail header section)
 
@@ -28,13 +31,42 @@ const AdminDashboard = () => {
         fetchUsers();
     }, []);
 
-    const fetchUserLogs = async (userId) => {
+    const fetchUserLogs = async (userId, pageNum = 1) => {
+        if (loadingLogs) return;
+        setLoadingLogs(true);
         try {
-            const { data } = await api.get(`/admin/users/${userId}/logs`);
-            setUserLogs(data);
-            setSelectedUser(users.find(u => u.id === userId));
+            const { data } = await api.get(`/admin/users/${userId}/logs?page=${pageNum}&limit=30`);
+
+            if (pageNum === 1) {
+                setUserLogs(data.logs);
+            } else {
+                setUserLogs(prev => [...prev, ...data.logs]);
+            }
+
+            setHasMore(data.pagination.currentPage < data.pagination.totalPages);
+            setPage(pageNum);
+
+            if (!selectedUser || selectedUser.id !== userId) {
+                setSelectedUser(users.find(u => u.id === userId));
+            }
         } catch (error) {
             console.error('Error fetching user logs:', error);
+        } finally {
+            setLoadingLogs(false);
+        }
+    };
+
+    const handleUserSelect = (userId) => {
+        setPage(1);
+        setHasMore(true);
+        setUserLogs([]);
+        setSelectedUser(users.find(u => u.id === userId));
+        fetchUserLogs(userId, 1);
+    };
+
+    const loadMoreLogs = () => {
+        if (hasMore && !loadingLogs && selectedUser) {
+            fetchUserLogs(selectedUser.id, page + 1);
         }
     };
 
@@ -51,7 +83,7 @@ const AdminDashboard = () => {
                     {users.map(user => (
                         <button
                             key={user.id}
-                            onClick={() => fetchUserLogs(user.id)}
+                            onClick={() => handleUserSelect(user.id)}
                             className={`w-full text-left px-4 py-3 border-b border-gray-100 hover:bg-saffron-50 transition-colors flex justify-between items-center ${selectedUser?.id === user.id ? 'bg-saffron-50 border-saffron-200' : ''
                                 }`}
                         >
@@ -108,6 +140,23 @@ const AdminDashboard = () => {
                                                     )}
                                                 </div>
                                             ))}
+
+                                            {hasMore && (
+                                                <button
+                                                    onClick={loadMoreLogs}
+                                                    disabled={loadingLogs}
+                                                    className="w-full py-3 mt-4 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm flex justify-center items-center"
+                                                >
+                                                    {loadingLogs ? (
+                                                        <>
+                                                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-500 border-t-transparent mr-2"></div>
+                                                            Loading more history...
+                                                        </>
+                                                    ) : (
+                                                        "Load Earlier History"
+                                                    )}
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 </>

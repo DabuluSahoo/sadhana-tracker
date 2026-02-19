@@ -11,9 +11,28 @@ exports.getAllUsers = async (req, res) => {
 
 exports.getUserLogs = async (req, res) => {
     const { userId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 30;
+    const offset = (page - 1) * limit;
+
     try {
-        const [logs] = await db.query('SELECT * FROM daily_sadhana WHERE user_id = ? ORDER BY date DESC', [userId]);
-        res.json(logs);
+        // Get total count for pagination metadata
+        const [countResult] = await db.query('SELECT count(*) as total FROM daily_sadhana WHERE user_id = ?', [userId]);
+        const totalLogs = countResult[0].total;
+        const totalPages = Math.ceil(totalLogs / limit);
+
+        // Get paginated logs
+        const [logs] = await db.query('SELECT * FROM daily_sadhana WHERE user_id = ? ORDER BY date DESC LIMIT ? OFFSET ?', [userId, limit, offset]);
+
+        res.json({
+            logs,
+            pagination: {
+                totalLogs,
+                totalPages,
+                currentPage: page,
+                limit
+            }
+        });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
