@@ -6,6 +6,24 @@
   }
 }
 
+@theme {
+  --color-saffron-50: #fff8e1;
+  --color-saffron-100: #ffecb3;
+  --color-saffron-200: #ffe082;
+  --color-saffron-300: #ffd54f;
+  --color-saffron-400: #ffca28;
+  --color-saffron-500: #ffc107;
+  --color-saffron-600: #ffb300;
+  --color-saffron-700: #ffa000;
+  --color-saffron-800: #ff8f00;
+  --color-saffron-900: #ff6f00;
+
+  --color-devotional-bg: #fdfbf7;
+  --color-devotional-card: #ffffff;
+  --color-devotional-text: #4a4a4a;
+  --color-devotional-accent: #d97706;
+}
+
 @keyframes fade-out-text {
   0% {
     opacity: 0;

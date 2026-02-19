@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
@@ -11,6 +12,13 @@ import AdminDashboard from './pages/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
+  useEffect(() => {
+    // Fail-safe: Forcefully remove dark mode classes from the <html> element
+    document.documentElement.classList.remove('dark');
+    document.body.classList.remove('dark');
+    localStorage.removeItem('theme');
+  }, []);
+
   return (
     <AuthProvider>
       <Router>
