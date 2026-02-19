@@ -1,6 +1,6 @@
-const db = require('./config/db');
 const dotenv = require('dotenv');
 dotenv.config();
+const db = require('./config/db');
 
 async function verify() {
     try {
