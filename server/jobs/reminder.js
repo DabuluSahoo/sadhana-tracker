@@ -56,34 +56,43 @@ const sendReminderEmail = async (email, username, date) => {
 
 // Run every day at 7:59 AM IST (2:29 UTC) — ensure emails are fresh and arrive by 8 AM
 cron.schedule('29 2 * * *', async () => {
-    console.log('Running daily sadhana reminder check (scheduled for 7:59 AM IST)');
+    console.log('--- STARTING DAILY REMINDER JOB ---');
     try {
-        // Yesterday's date
+        // Calculate yesterday's date string in YYYY-MM-DD format
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
         const yesterdayStr = yesterday.toISOString().slice(0, 10);
 
-        // Find users with email who have NOT submitted sadhana for yesterday
+        console.log(`Checking for users who missed sadhana on: ${yesterdayStr}`);
+
+        // Find users with non-empty emails who have NOT submitted sadhana for yesterday
         const [users] = await db.query(`
             SELECT u.id, u.username, u.email
             FROM users u
-            WHERE u.email IS NOT NULL
+            WHERE u.email IS NOT NULL 
+              AND u.email != ''
               AND u.id NOT IN (
                   SELECT user_id FROM daily_sadhana WHERE date = ?
               )
         `, [yesterdayStr]);
 
-        console.log(`Found ${users.length} users who haven't filled sadhana for ${yesterdayStr}`);
+        console.log(`Total missing logs found: ${users.length}`);
 
         for (const user of users) {
+            const email = user.email.trim();
             try {
-                await sendReminderEmail(user.email, user.username, yesterdayStr);
-                console.log(`Reminder sent to ${user.email}`);
+                process.stdout.write(`Sending reminder to ${user.username} (${email})... `);
+                await sendReminderEmail(email, user.username, yesterdayStr);
+                console.log('✅ SENT');
+
+                // Small sleep to avoid hitting Resend rate limits (approx 10 emails per second is safe)
+                await new Promise(resolve => setTimeout(resolve, 200));
             } catch (err) {
-                console.error(`Failed to send reminder to ${user.email}:`, err.message);
+                console.log(`❌ FAILED: ${err.message}`);
             }
         }
+        console.log('--- DAILY REMINDER JOB COMPLETED ---');
     } catch (error) {
-        console.error('Error in reminder task:', error);
+        console.error('CRITICAL ERROR in reminder task:', error);
     }
 });
