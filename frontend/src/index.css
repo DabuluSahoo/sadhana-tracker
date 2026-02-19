@@ -2,66 +2,7 @@
 
 @layer base {
   body {
-    @apply transition-colors duration-500 antialiased;
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-  }
-}
-
-.bg-devotional-bg {
-  background-color: var(--bg-primary);
-}
-
-.input-field {
-  @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-saffron-500 focus:border-transparent outline-none transition-all duration-200;
-}
-
-.btn-primary {
-  @apply w-full py-3 bg-gradient-to-r from-saffron-500 to-saffron-600 text-white font-semibold rounded-lg shadow-md hover:from-saffron-600 hover:to-saffron-700 transition-all duration-200 transform hover:scale-[1.02];
-}
-
-.card {
-  @apply bg-white p-6 rounded-xl shadow-lg border border-orange-100;
-}
-
-@theme {
-  --color-saffron-50: #fff8e1;
-  --color-saffron-100: #ffecb3;
-  --color-saffron-200: #ffe082;
-  --color-saffron-300: #ffd54f;
-  --color-saffron-400: #ffca28;
-  --color-saffron-500: #ffc107;
-  --color-saffron-600: #ffb300;
-  --color-saffron-700: #ffa000;
-  --color-saffron-800: #ff8f00;
-  --color-saffron-900: #ff6f00;
-
-  --color-devotional-bg: #fdfbf7;
-  --color-devotional-card: #ffffff;
-  --color-devotional-text: #4a4a4a;
-  --color-devotional-accent: #d97706;
-}
-
-@layer base {
-  :root {
-    --bg-primary: #fdfbf7;
-    --bg-card: #ffffff;
-    --text-primary: #4a4a4a;
-    --text-secondary: #6b7280;
-    --border-color: #fce7f3;
-    /* orange-100 */
-  }
-
-  .dark {
-    --bg-primary: #0f1115;
-    /* Deep Charcoal */
-    --bg-card: #181a20;
-    /* Slightly lighter charcoal for cards */
-    --text-primary: #e5e7eb;
-    /* Gray-200 */
-    --text-secondary: #9ca3af;
-    /* Gray-400 */
-    --border-color: #272a34;
+    @apply bg-devotional-bg text-devotional-text antialiased;
   }
 }
 

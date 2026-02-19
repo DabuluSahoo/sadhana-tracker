@@ -17,19 +17,19 @@ const DailyQuote = () => {
     if (!dailyQuote) return null;
 
     return (
-        <div className="relative overflow-hidden bg-white/40 dark:bg-[#181a20]/60 backdrop-blur-md border border-white/40 dark:border-[#272a34]/50 p-6 rounded-2xl shadow-xl animate-in fade-in slide-in-from-top duration-700 transition-colors">
+        <div className="relative overflow-hidden bg-white/40 backdrop-blur-md border border-white/40 p-6 rounded-2xl shadow-xl animate-in fade-in slide-in-from-top duration-700 transition-colors">
             {/* Decorative background circle */}
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-saffron-200/30 rounded-full blur-3xl"></div>
 
             <div className="relative flex items-start space-x-4">
                 <div className="bg-saffron-500/10 p-2 rounded-lg">
-                    <Quote className="text-saffron-600 dark:text-saffron-400 w-6 h-6" />
+                    <Quote className="text-saffron-600 w-6 h-6" />
                 </div>
                 <div>
-                    <p className="text-lg font-serif italic text-gray-800 dark:text-gray-100 leading-relaxed">
+                    <p className="text-lg font-serif italic text-gray-800 leading-relaxed">
                         {dailyQuote.text}
                     </p>
-                    <p className="mt-2 text-sm font-bold text-saffron-700 dark:text-saffron-400 tracking-wide uppercase">
+                    <p className="mt-2 text-sm font-bold text-saffron-700 tracking-wide uppercase">
                         — {dailyQuote.source}
                     </p>
                 </div>

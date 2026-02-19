@@ -1,12 +1,10 @@
 import { useContext, useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
-import { LogOut, LayoutDashboard, History as HistoryIcon, Users, Menu, X, Sun, Moon } from 'lucide-react';
+import { LogOut, LayoutDashboard, History as HistoryIcon, Users, Menu, X } from 'lucide-react';
 
 const Layout = () => {
     const { user, logout } = useContext(AuthContext);
-    const { theme, toggleTheme } = useTheme();
     const navigate = useNavigate();
     const location = useLocation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -23,9 +21,9 @@ const Layout = () => {
     ];
 
     return (
-        <div className="min-h-screen transition-colors duration-500" style={{ backgroundColor: 'var(--bg-primary)' }}>
+        <div className="min-h-screen bg-devotional-bg flex flex-col">
             {/* Navbar */}
-            <nav className="bg-saffron-600 dark:bg-[#181a20] text-white shadow-md transition-colors duration-500">
+            <nav className="bg-saffron-600 text-white shadow-md">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-16 items-center">
                         <div className="flex items-center">
@@ -45,15 +43,7 @@ const Layout = () => {
                                     <span>{item.label}</span>
                                 </Link>
                             ))}
-                            <div className="border-l border-saffron-400 h-6 mx-2"></div>
                             <div className="flex items-center space-x-3">
-                                <button
-                                    onClick={toggleTheme}
-                                    className="p-2 rounded-md hover:bg-saffron-700 transition-colors"
-                                    title={theme === 'light' ? 'Switch to Meditation Mode' : 'Switch to Morning Mode'}
-                                >
-                                    {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-                                </button>
                                 <span className="font-medium">{user?.username}</span>
                                 <button
                                     onClick={handleLogout}
@@ -80,13 +70,6 @@ const Layout = () => {
                 {/* Mobile Nav */}
                 {isMobileMenuOpen && (
                     <div className="md:hidden bg-saffron-700 px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                        <button
-                            onClick={toggleTheme}
-                            className="flex items-center space-x-2 w-full text-left px-3 py-2 rounded-md hover:bg-saffron-600 text-base font-medium mb-1 border-b border-saffron-600 pb-3"
-                        >
-                            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-                            <span>{theme === 'light' ? 'Meditation Mode' : 'Morning Mode'}</span>
-                        </button>
                         {navItems.map((item) => (
                             <Link
                                 key={item.path}
