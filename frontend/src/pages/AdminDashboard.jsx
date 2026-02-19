@@ -57,7 +57,8 @@ const AdminDashboard = () => {
                         >
                             <div>
                                 <p className="font-medium text-gray-800">{user.username}</p>
-                                <p className="text-xs text-gray-500 capitalize">{user.role}</p>
+                                <p className="text-xs text-gray-500">{user.email || <span className="text-red-400">No Email</span>}</p>
+                                <p className="text-[10px] text-gray-400 capitalize">{user.role}</p>
                             </div>
                             <ChevronRight size={16} className="text-gray-400" />
                         </button>

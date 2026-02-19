@@ -2,7 +2,7 @@ const db = require('../config/db');
 
 exports.getAllUsers = async (req, res) => {
     try {
-        const [users] = await db.query('SELECT id, username, role, created_at FROM users');
+        const [users] = await db.query('SELECT id, username, email, role, created_at FROM users');
         res.json(users);
     } catch (err) {
         res.status(500).json({ message: err.message });
