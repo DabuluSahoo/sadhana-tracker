@@ -1,7 +1,7 @@
 import { useContext, useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
-import { LogOut, LayoutDashboard, History as HistoryIcon, Users, Menu, X } from 'lucide-react';
+import { LogOut, LayoutDashboard, History as HistoryIcon, Users, Menu, X, Volume2 } from 'lucide-react';
 
 const Layout = () => {
     const { user, logout } = useContext(AuthContext);
@@ -16,6 +16,7 @@ const Layout = () => {
 
     const navItems = [
         { label: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
+        { label: 'Japa Counter', path: '/japa', icon: <Volume2 size={20} /> },
         { label: 'History', path: '/history', icon: <HistoryIcon size={20} /> },
         ...(user?.role === 'admin' ? [{ label: 'Admin', path: '/admin', icon: <Users size={20} /> }] : []),
     ];
