@@ -104,13 +104,31 @@ const AdminDashboard = () => {
                     <>
                         <div className="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
                             <h3 className="font-semibold text-gray-700">Records for {selectedUser.username}</h3>
-                            <button
-                                onClick={() => generateWeeklySadhanaReport(selectedUser.username, userLogs)}
-                                className="flex items-center px-3 py-1.5 bg-saffron-600 text-white rounded-md hover:bg-saffron-700 transition-colors shadow-sm text-xs font-medium"
-                            >
-                                <FileText size={14} className="mr-1.5" />
-                                Download PDF Report
-                            </button>
+                            <div className="flex space-x-2">
+                                <button
+                                    onClick={async () => {
+                                        if (confirm('Send test reminders for yesterday to all missing users?')) {
+                                            try {
+                                                const { data } = await api.post('/api/debug/trigger-reminder');
+                                                alert(`Sent: ${data.totalFound} reminders. Check console for details.`);
+                                                console.log('Reminder results:', data);
+                                            } catch (err) {
+                                                alert('Failed to trigger: ' + (err.response?.data?.message || err.message));
+                                            }
+                                        }
+                                    }}
+                                    className="flex items-center px-3 py-1.5 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors shadow-sm text-xs font-medium"
+                                >
+                                    Test Reminders
+                                </button>
+                                <button
+                                    onClick={() => generateWeeklySadhanaReport(selectedUser.username, userLogs)}
+                                    className="flex items-center px-3 py-1.5 bg-saffron-600 text-white rounded-md hover:bg-saffron-700 transition-colors shadow-sm text-xs font-medium"
+                                >
+                                    <FileText size={14} className="mr-1.5" />
+                                    Download PDF Report
+                                </button>
+                            </div>
                         </div>
                         <div className="overflow-y-auto flex-grow p-6 space-y-8">
                             {userLogs.length > 0 ? (
