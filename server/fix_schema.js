@@ -15,13 +15,13 @@ async function fixSchema() {
             await db.query('ALTER TABLE users ADD COLUMN email VARCHAR(255) UNIQUE AFTER id');
             console.log('✅ Column "email" added successfully.');
         } else {
-            console.log('Column "email" already exists.');
+            // console.log('Column "email" already exists.');
         }
 
         // Also check for otp_tokens table which might be missing if schema is old
         try {
             await db.query('SELECT 1 FROM otp_tokens LIMIT 1');
-            console.log('Table "otp_tokens" already exists.');
+            // console.log('Table "otp_tokens" already exists.');
         } catch (e) {
             console.log('Creating missing "otp_tokens" table...');
             await db.query(`
@@ -35,11 +35,14 @@ async function fixSchema() {
         }
 
         console.log('--- SCHEMA FIX COMPLETED ---');
-        process.exit(0);
     } catch (err) {
         console.error('❌ Error fixing schema:', err);
-        process.exit(1);
+        // Don't exit, let the server try to start anyway
     }
 }
 
-fixSchema();
+module.exports = fixSchema;
+// Run if called directly, but not when required
+if (require.main === module) {
+    fixSchema().then(() => process.exit(0)).catch(() => process.exit(1));
+}

@@ -9,7 +9,8 @@ require('./jobs/reminder');
 dotenv.config();
 
 // Run schema fix on startup (ensure columns exist)
-require('./fix_schema');
+const fixSchema = require('./fix_schema');
+fixSchema();
 
 const app = express();
 
