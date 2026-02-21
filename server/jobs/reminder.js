@@ -85,8 +85,8 @@ cron.schedule('29 2 * * *', async () => {
                 await sendReminderEmail(email, user.username, yesterdayStr);
                 console.log('✅ SENT');
 
-                // Small sleep to avoid hitting Resend rate limits (approx 10 emails per second is safe)
-                await new Promise(resolve => setTimeout(resolve, 200));
+                // 1-second delay to stay within Resend Free tier limit (2 req/sec)
+                await new Promise(resolve => setTimeout(resolve, 1000));
             } catch (err) {
                 console.log(`❌ FAILED: ${err.message}`);
             }
