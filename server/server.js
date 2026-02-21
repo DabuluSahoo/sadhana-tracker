@@ -21,6 +21,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/sadhana', require('./routes/sadhanaRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/japa', require('./routes/japaRoutes'));
+app.use('/api/debug', require('./routes/debugRoutes'));
 
 app.get('/', (req, res) => {
     res.send('Sadhana Tracker API Running');
