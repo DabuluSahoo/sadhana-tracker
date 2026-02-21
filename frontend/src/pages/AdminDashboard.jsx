@@ -109,7 +109,7 @@ const AdminDashboard = () => {
                                     onClick={async () => {
                                         if (confirm('Send test reminders for yesterday to all missing users?')) {
                                             try {
-                                                const { data } = await api.post('/api/debug/trigger-reminder');
+                                                const { data } = await api.post('/debug/trigger-reminder');
                                                 alert(`Sent: ${data.totalFound} reminders. Check console for details.`);
                                                 console.log('Reminder results:', data);
                                             } catch (err) {
