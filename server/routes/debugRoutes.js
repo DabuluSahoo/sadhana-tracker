@@ -64,6 +64,8 @@ router.post('/trigger-reminder', protect, async (req, res) => {
             try {
                 await sendReminderEmail(user.email, user.username, yesterdayStr);
                 results.push({ user: user.username, status: 'SUCCESS' });
+                // Delay to stay within Resend Free Tier limit (2 req/sec)
+                await new Promise(resolve => setTimeout(resolve, 1500));
             } catch (err) {
                 results.push({ user: user.username, status: 'FAILED', error: err.message });
             }
