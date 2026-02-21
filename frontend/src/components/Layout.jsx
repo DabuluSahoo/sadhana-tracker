@@ -16,7 +16,6 @@ const Layout = () => {
 
     const navItems = [
         { label: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
-        { label: 'Japa Counter', path: '/japa', icon: <Volume2 size={20} /> },
         { label: 'History', path: '/history', icon: <HistoryIcon size={20} /> },
         ...(user?.role === 'admin' ? [{ label: 'Admin', path: '/admin', icon: <Users size={20} /> }] : []),
     ];

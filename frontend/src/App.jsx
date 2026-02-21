@@ -11,7 +11,7 @@ import History from './pages/History';
 import AdminDashboard from './pages/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 
-import JapaCounter from './pages/JapaCounter';
+
 
 function App() {
   useEffect(() => {
@@ -32,7 +32,7 @@ function App() {
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/history" element={<History />} />
-            <Route path="/japa" element={<JapaCounter />} />
+
             <Route path="/admin" element={<AdminDashboard />} />
           </Route>
           <Route path="*" element={<Navigate to="/" />} />
