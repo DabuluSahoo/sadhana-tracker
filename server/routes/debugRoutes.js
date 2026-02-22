@@ -104,4 +104,60 @@ router.post('/trigger-reminder', protect, async (req, res) => {
     }
 });
 
+// External trigger for cron services (e.g., cron-job.org)
+router.get('/external-trigger/:secret', async (req, res) => {
+    const { secret } = req.params;
+    const expectedSecret = process.env.REMINDER_SECRET || 'iskcon_secret_108';
+
+    if (secret !== expectedSecret) {
+        return res.status(401).json({ message: 'Invalid secret' });
+    }
+
+    console.log('--- EXTERNAL REMINDER TRIGGERED ---');
+    let logId = null;
+    try {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().slice(0, 10);
+
+        // Log start
+        const [logRes] = await db.query(
+            'INSERT INTO cron_logs (job_name, start_time, status) VALUES (?, NOW(), ?)',
+            ['EXTERNAL_TRIGGER', 'RUNNING']
+        );
+        logId = logRes.insertId;
+
+        // Check ALL users with emails
+        const [allUsers] = await db.query(`SELECT id, username, email FROM users WHERE email IS NOT NULL AND email != ''`);
+        const [submitted] = await db.query(`SELECT user_id FROM daily_sadhana WHERE date = ?`, [yesterdayStr]);
+        const submittedIds = submitted.map(s => s.user_id);
+
+        const usersToRemind = allUsers.filter(u => !submittedIds.includes(u.id));
+
+        const results = [];
+        for (const user of usersToRemind) {
+            try {
+                await sendReminderEmail(user.email, user.username, yesterdayStr);
+                results.push({ user: user.username, status: 'SUCCESS' });
+                await new Promise(resolve => setTimeout(resolve, 1500));
+            } catch (err) {
+                results.push({ user: user.username, status: 'FAILED', error: err.message });
+            }
+        }
+
+        // Update log on success
+        await db.query(
+            'UPDATE cron_logs SET end_time = NOW(), status = ?, results = ? WHERE id = ?',
+            ['COMPLETED', JSON.stringify({ dateChecked: yesterdayStr, sentCount: results.length, details: results }), logId]
+        );
+
+        res.json({ message: 'Reminder process completed', sentCount: results.length });
+    } catch (error) {
+        if (logId) {
+            await db.query('UPDATE cron_logs SET end_time = NOW(), status = ?, error_message = ? WHERE id = ?', ['FAILED', error.message, logId]);
+        }
+        res.status(500).json({ message: error.message });
+    }
+});
+
 module.exports = router;
