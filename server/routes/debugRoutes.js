@@ -116,9 +116,21 @@ router.get('/external-trigger/:secret', async (req, res) => {
     console.log('--- EXTERNAL REMINDER TRIGGERED ---');
     let logId = null;
     try {
+        const today = new Date().toISOString().slice(0, 10);
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
         const yesterdayStr = yesterday.toISOString().slice(0, 10);
+
+        // CHECK: Have we already COMPLETED a reminder run today?
+        const [existingRuns] = await db.query(
+            "SELECT id FROM cron_logs WHERE status = 'COMPLETED' AND DATE(start_time) = ? AND (job_name = 'EXTERNAL_TRIGGER' OR job_name = 'DAILY_REMINDER' OR job_name = 'MANUAL_TRIGGER')",
+            [today]
+        );
+
+        if (existingRuns.length > 0) {
+            console.log('Reminders already sent today. Skipping.');
+            return res.json({ message: 'Reminders already sent today', skipped: true });
+        }
 
         // Log start
         const [logRes] = await db.query(
