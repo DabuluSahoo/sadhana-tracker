@@ -1,5 +1,4 @@
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { format, subWeeks, startOfWeek, endOfWeek, isWithinInterval, startOfDay, endOfDay, isAfter } from 'date-fns';
 import toast from 'react-hot-toast';
 
@@ -48,12 +47,13 @@ export const generateWeeklySadhanaReport = (username, logs) => {
     const doc = jsPDF();
 
     // Header section
-    doc.setFont('serif');
+    doc.setFont('times', 'bold');
     doc.setTextColor(234, 88, 12); // Saffron 600
     doc.setFontSize(24);
     doc.text('HARE KRISHNA', 105, 20, { align: 'center' });
 
     doc.setTextColor(100);
+    doc.setFont('times', 'normal');
     doc.setFontSize(16);
     doc.text('Sadhana Tracker - Weekly Report', 105, 30, { align: 'center' });
 
@@ -101,7 +101,7 @@ export const generateWeeklySadhanaReport = (username, logs) => {
         theme: 'striped',
         headStyles: { fillColor: [234, 88, 12] },
         alternateRowStyles: { fillColor: [255, 252, 240] },
-        styles: { font: 'serif' },
+        styles: { font: 'times' },
         columnStyles: {
             6: { cellWidth: 50 }, // Comments column
         }
@@ -113,6 +113,6 @@ export const generateWeeklySadhanaReport = (username, logs) => {
     doc.setTextColor(150);
     doc.text('Your spiritual progress is a gift to the world.', 105, 285, { align: 'center' });
 
-    doc.save(`Weekly_Sadhana_${username}_${format(lastWeekStart, 'MMM_d')}_To_${format(lastWeekEnd, 'MMM_d')}.pdf`);
+    doc.save(`Weekly_Sadhana_${username}_${format(targetStart, 'MMM_d')}_To_${format(targetEnd, 'MMM_d')}.pdf`);
     toast.success('Weekly report downloaded!');
 };
