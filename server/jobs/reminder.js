@@ -54,18 +54,23 @@ const sendReminderEmail = async (email, username, date) => {
     });
 };
 
-// Run every day at 7:59 AM IST (2:29 UTC) — ensure emails are fresh and arrive by 8 AM
+// Run every day at 7:59 AM IST (2:29 UTC)
 cron.schedule('29 2 * * *', async () => {
     console.log('--- STARTING DAILY REMINDER JOB ---');
+    let logId = null;
+
     try {
-        // Calculate yesterday's date string in YYYY-MM-DD format
+        // Log start
+        const [logRes] = await db.query(
+            'INSERT INTO cron_logs (job_name, start_time, status) VALUES (?, NOW(), ?)',
+            ['DAILY_REMINDER', 'RUNNING']
+        );
+        logId = logRes.insertId;
+
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
         const yesterdayStr = yesterday.toISOString().slice(0, 10);
 
-        console.log(`Checking for users who missed sadhana on: ${yesterdayStr}`);
-
-        // Find users with non-empty emails who have NOT submitted sadhana for yesterday
         const [users] = await db.query(`
             SELECT u.id, u.username, u.email
             FROM users u
@@ -76,23 +81,33 @@ cron.schedule('29 2 * * *', async () => {
               )
         `, [yesterdayStr]);
 
-        console.log(`Total missing logs found: ${users.length}`);
-
+        const results = [];
         for (const user of users) {
-            const email = user.email.trim();
             try {
-                process.stdout.write(`Sending reminder to ${user.username} (${email})... `);
-                await sendReminderEmail(email, user.username, yesterdayStr);
-                console.log('✅ SENT');
-
-                // 1.5-second delay to safely stay within Resend Free tier limit (2 req/sec)
+                process.stdout.write(`Sending to ${user.username}... `);
+                await sendReminderEmail(user.email.trim(), user.username, yesterdayStr);
+                results.push({ user: user.username, status: 'SUCCESS' });
+                console.log('✅');
                 await new Promise(resolve => setTimeout(resolve, 1500));
             } catch (err) {
-                console.log(`❌ FAILED: ${err.message}`);
+                results.push({ user: user.username, status: 'FAILED', error: err.message });
+                console.log(`❌ ${err.message}`);
             }
         }
+
+        // Update log on success
+        await db.query(
+            'UPDATE cron_logs SET end_time = NOW(), status = ?, results = ? WHERE id = ?',
+            ['COMPLETED', JSON.stringify({ dateChecked: yesterdayStr, sentCount: results.length, details: results }), logId]
+        );
         console.log('--- DAILY REMINDER JOB COMPLETED ---');
     } catch (error) {
         console.error('CRITICAL ERROR in reminder task:', error);
+        if (logId) {
+            await db.query(
+                'UPDATE cron_logs SET end_time = NOW(), status = ?, error_message = ? WHERE id = ?',
+                ['FAILED', error.message, logId]
+            );
+        }
     }
 });
