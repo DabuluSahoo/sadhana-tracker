@@ -95,7 +95,7 @@ export const generateWeeklySadhanaReport = (username, logs) => {
         log.comments || ""
     ]);
 
-    doc.autoTable({
+    autoTable(doc, {
         startY: 95,
         head: [tableColumn],
         body: tableRows,
