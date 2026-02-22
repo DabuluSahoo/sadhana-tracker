@@ -63,8 +63,8 @@ const SadhanaAnalytics = ({ logs }) => {
                         <span className="w-2 h-6 bg-saffron-500 rounded-full mr-3"></span>
                         Japa Rounds Trend
                     </h3>
-                    <div className="h-[300px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
+                    <div className="h-[300px] min-h-[300px] w-full relative">
+                        <ResponsiveContainer width="99%" height="100%" debounce={100}>
                             <LineChart data={chartData}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                                 <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#666' }} />
@@ -91,8 +91,8 @@ const SadhanaAnalytics = ({ logs }) => {
                         <span className="w-2 h-6 bg-blue-500 rounded-full mr-3"></span>
                         Time Distribution (m)
                     </h3>
-                    <div className="h-[300px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
+                    <div className="h-[300px] min-h-[300px] w-full relative">
+                        <ResponsiveContainer width="99%" height="100%" debounce={100}>
                             <BarChart data={chartData}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                                 <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#666' }} />

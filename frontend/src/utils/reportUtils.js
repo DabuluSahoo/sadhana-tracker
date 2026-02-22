@@ -109,7 +109,7 @@ export const generateWeeklySadhanaReport = (username, logs) => {
     });
 
     // Footer
-    const finalY = doc.previousAutoTable.finalY + 10;
+    const finalY = (doc.lastAutoTable ? doc.lastAutoTable.finalY : 95) + 10;
     doc.setFontSize(10);
     doc.setTextColor(150);
     doc.text('Your spiritual progress is a gift to the world.', 105, 285, { align: 'center' });
