@@ -70,6 +70,20 @@ const AdminDashboard = () => {
         }
     };
 
+    const handlePromote = async (userId) => {
+        if (!confirm(`Are you sure you want to promote ${selectedUser.username} to Admin? This action cannot be easily undone.`)) return;
+
+        try {
+            await api.put(`/admin/users/${userId}/promote`);
+            // Update local users state
+            setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: 'admin' } : u));
+            setSelectedUser(prev => ({ ...prev, role: 'admin' }));
+            alert('User promoted successfully!');
+        } catch (err) {
+            alert('Failed to promote user: ' + (err.response?.data?.message || err.message));
+        }
+    };
+
     if (loading) return <LoadingSpinner />;
 
     return (
@@ -90,7 +104,9 @@ const AdminDashboard = () => {
                             <div>
                                 <p className="font-medium text-gray-800">{user.username}</p>
                                 <p className="text-xs text-gray-500">{user.email || <span className="text-red-400">No Email</span>}</p>
-                                <p className="text-[10px] text-gray-400 capitalize">{user.role}</p>
+                                <p className={`text-[10px] uppercase font-bold tracking-tighter ${user.role === 'admin' ? 'text-saffron-600' : 'text-gray-400'}`}>
+                                    {user.role}
+                                </p>
                             </div>
                             <ChevronRight size={16} className="text-gray-400" />
                         </button>
@@ -105,6 +121,14 @@ const AdminDashboard = () => {
                         <div className="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
                             <h3 className="font-semibold text-gray-700">Records for {selectedUser.username}</h3>
                             <div className="flex space-x-2">
+                                {selectedUser.role !== 'admin' && (
+                                    <button
+                                        onClick={() => handlePromote(selectedUser.id)}
+                                        className="flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors shadow-sm text-xs font-medium"
+                                    >
+                                        Promote to Admin
+                                    </button>
+                                )}
                                 <button
                                     onClick={async () => {
                                         if (confirm('Send test reminders for yesterday to all missing users?')) {
