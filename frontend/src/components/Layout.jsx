@@ -23,7 +23,7 @@ const Layout = () => {
     return (
         <div className="min-h-screen bg-devotional-bg flex flex-col">
             {/* Navbar */}
-            <nav className="bg-saffron-600 text-white shadow-md">
+            <nav className="bg-saffron-600 text-white shadow-md sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-16 items-center">
                         <div className="flex items-center">
