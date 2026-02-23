@@ -73,7 +73,7 @@ const AdminDashboard = () => {
     };
 
     const handlePromote = async (userId) => {
-        if (!confirm(`Are you sure you want to promote ${selectedUser.username} to Admin? This action cannot be easily undone.`)) return;
+        if (!confirm(`Are you sure you want to promote ${selectedUser.username} to Admin?`)) return;
 
         try {
             await api.put(`/admin/users/${userId}/promote`);
