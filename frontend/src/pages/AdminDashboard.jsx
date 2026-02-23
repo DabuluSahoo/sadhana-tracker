@@ -121,7 +121,8 @@ const AdminDashboard = () => {
                             <div>
                                 <p className="font-medium text-gray-800">{user.username}</p>
                                 <p className="text-xs text-gray-500">{user.email || <span className="text-red-400">No Email</span>}</p>
-                                <p className={`text-[10px] uppercase font-bold tracking-tighter ${user.role === 'admin' ? 'text-saffron-600' : 'text-gray-400'}`}>
+                                <p className={`text-[10px] uppercase font-bold tracking-tighter ${user.role === 'owner' ? 'text-purple-600' : user.role === 'admin' ? 'text-saffron-600' : 'text-gray-400'
+                                    }`}>
                                     {user.role}
                                 </p>
                             </div>
@@ -138,22 +139,26 @@ const AdminDashboard = () => {
                         <div className="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
                             <h3 className="font-semibold text-gray-700">Records for {selectedUser.username}</h3>
                             <div className="flex space-x-2">
-                                {selectedUser.role !== 'admin' ? (
-                                    <button
-                                        onClick={() => handlePromote(selectedUser.id)}
-                                        className="flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors shadow-sm text-xs font-medium"
-                                    >
-                                        Promote to Admin
-                                    </button>
-                                ) : (
-                                    selectedUser.id !== user.id && (
-                                        <button
-                                            onClick={() => handleDemote(selectedUser.id)}
-                                            className="flex items-center px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors shadow-sm text-xs font-medium"
-                                        >
-                                            Demote to Devotee
-                                        </button>
-                                    )
+                                {user.role === 'owner' && (
+                                    <>
+                                        {selectedUser.role !== 'admin' && selectedUser.role !== 'owner' ? (
+                                            <button
+                                                onClick={() => handlePromote(selectedUser.id)}
+                                                className="flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors shadow-sm text-xs font-medium"
+                                            >
+                                                Promote to Admin
+                                            </button>
+                                        ) : (
+                                            selectedUser.id !== user.id && selectedUser.role === 'admin' && (
+                                                <button
+                                                    onClick={() => handleDemote(selectedUser.id)}
+                                                    className="flex items-center px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors shadow-sm text-xs font-medium"
+                                                >
+                                                    Demote to Devotee
+                                                </button>
+                                            )
+                                        )}
+                                    </>
                                 )}
                                 <button
                                     onClick={async () => {

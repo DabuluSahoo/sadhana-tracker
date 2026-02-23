@@ -16,6 +16,14 @@ async function fixSchema() {
             console.log('✅ Column "email" added successfully.');
         }
 
+        // Ensure role ENUM includes 'owner'
+        const [roleColumns] = await db.query('SHOW COLUMNS FROM users LIKE "role"');
+        if (roleColumns.length > 0 && !roleColumns[0].Type.includes("'owner'")) {
+            console.log('Updating "role" column to include "owner"...');
+            await db.query("ALTER TABLE users MODIFY COLUMN role ENUM('devotee', 'admin', 'owner') DEFAULT 'devotee'");
+            console.log('✅ Role column updated successfully.');
+        }
+
         // Check for otp_tokens table
         try {
             await db.query('SELECT 1 FROM otp_tokens LIMIT 1');
