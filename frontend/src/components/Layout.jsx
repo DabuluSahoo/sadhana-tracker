@@ -17,7 +17,12 @@ const Layout = () => {
     const navItems = [
         { label: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
         { label: 'History', path: '/history', icon: <HistoryIcon size={20} /> },
-        { label: 'Admin', path: '/admin', roles: ['admin', 'owner'], icon: <Users size={20} /> },
+        {
+            label: user?.role === 'owner' ? 'Owner' : 'Admin',
+            path: '/admin',
+            roles: ['admin', 'owner'],
+            icon: <Users size={20} />
+        },
     ].filter(item => !item.roles || item.roles.includes(user?.role));
 
     return (
