@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import api from '../api';
 import { format } from 'date-fns';
 import { ChevronRight, FileText } from 'lucide-react';
+import AuthContext from '../context/AuthContext';
 import LoadingSpinner from '../components/LoadingSpinner';
 import SadhanaAnalytics from '../components/SadhanaAnalytics';
 import { generateWeeklySadhanaReport } from '../utils/reportUtils';
 
 const AdminDashboard = () => {
+    const { user } = useContext(AuthContext);
     const [users, setUsers] = useState([]);
     const [selectedUser, setSelectedUser] = useState(null);
     const [userLogs, setUserLogs] = useState([]);
