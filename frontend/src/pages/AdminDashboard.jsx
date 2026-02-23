@@ -84,6 +84,21 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleDemote = async (userId) => {
+        if (userId === user.id) return alert('You cannot demote yourself!');
+        if (!confirm(`Are you sure you want to demote ${selectedUser.username} back to Devotee?`)) return;
+
+        try {
+            await api.put(`/admin/users/${userId}/demote`);
+            // Update local users state
+            setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: 'devotee' } : u));
+            setSelectedUser(prev => ({ ...prev, role: 'devotee' }));
+            alert('User demoted successfully!');
+        } catch (err) {
+            alert('Failed to demote user: ' + (err.response?.data?.message || err.message));
+        }
+    };
+
     if (loading) return <LoadingSpinner />;
 
     return (
@@ -121,13 +136,22 @@ const AdminDashboard = () => {
                         <div className="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
                             <h3 className="font-semibold text-gray-700">Records for {selectedUser.username}</h3>
                             <div className="flex space-x-2">
-                                {selectedUser.role !== 'admin' && (
+                                {selectedUser.role !== 'admin' ? (
                                     <button
                                         onClick={() => handlePromote(selectedUser.id)}
                                         className="flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors shadow-sm text-xs font-medium"
                                     >
                                         Promote to Admin
                                     </button>
+                                ) : (
+                                    selectedUser.id !== user.id && (
+                                        <button
+                                            onClick={() => handleDemote(selectedUser.id)}
+                                            className="flex items-center px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors shadow-sm text-xs font-medium"
+                                        >
+                                            Demote to Devotee
+                                        </button>
+                                    )
                                 )}
                                 <button
                                     onClick={async () => {

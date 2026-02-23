@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { getAllUsers, getUserLogs, editUserLog, promoteUser } = require('../controllers/adminController');
+const { getAllUsers, getUserLogs, editUserLog, promoteUser, demoteUser } = require('../controllers/adminController');
 const { protect, adminObj } = require('../middleware');
 
 router.get('/users', protect, adminObj, getAllUsers);
 router.get('/users/:userId/logs', protect, adminObj, getUserLogs);
 router.put('/logs/:logId', protect, adminObj, editUserLog);
 router.put('/users/:userId/promote', protect, adminObj, promoteUser);
+router.put('/users/:userId/demote', protect, adminObj, demoteUser);
 
 module.exports = router;

@@ -54,9 +54,18 @@ exports.editUserLog = async (req, res) => {
 exports.promoteUser = async (req, res) => {
     const { userId } = req.params;
     try {
-        // Prevent promoting a user who is already an admin (optional but good practice)
         await db.query('UPDATE users SET role = "admin" WHERE id = ?', [userId]);
         res.json({ message: 'User promoted to Admin successfully' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+exports.demoteUser = async (req, res) => {
+    const { userId } = req.params;
+    try {
+        await db.query('UPDATE users SET role = "devotee" WHERE id = ?', [userId]);
+        res.json({ message: 'User demoted to Devotee successfully' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
