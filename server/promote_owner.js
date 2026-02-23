@@ -25,6 +25,10 @@ async function promoteToOwner(username) {
         console.log(`Connecting to database to promote '${username}'...`);
         connection = await mysql.createConnection(dbConfig);
 
+        // First, let's see what users we actually have
+        const [users] = await connection.execute('SELECT username FROM users');
+        console.log('Current users in DB:', users.map(u => u.username).join(', '));
+
         const [result] = await connection.execute(
             'UPDATE users SET role = "owner" WHERE username = ?',
             [username]
@@ -33,7 +37,7 @@ async function promoteToOwner(username) {
         if (result.affectedRows > 0) {
             console.log(`✅ Success! User '${username}' is now the OWNER.`);
         } else {
-            console.log(`❌ User '${username}' not found. Please check the username.`);
+            console.log(`❌ User '${username}' not found. Please check the spelling carefully.`);
         }
     } catch (error) {
         console.error('❌ Error:', error.message);
