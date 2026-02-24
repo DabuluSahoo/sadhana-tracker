@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
 import { Lock, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import VoiceLogo from '../components/VoiceLogo';
+
 
 const Login = () => {
     const [username, setUsername] = useState('');
@@ -48,7 +48,7 @@ const Login = () => {
                         transition={{ duration: 0.8, ease: "easeOut" }}
                         className="mb-8"
                     >
-                        <VoiceLogo className="w-32 h-32 md:w-48 md:h-48" color="#ffffff" bookColor="#ffffff" />
+                        <img src="/voice_logo.svg" alt="VOICE Logo" className="w-32 h-32 md:w-48 md:h-48" style={{ filter: 'brightness(0) invert(1)' }} />
                     </motion.div>
                     <motion.h1
                         initial={{ y: 20, opacity: 0 }}
@@ -77,7 +77,7 @@ const Login = () => {
                 >
                     <div className="max-w-md w-full bg-white rounded-xl shadow-xl overflow-hidden md:max-w-lg border border-saffron-100">
                         <div className="bg-saffron-600 py-6 px-8 text-center flex flex-col items-center">
-                            <VoiceLogo className="w-20 h-20 mb-3" color="#ffffff" bookColor="#ffffff" />
+                            <img src="/voice_logo.svg" alt="VOICE Logo" className="w-20 h-20 mb-3" style={{ filter: 'brightness(0) invert(1)' }} />
                             <h1 className="text-3xl font-serif font-bold text-white tracking-widest mb-1 italic">HARE KRISHNA</h1>
                             <h2 className="text-xl font-serif font-semibold text-saffron-100">Sadhana Tracker</h2>
                             <p className="text-saffron-200 mt-2 text-sm italic">Sign in to your account</p>
