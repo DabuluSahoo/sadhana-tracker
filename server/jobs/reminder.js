@@ -111,3 +111,23 @@ cron.schedule('29 2 * * *', async () => {
         }
     }
 });
+
+// ─── Daily Cleanup Job (3:30 AM IST = 22:00 UTC) ───────────────────────────
+// Keeps TiDB Cloud free tier storage lean by purging old/expired rows.
+cron.schedule('0 22 * * *', async () => {
+    console.log('--- DAILY CLEANUP JOB STARTED ---');
+    try {
+        const [r1] = await db.query('DELETE FROM otp_tokens WHERE expires_at < NOW()');
+        console.log(`🗑️  OTP tokens deleted: ${r1.affectedRows}`);
+
+        const [r2] = await db.query('DELETE FROM cron_logs WHERE start_time < NOW() - INTERVAL 30 DAY');
+        console.log(`🗑️  Old cron logs deleted: ${r2.affectedRows}`);
+
+        const [r3] = await db.query('DELETE FROM daily_sadhana WHERE created_at < NOW() - INTERVAL 60 DAY');
+        console.log(`🗑️  Old sadhana entries deleted: ${r3.affectedRows}`);
+
+        console.log('--- DAILY CLEANUP JOB COMPLETED ---');
+    } catch (err) {
+        console.error('CLEANUP JOB ERROR:', err.message);
+    }
+});
