@@ -46,9 +46,10 @@ const Login = () => {
                         initial={{ scale: 0.5, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ duration: 0.8, ease: "easeOut" }}
-                        className="mb-8"
+                        className="mb-8 flex flex-col items-center"
                     >
                         <img src="/voice_logo.svg" alt="VOICE Logo" className="w-32 h-32 md:w-48 md:h-48" style={{ filter: 'brightness(0) invert(1)' }} />
+                        <p className="text-white text-xs md:text-sm tracking-widest mt-2 opacity-80 font-serif italic text-center px-4">Vedic Oasis for Inspiration, Culture and Education</p>
                     </motion.div>
                     <motion.h1
                         initial={{ y: 20, opacity: 0 }}
@@ -77,7 +78,8 @@ const Login = () => {
                 >
                     <div className="max-w-md w-full bg-white rounded-xl shadow-xl overflow-hidden md:max-w-lg border border-saffron-100">
                         <div className="bg-saffron-600 py-6 px-8 text-center flex flex-col items-center">
-                            <img src="/voice_logo.svg" alt="VOICE Logo" className="w-20 h-20 mb-3" style={{ filter: 'brightness(0) invert(1)' }} />
+                            <img src="/voice_logo.svg" alt="VOICE Logo" className="w-20 h-20 mb-1" style={{ filter: 'brightness(0) invert(1)' }} />
+                            <p className="text-white text-[10px] tracking-widest mb-3 opacity-80 font-serif italic">Vedic Oasis for Inspiration, Culture and Education</p>
                             <h1 className="text-3xl font-serif font-bold text-white tracking-widest mb-1 italic">HARE KRISHNA</h1>
                             <h2 className="text-xl font-serif font-semibold text-saffron-100">Sadhana Tracker</h2>
                             <p className="text-saffron-200 mt-2 text-sm italic">Sign in to your account</p>
