@@ -9,8 +9,24 @@ const sendReminderEmail = async (email, username, date) => {
     const body = JSON.stringify({
         from: 'Sadhana Tracker <noreply@wsahoo.space>',
         to: [email],
-        subject: '🪷 Daily Sadhana Reminder (TEST)',
-        html: `<p>Hare Krishna ${username}, this is a manual test of the reminder system for ${date}.</p>`,
+        subject: '🪷 Daily Sadhana Reminder',
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 480px; margin: auto; padding: 24px; border: 1px solid #f0a500; border-radius: 8px;">
+                <h2 style="color: #c47a00; text-align: center;">🪷 Sadhana Tracker</h2>
+                <p style="font-size: 16px;">Hare Krishna, <strong>${username}</strong>! 🙏</p>
+                <p style="font-size: 15px; color: #444;">
+                    You haven't filled in your sadhana report for <strong>${date}</strong> yet.<br/>
+                    Please take a moment to log yesterday's spiritual activities.
+                </p>
+                <div style="text-align: center; margin: 24px 0;">
+                    <a href="https://sadhana.wsahoo.space"
+                       style="background: #c47a00; color: white; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-size: 15px; font-weight: bold;">
+                        Fill Yesterday's Sadhana
+                    </a>
+                </div>
+                <p style="color: #888; font-size: 12px; text-align: center;">Hare Krishna! Keep up your spiritual practice every day. 🌸</p>
+            </div>
+        `,
     });
 
     return new Promise((resolve, reject) => {
