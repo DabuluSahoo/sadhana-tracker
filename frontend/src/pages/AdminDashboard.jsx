@@ -160,28 +160,67 @@ const AdminDashboard = () => {
                     <h3 className="font-semibold text-gray-700">Devotees</h3>
                 </div>
                 <div className="overflow-y-auto flex-grow">
-                    {users.map(devotee => (
-                        <button
-                            key={devotee.id}
-                            onClick={() => { handleUserSelect(devotee.id); setShowPermPanel(false); setRenaming(false); }}
-                            className={`w-full text-left px-4 py-3 border-b border-gray-100 hover:bg-saffron-50 transition-colors flex justify-between items-center ${selectedUser?.id === devotee.id ? 'bg-saffron-50 border-saffron-200' : ''}`}
-                        >
-                            <div>
-                                <p className="text-sm font-medium text-gray-800">
-                                    {devotee.username}
-                                    {devotee.group_name && (
-                                        <span className="text-gray-400 font-normal capitalize"> ({devotee.group_name})</span>
-                                    )}
-                                </p>
-                                <p className="text-xs text-gray-500">{devotee.email || <span className="text-red-400">No Email</span>}</p>
-                                <p className={`text-[10px] uppercase font-bold tracking-tighter ${
-                                    devotee.role === 'owner' ? 'text-purple-600' : devotee.role === 'admin' ? 'text-saffron-600' : 'text-gray-400'
-                                }`}>{devotee.role}</p>
-                            </div>
-                            <ChevronRight size={16} className="text-gray-400" />
-                        </button>
-                    ))}
+                    {(() => {
+                        const grouped = {
+                            bhima: users.filter(u => u.group_name === 'bhima'),
+                            arjun: users.filter(u => u.group_name === 'arjun'),
+                            nakul: users.filter(u => u.group_name === 'nakul'),
+                            sahadev: users.filter(u => u.group_name === 'sahadev'),
+                        };
+                        const unassigned = users.filter(u => !u.group_name);
+
+                        const sectionStyles = {
+                            bhima:   { header: 'bg-amber-50 border-amber-200 text-amber-800',   dot: 'bg-amber-400' },
+                            arjun:   { header: 'bg-saffron-50 border-saffron-200 text-saffron-800', dot: 'bg-saffron-400' },
+                            nakul:   { header: 'bg-teal-50 border-teal-200 text-teal-800',     dot: 'bg-teal-400' },
+                            sahadev: { header: 'bg-emerald-50 border-emerald-200 text-emerald-800', dot: 'bg-emerald-400' },
+                        };
+
+                        const renderUser = (devotee) => (
+                            <button
+                                key={devotee.id}
+                                onClick={() => { handleUserSelect(devotee.id); setShowPermPanel(false); setRenaming(false); }}
+                                className={`w-full text-left px-4 py-3 border-b border-gray-100 hover:bg-saffron-50 transition-colors flex justify-between items-center ${selectedUser?.id === devotee.id ? 'bg-saffron-50 border-saffron-200' : ''}`}
+                            >
+                                <div>
+                                    <p className="text-sm font-medium text-gray-800">{devotee.username}</p>
+                                    <p className="text-xs text-gray-500">{devotee.email || <span className="text-red-400">No Email</span>}</p>
+                                    <p className={`text-[10px] uppercase font-bold tracking-tighter ${
+                                        devotee.role === 'owner' ? 'text-purple-600' : devotee.role === 'admin' ? 'text-saffron-600' : 'text-gray-400'
+                                    }`}>{devotee.role}</p>
+                                </div>
+                                <ChevronRight size={16} className="text-gray-400" />
+                            </button>
+                        );
+
+                        return (
+                            <>
+                                {['bhima', 'arjun', 'nakul', 'sahadev'].map(g => grouped[g].length > 0 && (
+                                    <div key={g}>
+                                        <div className={`px-4 py-1.5 border-y flex items-center gap-2 sticky top-0 z-10 ${sectionStyles[g].header}`}>
+                                            <span className={`w-2 h-2 rounded-full ${sectionStyles[g].dot}`} />
+                                            <span className="text-xs font-bold uppercase tracking-wider capitalize">{GROUP_EMOJI[g]} {g} Group</span>
+                                            <span className="ml-auto text-xs opacity-60">{grouped[g].length}</span>
+                                        </div>
+                                        {grouped[g].map(renderUser)}
+                                    </div>
+                                ))}
+
+                                {unassigned.length > 0 && (
+                                    <div>
+                                        <div className="px-4 py-1.5 border-y flex items-center gap-2 sticky top-0 z-10 bg-gray-50 border-gray-200 text-gray-500">
+                                            <span className="w-2 h-2 rounded-full bg-gray-300" />
+                                            <span className="text-xs font-bold uppercase tracking-wider">Unassigned</span>
+                                            <span className="ml-auto text-xs opacity-60">{unassigned.length}</span>
+                                        </div>
+                                        {unassigned.map(renderUser)}
+                                    </div>
+                                )}
+                            </>
+                        );
+                    })()}
                 </div>
+
             </div>
 
             {/* User Logs Detail */}
