@@ -372,7 +372,7 @@ const AdminDashboard = () => {
                                     </>
                                 )}
                             </div>
-                            <div className="flex space-x-2">
+                            <div className="flex space-x-2 items-start">
                                 {user.role === 'owner' && (
                                     <>
                                         {selectedUser.role !== 'admin' && selectedUser.role !== 'owner' ? (
