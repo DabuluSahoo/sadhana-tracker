@@ -6,9 +6,9 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) UNIQUE,
     username VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    role ENUM('devotee', 'admin') DEFAULT 'devotee',
+    role ENUM('devotee', 'admin', 'owner') DEFAULT 'devotee',
     -- Group the devotee belongs to (null = not yet selected)
-    group_name ENUM('bhima','arjun','nakul','sahadev') DEFAULT NULL,
+    group_name ENUM('bhima','arjun','nakul','sahadev','brahmacari','yudhisthir','other') DEFAULT NULL,
     -- JSON array of groups an admin can access, e.g. ["arjun","nakul"]
     -- NULL means no restriction (owner) or not applicable (devotee)
     group_permissions JSON DEFAULT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- ⚠️  For existing databases, run these ALTER statements manually in TiDB Cloud:
--- ALTER TABLE users ADD COLUMN group_name ENUM('bhima','arjun','nakul','sahadev') DEFAULT NULL;
+-- ALTER TABLE users MODIFY COLUMN group_name ENUM('bhima','arjun','nakul','sahadev','brahmacari','yudhisthir','other') DEFAULT NULL;
 -- ALTER TABLE users ADD COLUMN group_permissions JSON DEFAULT NULL;
 
 CREATE TABLE IF NOT EXISTS otp_tokens (

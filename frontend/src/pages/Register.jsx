@@ -150,10 +150,12 @@ const Register = () => {
                                     className="block w-full border border-gray-300 rounded-md py-2 px-3 focus:ring-saffron-500 focus:border-saffron-500 transition-colors bg-white"
                                 >
                                     <option value="">— Select your group —</option>
-                                    <option value="sahadev">🌱 Sahadev Group (Level 1)</option>
-                                    <option value="nakul">🌿 Nakul Group (Level 2)</option>
-                                    <option value="arjun">🪷 Arjun Group (Level 3)</option>
+                                    <option value="yudhisthir">🔥 Yudhisthir Group (Level 5)</option>
                                     <option value="bhima">🏆 Bhima Group (Level 4)</option>
+                                    <option value="arjun">🪷 Arjun Group (Level 3)</option>
+                                    <option value="nakul">🌿 Nakul Group (Level 2)</option>
+                                    <option value="sahadev">🌱 Sahadev Group (Level 1)</option>
+                                    <option value="other">☸️ Other (Brahmacari)</option>
                                 </select>
                             </div>
                             <button type="submit" disabled={loading} className={btnClass}>

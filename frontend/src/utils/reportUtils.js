@@ -8,8 +8,9 @@ const GROUP_COLORS = {
     bhima:      [180, 100, 0],   // Amber dark
     arjun:      [200, 80,  10],  // Saffron
     nakul:      [0,   110, 100], // Teal
-    sahadev:    [20,  120, 50],  // Emerald
-    brahmacari: [100, 60,  180], // Purple
+    yudhisthir: [255, 120, 0],   // Bright Orange
+    other:      [140, 140, 140], // Medium Gray
+    brahmacari: [217, 119, 6],   // Amber medium
     unassigned: [100, 100, 100], // Gray
 };
 
@@ -209,7 +210,7 @@ export const generateCustomRangeSadhanaReport = (username, logs, startDate, endD
 // Sorted group-wise: bhima → arjun → nakul → sahadev → others
 // usersData = [{ username, group_name, logs: [] }]
 // ─────────────────────────────────────────────────────────────────────────────
-const GROUP_ORDER = ['bhima', 'arjun', 'nakul', 'sahadev'];
+const GROUP_ORDER = ['yudhisthir', 'bhima', 'arjun', 'nakul', 'sahadev', 'other'];
 // Note: no emoji map — jsPDF standard fonts cannot render emoji (shows as '?' symbols)
 
 export const generateGroupReport = (groupLabel, usersData, startDate, endDate, restrictionNote = null) => {

@@ -5,7 +5,7 @@ const { sendUsernameChangeNotification } = require('../config/mailer');
 // Owner and Brahmacari see everyone. Admin sees only users in their group_permissions list.
 const buildGroupFilter = (reqUser) => {
     if (reqUser.role === 'owner') return { clause: '', params: [] };
-    // Brahmacari has full visibility across all groups
+    // Brahmacari group has full visibility.
     if (reqUser.group_name === 'brahmacari') return { clause: '', params: [] };
 
     let permissions = reqUser.group_permissions;
@@ -23,7 +23,8 @@ const buildGroupFilter = (reqUser) => {
 exports.getAllUsers = async (req, res) => {
     const { clause, params } = buildGroupFilter(req.user);
     // Brahmacari should not see the owner
-    const ownerClause = req.user.group_name === 'brahmacari' ? 'AND u.role != "owner"' : '';
+    const isBrahmacari = req.user.group_name === 'brahmacari';
+    const ownerClause = isBrahmacari ? 'AND u.role != "owner"' : '';
     try {
         const [users] = await db.query(
             `SELECT id, username, email, role, group_name, group_permissions, created_at FROM users u WHERE 1=1 ${clause} ${ownerClause}`,
@@ -44,7 +45,8 @@ exports.getUserLogs = async (req, res) => {
     // Verify the requesting admin actually has access to this user's group
     if (req.user.role !== 'owner') {
         // Brahmacari can see all groups but NOT the owner
-        if (req.user.group_name === 'brahmacari') {
+        const isBrahmacari = req.user.group_name === 'brahmacari';
+        if (isBrahmacari) {
             const [check] = await db.query('SELECT id FROM users WHERE id = ? AND role != "owner"', [userId]);
             if (check.length === 0) return res.status(403).json({ message: 'Access denied: cannot view owner records' });
         } else {
@@ -120,7 +122,7 @@ exports.demoteUser = async (req, res) => {
 exports.setAdminGroupPermissions = async (req, res) => {
     const { userId } = req.params;
     const { group_permissions } = req.body;
-    const validGroups = ['bhima', 'arjun', 'nakul', 'sahadev'];
+    const validGroups = ['bhima', 'arjun', 'nakul', 'sahadev', 'yudhisthir']; // 'other' intentionally excluded from admin perms
 
     if (!Array.isArray(group_permissions) || group_permissions.some(g => !validGroups.includes(g))) {
         return res.status(400).json({ message: 'Invalid group_permissions. Must be an array of valid group names.' });
@@ -173,7 +175,7 @@ exports.renameUser = async (req, res) => {
 // Owner-only: assign Brahmacari status (admin role + brahmacari group + full group access)
 exports.assignBrahmacari = async (req, res) => {
     const { userId } = req.params;
-    const allGroupPerms = JSON.stringify(['bhima', 'arjun', 'nakul', 'sahadev']);
+    const allGroupPerms = JSON.stringify(['bhima', 'arjun', 'nakul', 'sahadev', 'yudhisthir', 'other', 'brahmacari']);
     try {
         const [rows] = await db.query('SELECT id, role FROM users WHERE id = ?', [userId]);
         if (rows.length === 0) return res.status(404).json({ message: 'User not found' });

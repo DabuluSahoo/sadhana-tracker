@@ -50,7 +50,7 @@ exports.verifyOtp = async (req, res) => {
 // Register (after OTP verified)
 exports.register = async (req, res) => {
     let { email, username, password, group_name } = req.body;
-    const validGroups = ['bhima', 'arjun', 'nakul', 'sahadev'];
+    const validGroups = ['bhima', 'arjun', 'nakul', 'sahadev', 'yudhisthir', 'other'];
     try {
         email = email?.trim().toLowerCase();
         username = username?.trim();
@@ -148,7 +148,7 @@ exports.resetPassword = async (req, res) => {
 
 // Set Group (one-time, for existing users who don't have a group yet)
 exports.setGroup = async (req, res) => {
-    const validGroups = ['bhima', 'arjun', 'nakul', 'sahadev'];
+    const validGroups = ['bhima', 'arjun', 'nakul', 'sahadev', 'yudhisthir', 'other'];
     const { group_name } = req.body;
     const userId = req.user.id;
 

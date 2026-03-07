@@ -7,9 +7,9 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import SadhanaAnalytics from '../components/SadhanaAnalytics';
 import { generateWeeklySadhanaReport, generateCustomRangeSadhanaReport, generateGroupReport, getTargetWeek } from '../utils/reportUtils';
 
-const GROUPS = ['bhima', 'arjun', 'nakul', 'sahadev'];
-const GROUP_EMOJI = { bhima: '🏆', arjun: '🪷', nakul: '🌿', sahadev: '🌱' };
-const GROUP_LEVEL = { bhima: 4, arjun: 3, nakul: 2, sahadev: 1 };
+const GROUPS = ['yudhisthir', 'bhima', 'arjun', 'nakul', 'sahadev', 'other'];
+const GROUP_EMOJI = { yudhisthir: '🔥', bhima: '🏆', arjun: '🪷', nakul: '🌿', sahadev: '🌱', other: '☸️' };
+const GROUP_LEVEL = { yudhisthir: 5, bhima: 4, arjun: 3, nakul: 2, sahadev: 1, other: 0 };
 
 const AdminDashboard = () => {
     const { user } = useContext(AuthContext);
@@ -252,18 +252,22 @@ const AdminDashboard = () => {
                         const owners = user.role === 'owner' ? users.filter(u => u.role === 'owner') : [];
                         const brahmacaris = users.filter(u => u.group_name === 'brahmacari');
                         const grouped = {
+                            yudhisthir: users.filter(u => u.role !== 'owner' && u.group_name === 'yudhisthir'),
                             bhima: users.filter(u => u.role !== 'owner' && u.group_name === 'bhima'),
                             arjun: users.filter(u => u.role !== 'owner' && u.group_name === 'arjun'),
                             nakul: users.filter(u => u.role !== 'owner' && u.group_name === 'nakul'),
                             sahadev: users.filter(u => u.role !== 'owner' && u.group_name === 'sahadev'),
+                            other: users.filter(u => u.role !== 'owner' && u.group_name === 'other'),
                         };
                         const unassigned = users.filter(u => u.role !== 'owner' && !u.group_name && u.group_name !== 'brahmacari');
 
                         const sectionStyles = {
-                            bhima:   { header: 'bg-amber-50 border-amber-200 text-amber-800',   dot: 'bg-amber-400' },
-                            arjun:   { header: 'bg-saffron-50 border-saffron-200 text-saffron-800', dot: 'bg-saffron-400' },
-                            nakul:   { header: 'bg-teal-50 border-teal-200 text-teal-800',     dot: 'bg-teal-400' },
-                            sahadev: { header: 'bg-emerald-50 border-emerald-200 text-emerald-800', dot: 'bg-emerald-400' },
+                            yudhisthir: { header: 'bg-orange-50 border-orange-200 text-orange-800', dot: 'bg-orange-500' },
+                            bhima:      { header: 'bg-amber-50 border-amber-200 text-amber-800',   dot: 'bg-amber-400' },
+                            arjun:      { header: 'bg-saffron-50 border-saffron-200 text-saffron-800', dot: 'bg-saffron-400' },
+                            nakul:      { header: 'bg-teal-50 border-teal-200 text-teal-800',     dot: 'bg-teal-400' },
+                            sahadev:    { header: 'bg-emerald-50 border-emerald-200 text-emerald-800', dot: 'bg-emerald-400' },
+                            other:      { header: 'bg-gray-100 border-gray-300 text-gray-700',      dot: 'bg-gray-400' },
                         };
 
                         const renderUser = (devotee) => (
@@ -304,7 +308,7 @@ const AdminDashboard = () => {
                                     </div>
                                 )}
 
-                                {['bhima', 'arjun', 'nakul', 'sahadev'].map(g => grouped[g].length > 0 && (
+                                {['yudhisthir', 'bhima', 'arjun', 'nakul', 'sahadev', 'other'].map(g => grouped[g].length > 0 && (
                                     <div key={g}>
                                         <button
                                             onClick={() => setExpandedGroup(prev => prev === g ? null : g)}
@@ -496,7 +500,7 @@ const AdminDashboard = () => {
                                 <h4 className="font-semibold text-purple-800 mb-3">🔑 Group Access for <em>{selectedUser.username}</em></h4>
                                 <p className="text-xs text-purple-600 mb-3">Select which groups this admin can view data for:</p>
                                 <div className="grid grid-cols-2 gap-2 mb-4">
-                                    {GROUPS.map(g => (
+                                    {GROUPS.filter(g => g !== 'other').map(g => (
                                         <label key={g} className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
                                             permSelections.includes(g)
                                                 ? 'border-purple-400 bg-purple-100'
