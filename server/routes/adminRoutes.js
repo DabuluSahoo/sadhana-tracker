@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAllUsers, getUserLogs, editUserLog, promoteUser, demoteUser, setAdminGroupPermissions, renameUser, assignBrahmacari, revokeBrahmacari } = require('../controllers/adminController');
+const { getAllUsers, getUserLogs, editUserLog, promoteUser, demoteUser, setAdminGroupPermissions, renameUser, assignBrahmacari, revokeBrahmacari, changeUserGroup } = require('../controllers/adminController');
 const { protect, adminObj, ownerOnly } = require('../middleware');
 
 router.get('/users', protect, adminObj, getAllUsers);
@@ -12,5 +12,6 @@ router.put('/users/:userId/group-permissions', protect, ownerOnly, setAdminGroup
 router.put('/users/:userId/rename', protect, ownerOnly, renameUser);
 router.put('/users/:userId/assign-brahmacari', protect, ownerOnly, assignBrahmacari);
 router.put('/users/:userId/revoke-brahmacari', protect, ownerOnly, revokeBrahmacari);
+router.put('/users/:userId/change-group', protect, ownerOnly, changeUserGroup);
 
 module.exports = router;

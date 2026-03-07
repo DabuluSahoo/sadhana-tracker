@@ -209,3 +209,25 @@ exports.revokeBrahmacari = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+
+// Owner-only: change a user's group
+exports.changeUserGroup = async (req, res) => {
+    const { userId } = req.params;
+    const { group_name } = req.body;
+    const validGroups = ['bhima', 'arjun', 'nakul', 'sahadev', 'yudhisthir', 'other', 'brahmacari'];
+
+    if (!group_name || !validGroups.includes(group_name)) {
+        return res.status(400).json({ message: 'Invalid group name' });
+    }
+
+    try {
+        const [rows] = await db.query('SELECT role FROM users WHERE id = ?', [userId]);
+        if (rows.length === 0) return res.status(404).json({ message: 'User not found' });
+        if (rows[0].role === 'owner') return res.status(400).json({ message: 'Cannot change group for the owner' });
+
+        await db.query('UPDATE users SET group_name = ? WHERE id = ?', [group_name, userId]);
+        res.json({ message: `User group updated to ${group_name} successfully`, group_name });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};

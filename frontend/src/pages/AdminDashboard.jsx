@@ -158,6 +158,20 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleGroupChange = async (newGroup) => {
+        if (!newGroup || newGroup === selectedUser.group_name) return;
+        if (!confirm(`Move ${selectedUser.username} to ${newGroup.charAt(0).toUpperCase() + newGroup.slice(1)} group?`)) return;
+
+        try {
+            const { data } = await api.put(`/admin/users/${selectedUser.id}/change-group`, { group_name: newGroup });
+            setUsers(prev => prev.map(u => u.id === selectedUser.id ? { ...u, group_name: data.group_name } : u));
+            setSelectedUser(prev => ({ ...prev, group_name: data.group_name }));
+            alert(`✅ Moved to ${newGroup} group!`);
+        } catch (err) {
+            alert('Group change failed: ' + (err.response?.data?.message || err.message));
+        }
+    };
+
     const handleGroupReport = async ({ start, end, restrictionNote }) => {
         try {
             const startStr = format(start, 'yyyy-MM-dd');
@@ -366,13 +380,31 @@ const AdminDashboard = () => {
                                     <>
                                         <h2 className="font-semibold text-gray-700 text-lg">Records for {selectedUser.username}</h2>
                                         {user.role === 'owner' && (
-                                            <button
-                                                onClick={() => { setNewUsername(selectedUser.username); setRenaming(true); }}
-                                                title="Rename user"
-                                                className="text-gray-400 hover:text-saffron-600 transition-colors"
-                                            >
-                                                ✏️
-                                            </button>
+                                            <div className="flex items-center gap-1">
+                                                <button
+                                                    onClick={() => { setNewUsername(selectedUser.username); setRenaming(true); }}
+                                                    title="Rename user"
+                                                    className="text-gray-400 hover:text-saffron-600 transition-colors"
+                                                >
+                                                    ✏️
+                                                </button>
+                                                <div className="relative group">
+                                                    <select
+                                                        aria-label="Change Group"
+                                                        value={selectedUser.group_name || ''}
+                                                        onChange={(e) => handleGroupChange(e.target.value)}
+                                                        className="text-[10px] appearance-none bg-white border border-gray-200 rounded px-2 py-0.5 pr-4 text-gray-500 hover:border-saffron-400 focus:outline-none focus:ring-1 focus:ring-saffron-500 cursor-pointer"
+                                                        title="Change sadhana group"
+                                                    >
+                                                        <option value="" disabled>Change Group</option>
+                                                        {GROUPS.map(g => (
+                                                            <option key={g} value={g}>{GROUP_EMOJI[g]} {g}</option>
+                                                        ))}
+                                                        <option value="brahmacari">🕉️ brahmacari</option>
+                                                    </select>
+                                                    <ChevronDown size={10} className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" />
+                                                </div>
+                                            </div>
                                         )}
                                     </>
                                 )}
