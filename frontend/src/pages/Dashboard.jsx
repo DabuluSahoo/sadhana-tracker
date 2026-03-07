@@ -11,16 +11,22 @@ import AuthContext from '../context/AuthContext';
 const Dashboard = () => {
     const { user } = useContext(AuthContext);
 
-    // Brahmacaris have admin powers but don't fill sadhana
-    if (user?.group_name === 'brahmacari') {
+    // Owner and Brahmacari have admin powers but don't fill sadhana
+    if (user?.role === 'owner' || user?.group_name === 'brahmacari') {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
                 <div className="bg-white rounded-2xl shadow-md border border-amber-100 p-10 text-center max-w-md">
-                    <div className="text-6xl mb-4">🕉️</div>
-                    <h2 className="text-2xl font-bold text-amber-800 font-serif mb-2">Brahmacari</h2>
+                    <div className="text-6xl mb-4">{user?.role === 'owner' ? '👑' : '🕉️'}</div>
+                    <h2 className="text-2xl font-bold text-amber-800 font-serif mb-2">
+                        {user?.role === 'owner' ? 'Owner' : 'Brahmacari'}
+                    </h2>
                     <p className="text-gray-500 text-sm mb-4">Administrative Role — Sadhana entry is not required for your account.</p>
                     <div className="bg-amber-50 border border-amber-200 rounded-xl px-6 py-4">
-                        <p className="text-amber-700 text-sm font-medium">You have access to the Admin Panel to assist in managing devotee data.</p>
+                        <p className="text-amber-700 text-sm font-medium">
+                            {user?.role === 'owner'
+                                ? 'You have full access to manage all devotees and their data.'
+                                : 'You have access to the Admin Panel to assist in managing devotee data.'}
+                        </p>
                     </div>
                 </div>
                 <DailyQuote />
