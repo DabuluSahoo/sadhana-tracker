@@ -75,7 +75,7 @@ exports.getGroupLogs = async (req, res) => {
                     ds.wakeup_time, ds.sleep_time, ds.comments
              FROM users u
              LEFT JOIN daily_sadhana ds ON ds.user_id = u.id AND ds.date BETWEEN ? AND ?
-             WHERE u.role != 'owner' AND u.group_name != 'brahmacari' ${groupClause} ${ownerClause}
+             WHERE u.role != 'owner' AND (u.group_name IS NULL OR u.group_name != 'brahmacari') ${groupClause} ${ownerClause}
              ORDER BY u.group_name, u.username, ds.date ASC`,
             params
         );
