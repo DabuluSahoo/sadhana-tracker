@@ -23,6 +23,8 @@ const AdminDashboard = () => {
     const [showPermPanel, setShowPermPanel] = useState(false);
     const [permSelections, setPermSelections] = useState([]);
     const [savingPerms, setSavingPerms] = useState(false);
+    const [renaming, setRenaming] = useState(false);
+    const [newUsername, setNewUsername] = useState('');
     // ... existing code ...
     // (Note: Replace only up to the detail header section)
 
@@ -136,6 +138,18 @@ const AdminDashboard = () => {
         setSavingPerms(false);
     };
 
+    const handleRename = async () => {
+        if (!newUsername.trim()) return;
+        try {
+            await api.put(`/admin/users/${selectedUser.id}/rename`, { username: newUsername.trim() });
+            setUsers(prev => prev.map(u => u.id === selectedUser.id ? { ...u, username: newUsername.trim() } : u));
+            setSelectedUser(prev => ({ ...prev, username: newUsername.trim() }));
+            setRenaming(false);
+        } catch (err) {
+            alert('Rename failed: ' + (err.response?.data?.message || err.message));
+        }
+    };
+
     if (loading) return <LoadingSpinner />;
 
     return (
@@ -149,23 +163,20 @@ const AdminDashboard = () => {
                     {users.map(devotee => (
                         <button
                             key={devotee.id}
-                            onClick={() => { handleUserSelect(devotee.id); setShowPermPanel(false); }}
-                            className={`w-full text-left px-4 py-3 border-b border-gray-100 hover:bg-saffron-50 transition-colors flex justify-between items-center ${selectedUser?.id === devotee.id ? 'bg-saffron-50 border-saffron-200' : ''
-                                }`}
+                            onClick={() => { handleUserSelect(devotee.id); setShowPermPanel(false); setRenaming(false); }}
+                            className={`w-full text-left px-4 py-3 border-b border-gray-100 hover:bg-saffron-50 transition-colors flex justify-between items-center ${selectedUser?.id === devotee.id ? 'bg-saffron-50 border-saffron-200' : ''}`}
                         >
                             <div>
-                                <p className="text-sm font-medium text-gray-800">{devotee.username}</p>
-                                {devotee.group_name && (
-                                    <p className="text-xs text-gray-400 capitalize">{GROUP_EMOJI[devotee.group_name]} {devotee.group_name} · Lv{GROUP_LEVEL[devotee.group_name]}</p>
-                                )}
-                            </div>
-                            <div>
-                                <p className="font-medium text-gray-800">{devotee.username}</p>
-                                <p className="text-xs text-gray-500">{devotee.email || <span className="text-red-400">No Email</span>}</p>
-                                <p className={`text-[10px] uppercase font-bold tracking-tighter ${devotee.role === 'owner' ? 'text-purple-600' : devotee.role === 'admin' ? 'text-saffron-600' : 'text-gray-400'
-                                    }`}>
-                                    {devotee.role}
+                                <p className="text-sm font-medium text-gray-800">
+                                    {devotee.username}
+                                    {devotee.group_name && (
+                                        <span className="text-gray-400 font-normal capitalize"> ({devotee.group_name})</span>
+                                    )}
                                 </p>
+                                <p className="text-xs text-gray-500">{devotee.email || <span className="text-red-400">No Email</span>}</p>
+                                <p className={`text-[10px] uppercase font-bold tracking-tighter ${
+                                    devotee.role === 'owner' ? 'text-purple-600' : devotee.role === 'admin' ? 'text-saffron-600' : 'text-gray-400'
+                                }`}>{devotee.role}</p>
                             </div>
                             <ChevronRight size={16} className="text-gray-400" />
                         </button>
@@ -178,7 +189,34 @@ const AdminDashboard = () => {
                 {selectedUser ? (
                     <>
                         <div className="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-                            <h3 className="font-semibold text-gray-700">Records for {selectedUser.username}</h3>
+                            <div className="flex items-center gap-2">
+                                {renaming ? (
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            autoFocus
+                                            value={newUsername}
+                                            onChange={e => setNewUsername(e.target.value)}
+                                            onKeyDown={e => { if (e.key === 'Enter') handleRename(); if (e.key === 'Escape') setRenaming(false); }}
+                                            className="border border-saffron-400 rounded px-2 py-1 text-sm font-semibold text-gray-700 w-44 focus:outline-none focus:ring-1 focus:ring-saffron-500"
+                                        />
+                                        <button onClick={handleRename} className="text-xs px-2 py-1 bg-saffron-500 text-white rounded hover:bg-saffron-600">Save</button>
+                                        <button onClick={() => setRenaming(false)} className="text-xs px-2 py-1 bg-gray-200 text-gray-600 rounded hover:bg-gray-300">Cancel</button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <h3 className="font-semibold text-gray-700">Records for {selectedUser.username}</h3>
+                                        {user.role === 'owner' && (
+                                            <button
+                                                onClick={() => { setNewUsername(selectedUser.username); setRenaming(true); }}
+                                                title="Rename user"
+                                                className="text-gray-400 hover:text-saffron-600 transition-colors"
+                                            >
+                                                ✏️
+                                            </button>
+                                        )}
+                                    </>
+                                )}
+                            </div>
                             <div className="flex space-x-2">
                                 {user.role === 'owner' && (
                                     <>

@@ -104,7 +104,7 @@ exports.demoteUser = async (req, res) => {
 // Owner-only: assign group access permissions to an admin
 exports.setAdminGroupPermissions = async (req, res) => {
     const { userId } = req.params;
-    const { group_permissions } = req.body; // array e.g. ["arjun","nakul"]
+    const { group_permissions } = req.body;
     const validGroups = ['bhima', 'arjun', 'nakul', 'sahadev'];
 
     if (!Array.isArray(group_permissions) || group_permissions.some(g => !validGroups.includes(g))) {
@@ -118,6 +118,23 @@ exports.setAdminGroupPermissions = async (req, res) => {
 
         await db.query('UPDATE users SET group_permissions = ? WHERE id = ?', [JSON.stringify(group_permissions), userId]);
         res.json({ message: 'Group permissions updated successfully', group_permissions });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// Owner-only: rename any user
+exports.renameUser = async (req, res) => {
+    const { userId } = req.params;
+    const { username } = req.body;
+    if (!username || !username.trim()) return res.status(400).json({ message: 'Username is required' });
+
+    try {
+        const [existing] = await db.query('SELECT id FROM users WHERE username = ? AND id != ?', [username.trim(), userId]);
+        if (existing.length > 0) return res.status(400).json({ message: 'Username already taken' });
+
+        await db.query('UPDATE users SET username = ? WHERE id = ?', [username.trim(), userId]);
+        res.json({ message: 'User renamed successfully', username: username.trim() });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
