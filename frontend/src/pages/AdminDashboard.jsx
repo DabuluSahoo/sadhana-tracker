@@ -188,6 +188,7 @@ const AdminDashboard = () => {
                         const allowedGroups = isOwnerOrBrahmacari ? GROUPS : (Array.isArray(perms) ? perms.filter(g => GROUPS.includes(g)) : []);
                         return (
                             <select
+                                aria-label="Group Report Filter"
                                 value={groupReportGroup}
                                 onChange={e => setGroupReportGroup(e.target.value)}
                                 className="text-sm border border-amber-300 rounded-lg px-3 py-1.5 bg-amber-50 text-amber-900 focus:outline-none focus:ring-1 focus:ring-amber-400"
@@ -208,7 +209,7 @@ const AdminDashboard = () => {
                 {/* Custom Range toggle */}
                 <button
                     onClick={() => setShowCustomRange(v => !v)}
-                    className="flex items-center gap-1.5 px-4 py-1.5 bg-amber-500 text-white rounded-lg text-xs font-bold hover:bg-amber-600 transition-colors shadow-sm"
+                    className="flex items-center gap-1.5 px-4 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-bold hover:bg-amber-700 transition-colors shadow-sm"
                 >
                     <Download size={13} /> Custom Range <ChevronDown size={12} className={`transition-transform ${showCustomRange ? 'rotate-180' : ''}`} />
                 </button>
@@ -244,7 +245,7 @@ const AdminDashboard = () => {
             {/* Users List */}
             <div className="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
                 <div className="p-4 border-b border-gray-200 bg-gray-50">
-                    <h3 className="font-semibold text-gray-700">Devotees</h3>
+                    <h2 className="font-semibold text-gray-700 text-lg">Devotees</h2>
                 </div>
                 <div className="overflow-hidden flex flex-col flex-grow">
                     {(() => {
@@ -275,10 +276,10 @@ const AdminDashboard = () => {
                                     <p className="text-sm font-medium text-gray-800">{devotee.username}</p>
                                     <p className="text-xs text-gray-500">{devotee.email || <span className="text-red-400">No Email</span>}</p>
                                     <p className={`text-[10px] uppercase font-bold tracking-tighter ${
-                                        devotee.role === 'owner' ? 'text-purple-600' : devotee.role === 'admin' ? 'text-saffron-600' : 'text-gray-400'
+                                        devotee.role === 'owner' ? 'text-purple-700' : devotee.role === 'admin' ? 'text-saffron-700' : 'text-gray-500'
                                     }`}>{devotee.role}</p>
                                 </div>
-                                <ChevronRight size={16} className="text-gray-400" />
+                                <ChevronRight size={16} className="text-gray-500" />
                             </button>
                         );
 
@@ -296,7 +297,7 @@ const AdminDashboard = () => {
                                         >
                                             <span className="w-2 h-2 rounded-full bg-amber-500" />
                                             <span className="text-xs font-bold uppercase tracking-wider">🕉️ Brahmacari</span>
-                                            <span className="ml-auto text-xs opacity-60 mr-1">{brahmacaris.length}</span>
+                                            <span className="ml-auto text-xs text-amber-700 font-semibold mr-1">{brahmacaris.length}</span>
                                             <svg className={`w-3.5 h-3.5 transition-transform duration-200 ${expandedGroup === 'brahmacari' ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
                                         </button>
                                         {expandedGroup === 'brahmacari' && <div className="overflow-y-auto max-h-56">{brahmacaris.map(renderUser)}</div>}
@@ -311,7 +312,7 @@ const AdminDashboard = () => {
                                         >
                                             <span className={`w-2 h-2 rounded-full ${sectionStyles[g].dot}`} />
                                             <span className="text-xs font-bold uppercase tracking-wider capitalize">{GROUP_EMOJI[g]} {g} Group</span>
-                                            <span className="ml-auto text-xs opacity-60 mr-1">{grouped[g].length}</span>
+                                            <span className="ml-auto text-xs font-semibold mr-1">{grouped[g].length}</span>
                                             <svg className={`w-3.5 h-3.5 transition-transform duration-200 ${expandedGroup === g ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
                                         </button>
                                         {expandedGroup === g && <div className="overflow-y-auto max-h-56">{grouped[g].map(renderUser)}</div>}
@@ -326,7 +327,7 @@ const AdminDashboard = () => {
                                         >
                                             <span className="w-2 h-2 rounded-full bg-gray-300" />
                                             <span className="text-xs font-bold uppercase tracking-wider">Unassigned</span>
-                                            <span className="ml-auto text-xs opacity-60 mr-1">{unassigned.length}</span>
+                                            <span className="ml-auto text-xs font-semibold mr-1">{unassigned.length}</span>
                                             <svg className={`w-3.5 h-3.5 transition-transform duration-200 ${expandedGroup === 'unassigned' ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
                                         </button>
                                         {expandedGroup === 'unassigned' && <div className="overflow-y-auto max-h-56">{unassigned.map(renderUser)}</div>}
@@ -359,7 +360,7 @@ const AdminDashboard = () => {
                                     </div>
                                 ) : (
                                     <>
-                                        <h3 className="font-semibold text-gray-700">Records for {selectedUser.username}</h3>
+                                        <h2 className="font-semibold text-gray-700 text-lg">Records for {selectedUser.username}</h2>
                                         {user.role === 'owner' && (
                                             <button
                                                 onClick={() => { setNewUsername(selectedUser.username); setRenaming(true); }}
@@ -534,7 +535,7 @@ const AdminDashboard = () => {
                                 <>
                                     <SadhanaAnalytics logs={userLogs} />
                                     <div className="pt-6 border-t border-gray-100">
-                                        <h4 className="font-serif font-bold text-gray-700 mb-4 text-lg">Detailed History</h4>
+                                        <h3 className="font-serif font-bold text-gray-700 mb-4 text-lg">Detailed History</h3>
                                         <div className="space-y-4">
                                             {userLogs.map(log => (
                                                 <div key={log.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">

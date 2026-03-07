@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /history
+Disallow: /admin
+
+Sitemap: https://sadhana-tracker.com/sitemap.xml

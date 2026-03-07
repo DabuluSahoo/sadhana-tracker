@@ -79,7 +79,7 @@ const Dashboard = () => {
             <DailyQuote />
             <div className="flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100 transition-colors">
                 <div className="flex items-center space-x-4 mb-4 md:mb-0">
-                    <button onClick={handlePrevWeek} className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors">
+                    <button onClick={handlePrevWeek} aria-label="Previous Week" className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors">
                         <ChevronLeft size={24} />
                     </button>
                     <h2 className="text-xl font-bold text-gray-800 font-serif">
@@ -88,7 +88,7 @@ const Dashboard = () => {
                     {isCurrentWeek ? (
                         <span className="bg-saffron-100 text-saffron-700 text-xs px-2 py-1 rounded-full font-medium">Current Week</span>
                     ) : (
-                        <button onClick={handleNextWeek} className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors">
+                        <button onClick={handleNextWeek} aria-label="Next Week" className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors">
                             <ChevronRight size={24} />
                         </button>
                     )}
