@@ -362,54 +362,57 @@ const AdminDashboard = () => {
             <div className="lg:col-span-3 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
                 {selectedUser ? (
                     <>
-                        <div className="p-4 border-b border-gray-200 bg-gray-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                            <div className="flex items-center gap-2">
-                                {renaming ? (
-                                    <div className="flex items-center gap-2">
-                                        <input
-                                            autoFocus
-                                            value={newUsername}
-                                            onChange={e => setNewUsername(e.target.value)}
-                                            onKeyDown={e => { if (e.key === 'Enter') handleRename(); if (e.key === 'Escape') setRenaming(false); }}
-                                            className="border border-saffron-400 rounded px-2 py-1 text-sm font-semibold text-gray-700 w-44 focus:outline-none focus:ring-1 focus:ring-saffron-500"
-                                        />
-                                        <button onClick={handleRename} className="text-xs px-2 py-1 bg-saffron-500 text-white rounded hover:bg-saffron-600">Save</button>
-                                        <button onClick={() => setRenaming(false)} className="text-xs px-2 py-1 bg-gray-200 text-gray-600 rounded hover:bg-gray-300">Cancel</button>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <h2 className="font-semibold text-gray-700 text-lg">Records for {selectedUser.username}</h2>
-                                        {user.role === 'owner' && (
-                                            <div className="flex items-center gap-1">
-                                                <button
-                                                    onClick={() => { setNewUsername(selectedUser.username); setRenaming(true); }}
-                                                    title="Rename user"
-                                                    className="text-gray-400 hover:text-saffron-600 transition-colors"
-                                                >
-                                                    ✏️
-                                                </button>
-                                                <div className="relative group">
-                                                    <select
-                                                        aria-label="Change Group"
-                                                        value={selectedUser.group_name || ''}
-                                                        onChange={(e) => handleGroupChange(e.target.value)}
-                                                        className="text-[10px] appearance-none bg-white border border-gray-200 rounded px-2 py-0.5 pr-4 text-gray-500 hover:border-saffron-400 focus:outline-none focus:ring-1 focus:ring-saffron-500 cursor-pointer"
-                                                        title="Change sadhana group"
+                        <div className="p-4 border-b border-gray-200 bg-gray-50 flex flex-col gap-4">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                <div className="flex items-center gap-2">
+                                    {renaming ? (
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                autoFocus
+                                                value={newUsername}
+                                                onChange={e => setNewUsername(e.target.value)}
+                                                onKeyDown={e => { if (e.key === 'Enter') handleRename(); if (e.key === 'Escape') setRenaming(false); }}
+                                                className="border border-saffron-400 rounded px-2 py-1 text-sm font-semibold text-gray-700 w-44 focus:outline-none focus:ring-1 focus:ring-saffron-500"
+                                            />
+                                            <button onClick={handleRename} className="text-xs px-2 py-1 bg-saffron-500 text-white rounded hover:bg-saffron-600">Save</button>
+                                            <button onClick={() => setRenaming(false)} className="text-xs px-2 py-1 bg-gray-200 text-gray-600 rounded hover:bg-gray-300">Cancel</button>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <h2 className="font-semibold text-gray-700 text-lg">Records for {selectedUser.username}</h2>
+                                            {user.role === 'owner' && (
+                                                <div className="flex items-center gap-1">
+                                                    <button
+                                                        onClick={() => { setNewUsername(selectedUser.username); setRenaming(true); }}
+                                                        title="Rename user"
+                                                        className="text-gray-400 hover:text-saffron-600 transition-colors"
                                                     >
-                                                        <option value="" disabled>Change Group</option>
-                                                        {GROUPS.map(g => (
-                                                            <option key={g} value={g}>{GROUP_EMOJI[g]} {g}</option>
-                                                        ))}
-                                                        <option value="brahmacari">🕉️ brahmacari</option>
-                                                    </select>
-                                                    <ChevronDown size={10} className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" />
+                                                        ✏️
+                                                    </button>
+                                                    <div className="relative group">
+                                                        <select
+                                                            aria-label="Change Group"
+                                                            value={selectedUser.group_name || ''}
+                                                            onChange={(e) => handleGroupChange(e.target.value)}
+                                                            className="text-[10px] appearance-none bg-white border border-gray-200 rounded px-2 py-0.5 pr-4 text-gray-500 hover:border-saffron-400 focus:outline-none focus:ring-1 focus:ring-saffron-500 cursor-pointer"
+                                                            title="Change sadhana group"
+                                                        >
+                                                            <option value="" disabled>Change Group</option>
+                                                            {GROUPS.map(g => (
+                                                                <option key={g} value={g}>{GROUP_EMOJI[g]} {g}</option>
+                                                            ))}
+                                                            <option value="brahmacari">🕉️ brahmacari</option>
+                                                        </select>
+                                                        <ChevronDown size={10} className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" />
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        )}
-                                    </>
-                                )}
+                                            )}
+                                        </>
+                                    )}
+                                </div>
                             </div>
-                            <div className="flex flex-wrap gap-2 items-start shrink-0">
+                            
+                            <div className="flex flex-wrap gap-2 items-center">
                                 {user.role === 'owner' && (
                                     <>
                                         {selectedUser.role !== 'admin' && selectedUser.role !== 'owner' ? (
@@ -487,41 +490,51 @@ const AdminDashboard = () => {
                                 >
                                     Test Reminders
                                 </button>
-                                {/* Download: This Devotee */}
-                                <div className="flex flex-col gap-1">
+                                
+                                {/* Download Buttons as a flex row to avoid height issues */}
+                                <div className="flex gap-2 ml-auto">
                                     <button
                                         onClick={() => generateWeeklySadhanaReport(selectedUser.username, userLogs)}
-                                        className="flex items-center px-3 py-1.5 bg-saffron-600 text-white rounded-md hover:bg-saffron-700 transition-colors shadow-sm text-xs font-medium"
+                                        className="flex items-center px-3 py-1.5 bg-saffron-600 text-white rounded-md hover:bg-saffron-700 transition-colors shadow-sm text-xs font-medium whitespace-nowrap"
                                     >
                                         <FileText size={13} className="mr-1.5" />
                                         Last Week
                                     </button>
-                                    <button
-                                        onClick={() => setShowDevoteeCustom(v => !v)}
-                                        className="flex items-center px-3 py-1.5 bg-amber-500 text-white rounded-md hover:bg-amber-600 transition-colors shadow-sm text-xs font-medium"
-                                    >
-                                        <FileText size={13} className="mr-1.5" />
-                                        Custom Range
-                                    </button>
-                                    {showDevoteeCustom && (
-                                        <div className="flex flex-col gap-1 p-2 bg-amber-50 border border-amber-200 rounded-md">
-                                            <input type="date" value={devoteeCustomStart} onChange={e => setDevoteeCustomStart(e.target.value)}
-                                                min={format(subDays(new Date(), 30), 'yyyy-MM-dd')}
-                                                max={format(subDays(new Date(), 1), 'yyyy-MM-dd')}
-                                                className="text-xs border border-gray-300 rounded px-1 py-0.5" />
-                                            <input type="date" value={devoteeCustomEnd} onChange={e => setDevoteeCustomEnd(e.target.value)}
-                                                min={format(subDays(new Date(), 30), 'yyyy-MM-dd')}
-                                                max={format(subDays(new Date(), 1), 'yyyy-MM-dd')}
-                                                className="text-xs border border-gray-300 rounded px-1 py-0.5" />
-                                            <button
-                                                onClick={() => {
-                                                    if (!devoteeCustomStart || !devoteeCustomEnd) return alert('Please select both dates');
-                                                    generateCustomRangeSadhanaReport(selectedUser.username, userLogs, devoteeCustomStart, devoteeCustomEnd);
-                                                }}
-                                                className="text-xs bg-amber-600 text-white rounded px-2 py-0.5 hover:bg-amber-700"
-                                            >Download</button>
-                                        </div>
-                                    )}
+                                    <div className="relative">
+                                        <button
+                                            onClick={() => setShowDevoteeCustom(v => !v)}
+                                            className="flex items-center px-3 py-1.5 bg-amber-500 text-white rounded-md hover:bg-amber-600 transition-colors shadow-sm text-xs font-medium whitespace-nowrap"
+                                        >
+                                            <FileText size={13} className="mr-1.5" />
+                                            Custom Range
+                                        </button>
+                                        {showDevoteeCustom && (
+                                            <div className="absolute right-0 top-full mt-2 z-[50] flex flex-col gap-1 p-2 bg-amber-50 border border-amber-200 rounded-md shadow-lg min-w-[200px]">
+                                                <div className="flex flex-col gap-1">
+                                                    <p className="text-[10px] text-amber-700 font-bold px-1">Start Date</p>
+                                                    <input type="date" value={devoteeCustomStart} onChange={e => setDevoteeCustomStart(e.target.value)}
+                                                        min={format(subDays(new Date(), 30), 'yyyy-MM-dd')}
+                                                        max={format(subDays(new Date(), 1), 'yyyy-MM-dd')}
+                                                        className="text-xs border border-gray-300 rounded px-1 py-1" />
+                                                </div>
+                                                <div className="flex flex-col gap-1">
+                                                    <p className="text-[10px] text-amber-700 font-bold px-1">End Date</p>
+                                                    <input type="date" value={devoteeCustomEnd} onChange={e => setDevoteeCustomEnd(e.target.value)}
+                                                        min={format(subDays(new Date(), 30), 'yyyy-MM-dd')}
+                                                        max={format(subDays(new Date(), 1), 'yyyy-MM-dd')}
+                                                        className="text-xs border border-gray-300 rounded px-1 py-1" />
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        if (!devoteeCustomStart || !devoteeCustomEnd) return alert('Please select both dates');
+                                                        generateCustomRangeSadhanaReport(selectedUser.username, userLogs, devoteeCustomStart, devoteeCustomEnd);
+                                                        setShowDevoteeCustom(false);
+                                                    }}
+                                                    className="mt-1 text-xs bg-amber-600 text-white rounded px-2 py-1.5 hover:bg-amber-700 font-bold"
+                                                >Download Report</button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
