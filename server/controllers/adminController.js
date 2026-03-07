@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const { sendUsernameChangeNotification } = require('../config/mailer');
 
 // Helper: build a group filter clause for a given admin user
 // Owner sees everyone. Admin sees only users in their group_permissions list.
@@ -130,12 +131,28 @@ exports.renameUser = async (req, res) => {
     if (!username || !username.trim()) return res.status(400).json({ message: 'Username is required' });
 
     try {
+        // Check new username isn't taken
         const [existing] = await db.query('SELECT id FROM users WHERE username = ? AND id != ?', [username.trim(), userId]);
         if (existing.length > 0) return res.status(400).json({ message: 'Username already taken' });
 
+        // Get current username and email before renaming
+        const [rows] = await db.query('SELECT username, email FROM users WHERE id = ?', [userId]);
+        if (rows.length === 0) return res.status(404).json({ message: 'User not found' });
+        const oldUsername = rows[0].username;
+        const userEmail = rows[0].email;
+
+        // Do the rename
         await db.query('UPDATE users SET username = ? WHERE id = ?', [username.trim(), userId]);
+
+        // Send email notification if the user has an email
+        if (userEmail) {
+            sendUsernameChangeNotification(userEmail, oldUsername, username.trim())
+                .catch(err => console.error('Username change email failed:', err.message));
+        }
+
         res.json({ message: 'User renamed successfully', username: username.trim() });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 };
+
