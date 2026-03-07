@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { format, startOfWeek, addDays, isSameDay, subWeeks, addWeeks, subDays } from 'date-fns';
 import api from '../api';
 import SadhanaCard from '../components/SadhanaCard';
@@ -6,8 +6,29 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import DailyQuote from '../components/DailyQuote';
 import { ChevronLeft, ChevronRight, CheckCircle, AlertCircle } from 'lucide-react';
 import clsx from 'clsx';
+import AuthContext from '../context/AuthContext';
 
 const Dashboard = () => {
+    const { user } = useContext(AuthContext);
+
+    // Brahmacaris have admin powers but don't fill sadhana
+    if (user?.group_name === 'brahmacari') {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
+                <div className="bg-white rounded-2xl shadow-md border border-amber-100 p-10 text-center max-w-md">
+                    <div className="text-6xl mb-4">🕉️</div>
+                    <h2 className="text-2xl font-bold text-amber-800 font-serif mb-2">Brahmacari</h2>
+                    <p className="text-gray-500 text-sm mb-4">Administrative Role — Sadhana entry is not required for your account.</p>
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl px-6 py-4">
+                        <p className="text-amber-700 text-sm font-medium">You have access to the Admin Panel to assist in managing devotee data.</p>
+                    </div>
+                </div>
+                <DailyQuote />
+            </div>
+        );
+    }
+
+
     const yesterday = subDays(new Date(), 1);
     const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(yesterday));
     const [selectedDate, setSelectedDate] = useState(yesterday);

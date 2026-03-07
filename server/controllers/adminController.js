@@ -156,3 +156,32 @@ exports.renameUser = async (req, res) => {
     }
 };
 
+// Owner-only: assign Brahmacari status (admin role + brahmacari group)
+exports.assignBrahmacari = async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const [rows] = await db.query('SELECT id, role FROM users WHERE id = ?', [userId]);
+        if (rows.length === 0) return res.status(404).json({ message: 'User not found' });
+        if (rows[0].role === 'owner') return res.status(400).json({ message: 'Cannot assign Brahmacari to the owner' });
+
+        await db.query('UPDATE users SET role = "admin", group_name = "brahmacari" WHERE id = ?', [userId]);
+        res.json({ message: 'User assigned as Brahmacari successfully' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// Owner-only: revoke Brahmacari status (keeps admin role, clears brahmacari group)
+exports.revokeBrahmacari = async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const [rows] = await db.query('SELECT group_name FROM users WHERE id = ?', [userId]);
+        if (rows.length === 0) return res.status(404).json({ message: 'User not found' });
+        if (rows[0].group_name !== 'brahmacari') return res.status(400).json({ message: 'User is not a Brahmacari' });
+
+        await db.query('UPDATE users SET group_name = NULL WHERE id = ?', [userId]);
+        res.json({ message: 'Brahmacari status revoked. User remains an admin.' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};

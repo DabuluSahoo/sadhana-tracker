@@ -163,13 +163,14 @@ const AdminDashboard = () => {
                 <div className="overflow-y-auto flex-grow">
                     {(() => {
                         const owners = users.filter(u => u.role === 'owner');
+                        const brahmacaris = users.filter(u => u.group_name === 'brahmacari');
                         const grouped = {
                             bhima: users.filter(u => u.role !== 'owner' && u.group_name === 'bhima'),
                             arjun: users.filter(u => u.role !== 'owner' && u.group_name === 'arjun'),
                             nakul: users.filter(u => u.role !== 'owner' && u.group_name === 'nakul'),
                             sahadev: users.filter(u => u.role !== 'owner' && u.group_name === 'sahadev'),
                         };
-                        const unassigned = users.filter(u => u.role !== 'owner' && !u.group_name);
+                        const unassigned = users.filter(u => u.role !== 'owner' && !u.group_name && u.group_name !== 'brahmacari');
 
                         const sectionStyles = {
                             bhima:   { header: 'bg-amber-50 border-amber-200 text-amber-800',   dot: 'bg-amber-400' },
@@ -199,6 +200,22 @@ const AdminDashboard = () => {
                             <>
                                 {/* Owner — always pinned at top */}
                                 {owners.length > 0 && owners.map(renderUser)}
+
+                                {/* Brahmacari section — pinned below owner */}
+                                {brahmacaris.length > 0 && (
+                                    <div>
+                                        <button
+                                            onClick={() => setExpandedGroups(prev => ({ ...prev, brahmacari: !prev.brahmacari }))}
+                                            className="w-full px-4 py-1.5 border-y flex items-center gap-2 sticky top-0 z-10 bg-amber-50 border-amber-200 text-amber-800 cursor-pointer"
+                                        >
+                                            <span className="w-2 h-2 rounded-full bg-amber-500" />
+                                            <span className="text-xs font-bold uppercase tracking-wider">🕉️ Brahmacari</span>
+                                            <span className="ml-auto text-xs opacity-60 mr-1">{brahmacaris.length}</span>
+                                            <svg className={`w-3.5 h-3.5 transition-transform duration-200 ${expandedGroups.brahmacari ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                                        </button>
+                                        {expandedGroups.brahmacari && brahmacaris.map(renderUser)}
+                                    </div>
+                                )}
 
                                 {['bhima', 'arjun', 'nakul', 'sahadev'].map(g => grouped[g].length > 0 && (
                                     <div key={g}>
@@ -282,18 +299,50 @@ const AdminDashboard = () => {
                                         ) : (
                                             selectedUser.id !== user.id && selectedUser.role === 'admin' && (
                                                 <>
-                                                    <button
-                                                        onClick={() => openPermPanel(selectedUser)}
-                                                        className="flex items-center px-3 py-1.5 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors shadow-sm text-xs font-medium"
-                                                    >
-                                                        🔑 Group Access
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDemote(selectedUser.id)}
-                                                        className="flex items-center px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors shadow-sm text-xs font-medium"
-                                                    >
-                                                        Demote to Devotee
-                                                    </button>
+                                                    {selectedUser.group_name === 'brahmacari' ? (
+                                                        <button
+                                                            onClick={async () => {
+                                                                try {
+                                                                    await api.put(`/admin/users/${selectedUser.id}/revoke-brahmacari`);
+                                                                    setUsers(prev => prev.map(u => u.id === selectedUser.id ? { ...u, group_name: null } : u));
+                                                                    setSelectedUser(prev => ({ ...prev, group_name: null }));
+                                                                    alert(`✅ Brahmacari status revoked for ${selectedUser.username}`);
+                                                                } catch (err) { alert(err.response?.data?.message || err.message); }
+                                                            }}
+                                                            className="flex items-center px-3 py-1.5 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors shadow-sm text-xs font-medium"
+                                                        >
+                                                            🕉️ Revoke Brahmacari
+                                                        </button>
+                                                    ) : (
+                                                        <>
+                                                            <button
+                                                                onClick={async () => {
+                                                                    if (!confirm(`Assign ${selectedUser.username} as Brahmacari? They will have admin powers but no sadhana entry.`)) return;
+                                                                    try {
+                                                                        await api.put(`/admin/users/${selectedUser.id}/assign-brahmacari`);
+                                                                        setUsers(prev => prev.map(u => u.id === selectedUser.id ? { ...u, group_name: 'brahmacari', role: 'admin' } : u));
+                                                                        setSelectedUser(prev => ({ ...prev, group_name: 'brahmacari', role: 'admin' }));
+                                                                        alert(`✅ ${selectedUser.username} is now a Brahmacari`);
+                                                                    } catch (err) { alert(err.response?.data?.message || err.message); }
+                                                                }}
+                                                                className="flex items-center px-3 py-1.5 bg-amber-500 text-white rounded-md hover:bg-amber-600 transition-colors shadow-sm text-xs font-medium"
+                                                            >
+                                                                🕉️ Assign Brahmacari
+                                                            </button>
+                                                            <button
+                                                                onClick={() => openPermPanel(selectedUser)}
+                                                                className="flex items-center px-3 py-1.5 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors shadow-sm text-xs font-medium"
+                                                            >
+                                                                🔑 Group Access
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDemote(selectedUser.id)}
+                                                                className="flex items-center px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors shadow-sm text-xs font-medium"
+                                                            >
+                                                                Demote to Devotee
+                                                            </button>
+                                                        </>
+                                                    )}
                                                 </>
                                             )
                                         )}
