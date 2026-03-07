@@ -161,13 +161,14 @@ const AdminDashboard = () => {
                 </div>
                 <div className="overflow-y-auto flex-grow">
                     {(() => {
+                        const owners = users.filter(u => u.role === 'owner');
                         const grouped = {
-                            bhima: users.filter(u => u.group_name === 'bhima'),
-                            arjun: users.filter(u => u.group_name === 'arjun'),
-                            nakul: users.filter(u => u.group_name === 'nakul'),
-                            sahadev: users.filter(u => u.group_name === 'sahadev'),
+                            bhima: users.filter(u => u.role !== 'owner' && u.group_name === 'bhima'),
+                            arjun: users.filter(u => u.role !== 'owner' && u.group_name === 'arjun'),
+                            nakul: users.filter(u => u.role !== 'owner' && u.group_name === 'nakul'),
+                            sahadev: users.filter(u => u.role !== 'owner' && u.group_name === 'sahadev'),
                         };
-                        const unassigned = users.filter(u => !u.group_name);
+                        const unassigned = users.filter(u => u.role !== 'owner' && !u.group_name);
 
                         const sectionStyles = {
                             bhima:   { header: 'bg-amber-50 border-amber-200 text-amber-800',   dot: 'bg-amber-400' },
@@ -195,6 +196,9 @@ const AdminDashboard = () => {
 
                         return (
                             <>
+                                {/* Owner — always pinned at top */}
+                                {owners.length > 0 && owners.map(renderUser)}
+
                                 {['bhima', 'arjun', 'nakul', 'sahadev'].map(g => grouped[g].length > 0 && (
                                     <div key={g}>
                                         <div className={`px-4 py-1.5 border-y flex items-center gap-2 sticky top-0 z-10 ${sectionStyles[g].header}`}>
