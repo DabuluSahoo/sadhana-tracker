@@ -14,16 +14,18 @@ const Layout = () => {
         navigate('/login');
     };
 
+    const noSadhana = user?.role === 'owner' || user?.group_name === 'brahmacari';
+
     const navItems = [
         { label: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
-        { label: 'History', path: '/history', icon: <HistoryIcon size={20} /> },
+        { label: 'History', path: '/history', icon: <HistoryIcon size={20} />, hidden: noSadhana },
         {
             label: user?.role === 'owner' ? 'Owner' : 'Admin',
             path: '/admin',
             roles: ['admin', 'owner'],
             icon: <Users size={20} />
         },
-    ].filter(item => !item.roles || item.roles.includes(user?.role));
+    ].filter(item => !item.roles || item.roles.includes(user?.role)).filter(item => !item.hidden);
 
     return (
         <div className="min-h-screen bg-devotional-bg flex flex-col">
