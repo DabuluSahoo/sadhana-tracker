@@ -66,17 +66,17 @@ const GroupSelectModal = ({ onComplete }) => {
                     initial={{ scale: 0.85, opacity: 0, y: 30 }}
                     animate={{ scale: 1, opacity: 1, y: 0 }}
                     transition={{ type: 'spring', damping: 20, stiffness: 200 }}
-                    className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden"
+                    className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden"
                 >
-                    {/* Header */}
-                    <div className="bg-saffron-600 px-8 py-6 text-center">
-                        <img src="/voice_logo.svg" alt="VOICE" className="w-14 h-14 mx-auto mb-2" style={{ filter: 'brightness(0) invert(1)' }} />
-                        <h2 className="text-2xl font-serif font-bold text-white">Welcome, Devotee! 🙏</h2>
-                        <p className="text-saffron-100 text-sm mt-1">Please select your Sadhana Group to continue</p>
+                    {/* Header - Fixed */}
+                    <div className="bg-saffron-600 px-8 py-4 sm:py-6 text-center flex-shrink-0">
+                        <img src="/voice_logo.svg" alt="VOICE" className="w-10 h-10 sm:w-14 sm:h-14 mx-auto mb-2" style={{ filter: 'brightness(0) invert(1)' }} />
+                        <h2 className="text-xl sm:text-2xl font-serif font-bold text-white">Welcome, Devotee! 🙏</h2>
+                        <p className="text-saffron-100 text-xs sm:text-sm mt-1">Please select your Sadhana Group to continue</p>
                     </div>
 
-                    {/* Group Cards */}
-                    <div className="px-6 py-5 space-y-3">
+                    {/* Group Cards - Scrollable */}
+                    <div className="px-6 py-4 space-y-3 overflow-y-auto flex-grow">
                         {GROUPS.map((g) => (
                             <button
                                 key={g.key}

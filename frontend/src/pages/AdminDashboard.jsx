@@ -240,7 +240,7 @@ const AdminDashboard = () => {
             </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-220px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-auto lg:h-[calc(100vh-220px)]">
             {/* Users List */}
             <div className="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
                 <div className="p-4 border-b border-gray-200 bg-gray-50">
@@ -343,7 +343,7 @@ const AdminDashboard = () => {
             <div className="lg:col-span-3 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
                 {selectedUser ? (
                     <>
-                        <div className="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                        <div className="p-4 border-b border-gray-200 bg-gray-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div className="flex items-center gap-2">
                                 {renaming ? (
                                     <div className="flex items-center gap-2">
@@ -372,7 +372,7 @@ const AdminDashboard = () => {
                                     </>
                                 )}
                             </div>
-                            <div className="flex space-x-2 items-start">
+                            <div className="flex flex-wrap gap-2 items-start shrink-0">
                                 {user.role === 'owner' && (
                                     <>
                                         {selectedUser.role !== 'admin' && selectedUser.role !== 'owner' ? (
@@ -542,7 +542,7 @@ const AdminDashboard = () => {
                                                         <h4 className="font-medium text-saffron-700">{format(new Date(log.date), 'EEEE, MMM d, yyyy')}</h4>
                                                         <span className="text-xs text-gray-500">Submitted: {format(new Date(log.created_at), 'MMM d, p')}</span>
                                                     </div>
-                                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                                                         <div><span className="text-gray-500">Rounds:</span> <span className="font-medium">{log.rounds}</span></div>
                                                         <div><span className="text-gray-500">Reading:</span> <span className="font-medium">{log.reading_time}m</span></div>
                                                         <div><span className="text-gray-500">Hearing:</span> <span className="font-medium">{log.hearing_time}m</span></div>

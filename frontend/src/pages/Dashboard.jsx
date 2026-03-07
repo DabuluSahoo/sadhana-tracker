@@ -95,7 +95,7 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-7 gap-2 md:gap-4 overflow-x-auto pb-2">
+            <div className="flex overflow-x-auto pb-2 gap-2 md:grid md:grid-cols-7 md:gap-4 scrollbar-hide">
                 {weekDays.map((day) => {
                     const log = getLogForDate(day);
                     const isSelected = isSameDay(day, selectedDate);
@@ -108,7 +108,7 @@ const Dashboard = () => {
                             onClick={() => setSelectedDate(day)}
                             disabled={isFuture}
                             className={clsx(
-                                "flex flex-col items-center p-3 rounded-lg min-w-[60px] transition-all border",
+                                "flex flex-col items-center justify-center p-2 md:p-3 rounded-lg min-w-[50px] md:min-w-[60px] flex-shrink-0 transition-all border",
                                 isSelected
                                     ? "bg-saffron-600 text-white border-saffron-600 shadow-md transform scale-105"
                                     : isFuture
@@ -117,13 +117,13 @@ const Dashboard = () => {
                                 isToday && !isSelected && "ring-2 ring-saffron-400 ring-offset-2 opacity-40"
                             )}
                         >
-                            <span className="text-xs font-medium uppercase">{format(day, 'EEE')}</span>
-                            <span className="text-lg font-bold mt-1">{format(day, 'd')}</span>
-                            <div className="mt-2 h-2 w-2 rounded-full">
+                            <span className="text-[10px] md:text-xs font-medium uppercase">{format(day, 'EEE')}</span>
+                            <span className="text-base md:text-lg font-bold mt-0.5 md:mt-1">{format(day, 'd')}</span>
+                            <div className="mt-1 md:mt-2 h-1.5 w-1.5 md:h-2 md:w-2 rounded-full">
                                 {log ? (
-                                    <div className={clsx("h-2 w-2 rounded-full", isSelected ? "bg-white" : "bg-green-500")} />
+                                    <div className={clsx("h-1.5 w-1.5 md:h-2 md:w-2 rounded-full", isSelected ? "bg-white" : "bg-green-500")} />
                                 ) : !isFuture && (
-                                    <div className={clsx("h-2 w-2 rounded-full", isSelected ? "bg-saffron-800" : "bg-gray-200")} />
+                                    <div className={clsx("h-1.5 w-1.5 md:h-2 md:w-2 rounded-full", isSelected ? "bg-saffron-800" : "bg-gray-200")} />
                                 )}
                             </div>
                         </button>

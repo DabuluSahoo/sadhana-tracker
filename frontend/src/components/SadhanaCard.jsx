@@ -230,7 +230,7 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
                     </div>
 
                     {/* Mangala Aarti */}
-                    <div className="md:col-span-2">
+                    <div className="col-span-1 md:col-span-2">
                         <label className="flex items-center space-x-3 cursor-pointer">
                             <input
                                 type="checkbox"
@@ -245,7 +245,7 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
                     </div>
 
                     {/* Comments */}
-                    <div className="md:col-span-2 space-y-2">
+                    <div className="col-span-1 md:col-span-2 space-y-2">
                         <label className="block text-sm font-medium text-gray-700">Comments / Realizations</label>
                         <textarea
                             name="comments"
