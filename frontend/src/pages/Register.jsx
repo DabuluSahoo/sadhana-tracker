@@ -112,7 +112,7 @@ const Register = () => {
                             <button type="submit" disabled={loading} className={btnClass}>
                                 {loading ? 'Verifying...' : 'Verify OTP'}
                             </button>
-                            <button type="button" onClick={() => setStep(1)} className="w-full text-sm text-saffron-600 hover:underline">
+                            <button type="button" onClick={() => setStep(1)} className="w-full text-sm text-saffron-700 hover:underline">
                                 ← Change email
                             </button>
                         </form>
@@ -165,7 +165,7 @@ const Register = () => {
                     <div className="text-center">
                         <p className="text-sm text-gray-600">
                             Already have an account?{' '}
-                            <Link to="/login" className="font-medium text-saffron-600 hover:text-saffron-500">Login here</Link>
+                            <Link to="/login" className="font-medium text-saffron-700 hover:text-saffron-600">Login here</Link>
                         </p>
                     </div>
                 </div>

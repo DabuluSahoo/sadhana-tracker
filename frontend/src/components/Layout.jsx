@@ -30,7 +30,7 @@ const Layout = () => {
     return (
         <div className="min-h-screen bg-devotional-bg flex flex-col">
             {/* Navbar */}
-            <nav className="bg-saffron-600 text-white shadow-md sticky top-0 z-50">
+            <nav className="bg-saffron-700 text-white shadow-md sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-16 items-center">
                         <div className="flex items-center">
@@ -43,7 +43,7 @@ const Layout = () => {
                                 <Link
                                     key={item.path}
                                     to={item.path}
-                                    className={`flex items-center space-x-2 px-3 py-2 rounded-md transition-colors ${location.pathname === item.path ? 'bg-saffron-700' : 'hover:bg-saffron-500'
+                                    className={`flex items-center space-x-2 px-3 py-2 rounded-md transition-colors ${location.pathname === item.path ? 'bg-saffron-800' : 'hover:bg-saffron-600'
                                         }`}
                                 >
                                     {item.icon}
@@ -54,7 +54,7 @@ const Layout = () => {
                                 <span className="font-medium">{user?.username}</span>
                                 <button
                                     onClick={handleLogout}
-                                    className="flex items-center space-x-1 hover:bg-saffron-700 px-3 py-2 rounded-md transition-colors"
+                                    className="flex items-center space-x-1 hover:bg-saffron-800 px-3 py-2 rounded-md transition-colors"
                                 >
                                     <LogOut size={18} />
                                     <span>Logout</span>
@@ -65,8 +65,9 @@ const Layout = () => {
                         {/* Mobile Menu Button */}
                         <div className="md:hidden">
                             <button
+                                aria-label="Toggle Mobile Menu"
                                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                                className="p-2 rounded-md hover:bg-saffron-700 focus:outline-none"
+                                className="p-2 rounded-md hover:bg-saffron-800 focus:outline-none"
                             >
                                 {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
                             </button>
@@ -76,13 +77,13 @@ const Layout = () => {
 
                 {/* Mobile Nav */}
                 {isMobileMenuOpen && (
-                    <div className="md:hidden bg-saffron-700 px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                    <div className="md:hidden bg-saffron-800 px-2 pt-2 pb-3 space-y-1 sm:px-3">
                         {navItems.map((item) => (
                             <Link
                                 key={item.path}
                                 to={item.path}
                                 onClick={() => setIsMobileMenuOpen(false)}
-                                className={`flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium ${location.pathname === item.path ? 'bg-saffron-800' : 'hover:bg-saffron-600'
+                                className={`flex items-center space-x-2 block px-3 py-2 rounded-md text-base font-medium ${location.pathname === item.path ? 'bg-saffron-900' : 'hover:bg-saffron-700'
                                     }`}
                             >
                                 {item.icon}
@@ -94,7 +95,7 @@ const Layout = () => {
                                 handleLogout();
                                 setIsMobileMenuOpen(false);
                             }}
-                            className="flex items-center space-x-2 w-full text-left px-3 py-2 rounded-md hover:bg-saffron-600 text-base font-medium"
+                            className="flex items-center space-x-2 w-full text-left px-3 py-2 rounded-md hover:bg-saffron-700 text-base font-medium"
                         >
                             <LogOut size={20} />
                             <span>Logout</span>

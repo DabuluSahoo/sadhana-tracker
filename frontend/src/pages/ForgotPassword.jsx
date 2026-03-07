@@ -105,7 +105,7 @@ const ForgotPassword = () => {
                                         </div>
                                     </div>
                                     <button type="submit" disabled={loading} className={btnClass}>Next</button>
-                                    <button type="button" onClick={() => setStep(1)} className="w-full text-sm text-saffron-600 hover:underline">
+                                    <button type="button" onClick={() => setStep(1)} className="w-full text-sm text-saffron-700 hover:underline">
                                         ← Change email
                                     </button>
                                 </form>
@@ -132,7 +132,7 @@ const ForgotPassword = () => {
                     )}
 
                     <div className="text-center">
-                        <Link to="/login" className="text-sm text-saffron-600 hover:underline">← Back to Login</Link>
+                        <Link to="/login" className="text-sm text-saffron-700 hover:underline">← Back to Login</Link>
                     </div>
                 </div>
             </div>
