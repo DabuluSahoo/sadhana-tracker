@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
+import AuthContext from './context/AuthContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -10,12 +11,37 @@ import Dashboard from './pages/Dashboard';
 import History from './pages/History';
 import AdminDashboard from './pages/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import GroupSelectModal from './components/GroupSelectModal';
 
+// Inner component so it can use AuthContext
+function AppRoutes() {
+  const { user, updateUser } = useContext(AuthContext);
 
+  // Show group select modal for logged-in users with no group yet
+  const needsGroupSelect = user && user.group_name === null;
+
+  return (
+    <>
+      {needsGroupSelect && (
+        <GroupSelectModal onComplete={(group_name) => updateUser({ group_name })} />
+      )}
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/history" element={<History />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </>
+  );
+}
 
 function App() {
   useEffect(() => {
-    // Fail-safe: Forcefully remove dark mode classes from the <html> element
     document.documentElement.classList.remove('dark');
     document.body.classList.remove('dark');
     localStorage.removeItem('theme');
@@ -25,18 +51,7 @@ function App() {
     <AuthProvider>
       <Router>
         <Toaster position="top-center" />
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/history" element={<History />} />
-
-            <Route path="/admin" element={<AdminDashboard />} />
-          </Route>
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
+        <AppRoutes />
       </Router>
     </AuthProvider>
   );

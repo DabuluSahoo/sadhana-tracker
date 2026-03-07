@@ -51,8 +51,17 @@ export const AuthProvider = ({ children }) => {
         toast.success('Logged out');
     };
 
+    // Patch user fields (e.g. after group selection) without re-login
+    const updateUser = (fields) => {
+        setUser(prev => {
+            const updated = { ...prev, ...fields };
+            localStorage.setItem('user', JSON.stringify(updated));
+            return updated;
+        });
+    };
+
     return (
-        <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, register, logout, loading, updateUser }}>
             {children}
         </AuthContext.Provider>
     );

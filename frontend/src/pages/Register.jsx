@@ -5,11 +5,12 @@ import api from '../api';
 import toast from 'react-hot-toast';
 
 const Register = () => {
-    const [step, setStep] = useState(1); // 1: email, 2: otp, 3: username+password
+    const [step, setStep] = useState(1); // 1: email, 2: otp, 3: username+password+group
     const [email, setEmail] = useState('');
     const [otp, setOtp] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [groupName, setGroupName] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -41,9 +42,10 @@ const Register = () => {
 
     const handleRegister = async (e) => {
         e.preventDefault();
+        if (!groupName) return toast.error('Please select your group');
         setLoading(true);
         try {
-            await api.post('/auth/register', { email, username, password });
+            await api.post('/auth/register', { email, username, password, group_name: groupName });
             toast.success('Registration successful! Please login.');
             navigate('/login');
         } catch (err) {
@@ -116,7 +118,7 @@ const Register = () => {
                         </form>
                     )}
 
-                    {/* Step 3: Username + Password */}
+                    {/* Step 3: Username + Password + Group */}
                     {step === 3 && (
                         <form onSubmit={handleRegister} className="space-y-4">
                             <div>
@@ -138,6 +140,21 @@ const Register = () => {
                                     <input type="password" required className={inputClass} placeholder="Choose a password"
                                         value={password} onChange={(e) => setPassword(e.target.value)} />
                                 </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Sadhana Group</label>
+                                <select
+                                    required
+                                    value={groupName}
+                                    onChange={(e) => setGroupName(e.target.value)}
+                                    className="block w-full border border-gray-300 rounded-md py-2 px-3 focus:ring-saffron-500 focus:border-saffron-500 transition-colors bg-white"
+                                >
+                                    <option value="">— Select your group —</option>
+                                    <option value="sahadev">🌱 Sahadev Group (Level 1)</option>
+                                    <option value="nakul">🌿 Nakul Group (Level 2)</option>
+                                    <option value="arjun">🪷 Arjun Group (Level 3)</option>
+                                    <option value="bhima">🏆 Bhima Group (Level 4)</option>
+                                </select>
                             </div>
                             <button type="submit" disabled={loading} className={btnClass}>
                                 {loading ? 'Creating account...' : 'Create Account'}

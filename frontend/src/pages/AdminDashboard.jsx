@@ -7,6 +7,10 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import SadhanaAnalytics from '../components/SadhanaAnalytics';
 import { generateWeeklySadhanaReport } from '../utils/reportUtils';
 
+const GROUPS = ['bhima', 'arjun', 'nakul', 'sahadev'];
+const GROUP_EMOJI = { bhima: '🏆', arjun: '🪷', nakul: '🌿', sahadev: '🌱' };
+const GROUP_LEVEL = { bhima: 4, arjun: 3, nakul: 2, sahadev: 1 };
+
 const AdminDashboard = () => {
     const { user } = useContext(AuthContext);
     const [users, setUsers] = useState([]);
@@ -16,6 +20,9 @@ const AdminDashboard = () => {
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [loadingLogs, setLoadingLogs] = useState(false);
+    const [showPermPanel, setShowPermPanel] = useState(false);
+    const [permSelections, setPermSelections] = useState([]);
+    const [savingPerms, setSavingPerms] = useState(false);
     // ... existing code ...
     // (Note: Replace only up to the detail header section)
 
@@ -101,6 +108,34 @@ const AdminDashboard = () => {
         }
     };
 
+    // Open the permission panel pre-filled with existing permissions
+    const openPermPanel = (targetUser) => {
+        let existing = targetUser.group_permissions;
+        if (typeof existing === 'string') { try { existing = JSON.parse(existing); } catch { existing = []; } }
+        setPermSelections(Array.isArray(existing) ? existing : []);
+        setShowPermPanel(true);
+    };
+
+    const togglePerm = (g) => setPermSelections(prev =>
+        prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g]
+    );
+
+    const savePermissions = async () => {
+        setSavingPerms(true);
+        try {
+            await api.put(`/admin/users/${selectedUser.id}/group-permissions`, { group_permissions: permSelections });
+            setUsers(prev => prev.map(u =>
+                u.id === selectedUser.id ? { ...u, group_permissions: permSelections } : u
+            ));
+            setSelectedUser(prev => ({ ...prev, group_permissions: permSelections }));
+            setShowPermPanel(false);
+            alert(`✅ Group permissions updated for ${selectedUser.username}`);
+        } catch (err) {
+            alert('Failed: ' + (err.response?.data?.message || err.message));
+        }
+        setSavingPerms(false);
+    };
+
     if (loading) return <LoadingSpinner />;
 
     return (
@@ -114,10 +149,16 @@ const AdminDashboard = () => {
                     {users.map(devotee => (
                         <button
                             key={devotee.id}
-                            onClick={() => handleUserSelect(devotee.id)}
+                            onClick={() => { handleUserSelect(devotee.id); setShowPermPanel(false); }}
                             className={`w-full text-left px-4 py-3 border-b border-gray-100 hover:bg-saffron-50 transition-colors flex justify-between items-center ${selectedUser?.id === devotee.id ? 'bg-saffron-50 border-saffron-200' : ''
                                 }`}
                         >
+                            <div>
+                                <p className="text-sm font-medium text-gray-800">{devotee.username}</p>
+                                {devotee.group_name && (
+                                    <p className="text-xs text-gray-400 capitalize">{GROUP_EMOJI[devotee.group_name]} {devotee.group_name} · Lv{GROUP_LEVEL[devotee.group_name]}</p>
+                                )}
+                            </div>
                             <div>
                                 <p className="font-medium text-gray-800">{devotee.username}</p>
                                 <p className="text-xs text-gray-500">{devotee.email || <span className="text-red-400">No Email</span>}</p>
@@ -150,12 +191,20 @@ const AdminDashboard = () => {
                                             </button>
                                         ) : (
                                             selectedUser.id !== user.id && selectedUser.role === 'admin' && (
-                                                <button
-                                                    onClick={() => handleDemote(selectedUser.id)}
-                                                    className="flex items-center px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors shadow-sm text-xs font-medium"
-                                                >
-                                                    Demote to Devotee
-                                                </button>
+                                                <>
+                                                    <button
+                                                        onClick={() => openPermPanel(selectedUser)}
+                                                        className="flex items-center px-3 py-1.5 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors shadow-sm text-xs font-medium"
+                                                    >
+                                                        🔑 Group Access
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDemote(selectedUser.id)}
+                                                        className="flex items-center px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors shadow-sm text-xs font-medium"
+                                                    >
+                                                        Demote to Devotee
+                                                    </button>
+                                                </>
                                             )
                                         )}
                                     </>
@@ -185,6 +234,47 @@ const AdminDashboard = () => {
                                 </button>
                             </div>
                         </div>
+
+                        {/* Group Permissions Panel (owner only, admin selected) */}
+                        {showPermPanel && user.role === 'owner' && selectedUser?.role === 'admin' && (
+                            <div className="mx-6 mb-4 p-4 bg-purple-50 border border-purple-200 rounded-xl">
+                                <h4 className="font-semibold text-purple-800 mb-3">🔑 Group Access for <em>{selectedUser.username}</em></h4>
+                                <p className="text-xs text-purple-600 mb-3">Select which groups this admin can view data for:</p>
+                                <div className="grid grid-cols-2 gap-2 mb-4">
+                                    {GROUPS.map(g => (
+                                        <label key={g} className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                                            permSelections.includes(g)
+                                                ? 'border-purple-400 bg-purple-100'
+                                                : 'border-gray-200 bg-white hover:border-purple-200'
+                                        }`}>
+                                            <input
+                                                type="checkbox"
+                                                checked={permSelections.includes(g)}
+                                                onChange={() => togglePerm(g)}
+                                                className="accent-purple-600 w-4 h-4"
+                                            />
+                                            <span className="text-sm font-medium capitalize">{GROUP_EMOJI[g]} {g} <span className="text-xs text-gray-400">(Lv{GROUP_LEVEL[g]})</span></span>
+                                        </label>
+                                    ))}
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={savePermissions}
+                                        disabled={savingPerms}
+                                        className="flex-1 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors disabled:opacity-60"
+                                    >
+                                        {savingPerms ? 'Saving...' : 'Save Permissions'}
+                                    </button>
+                                    <button
+                                        onClick={() => setShowPermPanel(false)}
+                                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="overflow-y-auto flex-grow p-6 space-y-8">
                             {userLogs.length > 0 ? (
                                 <>
