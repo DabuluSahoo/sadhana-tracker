@@ -9,8 +9,8 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        const storedUser = localStorage.getItem('user');
+        const token = sessionStorage.getItem('token');
+        const storedUser = sessionStorage.getItem('user');
         if (token && storedUser) {
             setUser(JSON.parse(storedUser));
         }
@@ -20,8 +20,8 @@ export const AuthProvider = ({ children }) => {
     const login = async (username, password) => {
         try {
             const { data } = await api.post('/auth/login', { username, password });
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
+            sessionStorage.setItem('token', data.token);
+            sessionStorage.setItem('user', JSON.stringify(data.user));
             setUser(data.user);
             toast.success('Welcome back!');
             return true;
@@ -45,8 +45,8 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
         setUser(null);
         toast.success('Logged out');
     };
@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }) => {
     const updateUser = (fields) => {
         setUser(prev => {
             const updated = { ...prev, ...fields };
-            localStorage.setItem('user', JSON.stringify(updated));
+            sessionStorage.setItem('user', JSON.stringify(updated));
             return updated;
         });
     };
