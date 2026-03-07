@@ -17,8 +17,8 @@ import GroupSelectModal from './components/GroupSelectModal';
 function AppRoutes() {
   const { user, updateUser } = useContext(AuthContext);
 
-  // Show group select modal for logged-in users with no group yet
-  const needsGroupSelect = user && user.group_name === null;
+  // Show group select modal for non-owner users who haven't chosen a group yet
+  const needsGroupSelect = user && user.role !== 'owner' && user.group_name === null;
 
   return (
     <>
