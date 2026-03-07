@@ -204,13 +204,28 @@ export const generateCustomRangeSadhanaReport = (username, logs, startDate, endD
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// generateGroupReport — multi-user PDF, all devotees packed per page
+// generateGroupReport — multi-user PDF
+// Each devotee gets: colored banner + own column headers + data rows + gap
+// Sorted group-wise: bhima → arjun → nakul → sahadev → others
 // usersData = [{ username, group_name, logs: [] }]
 // ─────────────────────────────────────────────────────────────────────────────
+const GROUP_ORDER = ['bhima', 'arjun', 'nakul', 'sahadev'];
+const GROUP_EMOJI_MAP = { bhima: '🏆', arjun: '🪷', nakul: '🌿', sahadev: '🌱', brahmacari: '🕉️', unassigned: '📋' };
+
 export const generateGroupReport = (groupLabel, usersData, startDate, endDate, restrictionNote = null) => {
     const start = new Date(startDate + 'T00:00:00');
     const end   = new Date(endDate   + 'T23:59:59');
     const days  = eachDayOfInterval({ start, end });
+
+    // Sort users: bhima → arjun → nakul → sahadev → others (alphabetical within group)
+    const sorted = [...usersData].sort((a, b) => {
+        const ai = GROUP_ORDER.indexOf((a.group_name || '').toLowerCase());
+        const bi = GROUP_ORDER.indexOf((b.group_name || '').toLowerCase());
+        const aIdx = ai === -1 ? 99 : ai;
+        const bIdx = bi === -1 ? 99 : bi;
+        if (aIdx !== bIdx) return aIdx - bIdx;
+        return a.username.localeCompare(b.username);
+    });
 
     const doc = new jsPDF({ orientation: 'landscape' });
     addPDFHeader(
@@ -226,58 +241,69 @@ export const generateGroupReport = (groupLabel, usersData, startDate, endDate, r
         doc.setTextColor(180, 80, 0);
         const lines = doc.splitTextToSize(`⏳ ${restrictionNote}`, 256);
         doc.text(lines, 20, y);
-        y += lines.length * 5 + 4;
+        y += lines.length * 5 + 6;
     }
 
-    // Build one big table body with coloured section headers per devotee
-    const allBody = [];
-    const sectionHeaderRows = []; // indices of section header rows for styling
+    const pageH = doc.internal.pageSize.getHeight();
+    const pageW = doc.internal.pageSize.getWidth();
 
-    usersData.forEach(({ username, group_name, logs }) => {
-        const grpKey = (group_name || 'unassigned').toLowerCase();
-        const color  = GROUP_COLORS[grpKey] || GROUP_COLORS.unassigned;
+    sorted.forEach(({ username, group_name, logs }, idx) => {
+        const grpKey   = (group_name || 'unassigned').toLowerCase();
+        const color    = GROUP_COLORS[grpKey] || GROUP_COLORS.unassigned;
+        const emoji    = GROUP_EMOJI_MAP[grpKey] || '';
         const existing = days.map(d => logs.find(l => isSameDay(new Date(l.date), d))).filter(Boolean);
         const daysLogged = existing.length;
-        const avgRounds = daysLogged ? (existing.reduce((s, l) => s + (l.rounds || 0), 0) / daysLogged).toFixed(1) : 0;
+        const avgRounds  = daysLogged
+            ? (existing.reduce((s, l) => s + (l.rounds || 0), 0) / daysLogged).toFixed(1)
+            : 0;
 
-        // Section header row (spans all 10 columns via custom didDrawCell)
-        sectionHeaderRows.push({ rowIndex: allBody.length, color });
-        allBody.push([
-            { content: `${username}  ·  ${grpKey.toUpperCase()} GROUP  ·  Days Logged: ${daysLogged}/${days.length}  ·  Avg Rounds: ${avgRounds}`, colSpan: 10 }
-        ]);
+        // ── Colored banner row ───────────────────────────────────────
+        // Check if we need a new page for the banner + at least 2 data rows (~25pt)
+        if (y + 30 > pageH - 15) {
+            doc.addPage();
+            y = 15;
+        }
 
-        // Data rows
-        buildRows(days, logs).forEach(row => allBody.push(row));
+        doc.setFillColor(...color);
+        doc.rect(14, y, pageW - 28, 9, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('times', 'bold');
+        doc.setFontSize(9);
+        doc.text(
+            `${emoji} ${grpKey.toUpperCase()} GROUP  ·  ${username}  ·  Days Logged: ${daysLogged}/${days.length}  ·  Avg Rounds: ${avgRounds}`,
+            17, y + 6
+        );
+        y += 9;
+
+        // ── Per-user table with column headers ───────────────────────
+        autoTable(doc, {
+            startY: y,
+            head: [TABLE_COLS],
+            body: buildRows(days, logs),
+            theme: 'striped',
+            headStyles: {
+                fillColor: color.map(c => Math.min(255, c + 60)), // lighter version of group color
+                textColor: [255, 255, 255],
+                fontSize: 8,
+                fontStyle: 'bold',
+            },
+            bodyStyles:          { fontSize: 7.5 },
+            alternateRowStyles:  { fillColor: [255, 252, 245] },
+            styles:              { font: 'times', cellPadding: 1.5 },
+            columnStyles:        { 9: { cellWidth: 45 } },
+            margin:              { left: 14, right: 14 },
+        });
+
+        // ── Gap after table (skip if last user) ──────────────────────
+        y = (doc.lastAutoTable?.finalY ?? y) + (idx < sorted.length - 1 ? 10 : 6);
     });
 
-    autoTable(doc, {
-        startY: y,
-        head: [TABLE_COLS],
-        body: allBody,
-        theme: 'striped',
-        headStyles: { fillColor: [234, 88, 12], fontSize: 8, fontStyle: 'bold' },
-        bodyStyles: { fontSize: 7.5 },
-        alternateRowStyles: { fillColor: [255, 252, 240] },
-        styles: { font: 'times', cellPadding: 1.5 },
-        columnStyles: { 9: { cellWidth: 45 } },
-        // Color section header rows
-        didParseCell: (data) => {
-            const match = sectionHeaderRows.find(s => s.rowIndex === data.row.index);
-            if (match && data.section === 'body') {
-                data.cell.styles.fillColor = match.color;
-                data.cell.styles.textColor = [255, 255, 255];
-                data.cell.styles.fontStyle = 'bold';
-                data.cell.styles.fontSize  = 8.5;
-            }
-        },
-    });
-
+    // Footer on last page
     doc.setFontSize(9);
     doc.setTextColor(160);
-    const pageH = doc.internal.pageSize.getHeight();
-    doc.text('Your spiritual progress is a gift to the world. 🙏', 148, pageH - 8, { align: 'center' });
+    doc.text('Your spiritual progress is a gift to the world. 🙏', pageW / 2, pageH - 8, { align: 'center' });
 
-    const fname = `Group_Sadhana_${groupLabel}_${startDate}_to_${endDate}.pdf`;
-    doc.save(fname);
+    doc.save(`Group_Sadhana_${groupLabel}_${startDate}_to_${endDate}.pdf`);
     toast.success(`Group report for ${groupLabel} downloaded!`);
 };
+
