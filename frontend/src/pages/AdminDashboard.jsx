@@ -25,6 +25,7 @@ const AdminDashboard = () => {
     const [savingPerms, setSavingPerms] = useState(false);
     const [renaming, setRenaming] = useState(false);
     const [newUsername, setNewUsername] = useState('');
+    const [expandedGroups, setExpandedGroups] = useState({}); // default: all collapsed
     // ... existing code ...
     // (Note: Replace only up to the detail header section)
 
@@ -201,23 +202,31 @@ const AdminDashboard = () => {
 
                                 {['bhima', 'arjun', 'nakul', 'sahadev'].map(g => grouped[g].length > 0 && (
                                     <div key={g}>
-                                        <div className={`px-4 py-1.5 border-y flex items-center gap-2 sticky top-0 z-10 ${sectionStyles[g].header}`}>
+                                        <button
+                                            onClick={() => setExpandedGroups(prev => ({ ...prev, [g]: !prev[g] }))}
+                                            className={`w-full px-4 py-1.5 border-y flex items-center gap-2 sticky top-0 z-10 cursor-pointer ${sectionStyles[g].header}`}
+                                        >
                                             <span className={`w-2 h-2 rounded-full ${sectionStyles[g].dot}`} />
                                             <span className="text-xs font-bold uppercase tracking-wider capitalize">{GROUP_EMOJI[g]} {g} Group</span>
-                                            <span className="ml-auto text-xs opacity-60">{grouped[g].length}</span>
-                                        </div>
-                                        {grouped[g].map(renderUser)}
+                                            <span className="ml-auto text-xs opacity-60 mr-1">{grouped[g].length}</span>
+                                            <svg className={`w-3.5 h-3.5 transition-transform duration-200 ${expandedGroups[g] ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                                        </button>
+                                        {expandedGroups[g] && grouped[g].map(renderUser)}
                                     </div>
                                 ))}
 
                                 {unassigned.length > 0 && (
                                     <div>
-                                        <div className="px-4 py-1.5 border-y flex items-center gap-2 sticky top-0 z-10 bg-gray-50 border-gray-200 text-gray-500">
+                                        <button
+                                            onClick={() => setExpandedGroups(prev => ({ ...prev, unassigned: !prev.unassigned }))}
+                                            className="w-full px-4 py-1.5 border-y flex items-center gap-2 sticky top-0 z-10 bg-gray-50 border-gray-200 text-gray-500 cursor-pointer"
+                                        >
                                             <span className="w-2 h-2 rounded-full bg-gray-300" />
                                             <span className="text-xs font-bold uppercase tracking-wider">Unassigned</span>
-                                            <span className="ml-auto text-xs opacity-60">{unassigned.length}</span>
-                                        </div>
-                                        {unassigned.map(renderUser)}
+                                            <span className="ml-auto text-xs opacity-60 mr-1">{unassigned.length}</span>
+                                            <svg className={`w-3.5 h-3.5 transition-transform duration-200 ${expandedGroups.unassigned ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                                        </button>
+                                        {expandedGroups.unassigned && unassigned.map(renderUser)}
                                     </div>
                                 )}
                             </>
