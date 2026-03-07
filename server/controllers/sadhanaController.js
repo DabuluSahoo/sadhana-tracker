@@ -65,7 +65,7 @@ exports.getGroupLogs = async (req, res) => {
             params.push(...perms);
         }
 
-        // Exclude owner from results always (non-owners can't see owner data)
+        // Exclude owner and brahmacari from results always
         const ownerClause = req.user.role !== 'owner' ? 'AND u.role != "owner"' : '';
 
         const [rows] = await db.query(
@@ -75,7 +75,7 @@ exports.getGroupLogs = async (req, res) => {
                     ds.wakeup_time, ds.sleep_time, ds.comments
              FROM users u
              LEFT JOIN daily_sadhana ds ON ds.user_id = u.id AND ds.date BETWEEN ? AND ?
-             WHERE u.role != 'owner' ${groupClause} ${ownerClause}
+             WHERE u.role != 'owner' AND u.group_name != 'brahmacari' ${groupClause} ${ownerClause}
              ORDER BY u.group_name, u.username, ds.date ASC`,
             params
         );

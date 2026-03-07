@@ -210,15 +210,18 @@ export const generateCustomRangeSadhanaReport = (username, logs, startDate, endD
 // usersData = [{ username, group_name, logs: [] }]
 // ─────────────────────────────────────────────────────────────────────────────
 const GROUP_ORDER = ['bhima', 'arjun', 'nakul', 'sahadev'];
-const GROUP_EMOJI_MAP = { bhima: '🏆', arjun: '🪷', nakul: '🌿', sahadev: '🌱', brahmacari: '🕉️', unassigned: '📋' };
+// Note: no emoji map — jsPDF standard fonts cannot render emoji (shows as '?' symbols)
 
 export const generateGroupReport = (groupLabel, usersData, startDate, endDate, restrictionNote = null) => {
     const start = new Date(startDate + 'T00:00:00');
     const end   = new Date(endDate   + 'T23:59:59');
     const days  = eachDayOfInterval({ start, end });
 
-    // Sort users: bhima → arjun → nakul → sahadev → others (alphabetical within group)
-    const sorted = [...usersData].sort((a, b) => {
+    // Sort users: bhima→arjun→nakul→sahadev→others, alphabetical within group
+    // Exclude brahmacari (they don't fill sadhana)
+    const sorted = [...usersData]
+        .filter(u => (u.group_name || '').toLowerCase() !== 'brahmacari')
+        .sort((a, b) => {
         const ai = GROUP_ORDER.indexOf((a.group_name || '').toLowerCase());
         const bi = GROUP_ORDER.indexOf((b.group_name || '').toLowerCase());
         const aIdx = ai === -1 ? 99 : ai;
@@ -250,7 +253,6 @@ export const generateGroupReport = (groupLabel, usersData, startDate, endDate, r
     sorted.forEach(({ username, group_name, logs }, idx) => {
         const grpKey   = (group_name || 'unassigned').toLowerCase();
         const color    = GROUP_COLORS[grpKey] || GROUP_COLORS.unassigned;
-        const emoji    = GROUP_EMOJI_MAP[grpKey] || '';
         const existing = days.map(d => logs.find(l => isSameDay(new Date(l.date), d))).filter(Boolean);
         const daysLogged = existing.length;
         const avgRounds  = daysLogged
@@ -265,15 +267,15 @@ export const generateGroupReport = (groupLabel, usersData, startDate, endDate, r
         }
 
         doc.setFillColor(...color);
-        doc.rect(14, y, pageW - 28, 9, 'F');
+        doc.rect(14, y, pageW - 28, 11, 'F');  // taller banner for bigger font
         doc.setTextColor(255, 255, 255);
         doc.setFont('times', 'bold');
-        doc.setFontSize(9);
+        doc.setFontSize(11);
         doc.text(
-            `${emoji} ${grpKey.toUpperCase()} GROUP  ·  ${username}  ·  Days Logged: ${daysLogged}/${days.length}  ·  Avg Rounds: ${avgRounds}`,
-            17, y + 6
+            `${grpKey.toUpperCase()} GROUP  -  ${username}  |  Days Logged: ${daysLogged}/${days.length}  |  Avg Rounds: ${avgRounds}`,
+            17, y + 7.5
         );
-        y += 9;
+        y += 11;
 
         // ── Per-user table with column headers ───────────────────────
         autoTable(doc, {
@@ -282,12 +284,12 @@ export const generateGroupReport = (groupLabel, usersData, startDate, endDate, r
             body: buildRows(days, logs),
             theme: 'striped',
             headStyles: {
-                fillColor: color.map(c => Math.min(255, c + 60)), // lighter version of group color
+                fillColor: color.map(c => Math.min(255, c + 60)),
                 textColor: [255, 255, 255],
-                fontSize: 8,
+                fontSize: 9.5,
                 fontStyle: 'bold',
             },
-            bodyStyles:          { fontSize: 7.5 },
+            bodyStyles:          { fontSize: 9 },
             alternateRowStyles:  { fillColor: [255, 252, 245] },
             styles:              { font: 'times', cellPadding: 1.5 },
             columnStyles:        { 9: { cellWidth: 45 } },
