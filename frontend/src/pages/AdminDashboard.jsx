@@ -162,7 +162,7 @@ const AdminDashboard = () => {
                 </div>
                 <div className="overflow-y-auto flex-grow">
                     {(() => {
-                        const owners = users.filter(u => u.role === 'owner');
+                        const owners = user.role === 'owner' ? users.filter(u => u.role === 'owner') : [];
                         const brahmacaris = users.filter(u => u.group_name === 'brahmacari');
                         const grouped = {
                             bhima: users.filter(u => u.role !== 'owner' && u.group_name === 'bhima'),
