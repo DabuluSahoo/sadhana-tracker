@@ -2,9 +2,11 @@ const db = require('../config/db');
 const { sendUsernameChangeNotification } = require('../config/mailer');
 
 // Helper: build a group filter clause for a given admin user
-// Owner sees everyone. Admin sees only users in their group_permissions list.
+// Owner and Brahmacari see everyone. Admin sees only users in their group_permissions list.
 const buildGroupFilter = (reqUser) => {
     if (reqUser.role === 'owner') return { clause: '', params: [] };
+    // Brahmacari has full visibility across all groups
+    if (reqUser.group_name === 'brahmacari') return { clause: '', params: [] };
 
     let permissions = reqUser.group_permissions;
     if (typeof permissions === 'string') {
@@ -156,15 +158,19 @@ exports.renameUser = async (req, res) => {
     }
 };
 
-// Owner-only: assign Brahmacari status (admin role + brahmacari group)
+// Owner-only: assign Brahmacari status (admin role + brahmacari group + full group access)
 exports.assignBrahmacari = async (req, res) => {
     const { userId } = req.params;
+    const allGroupPerms = JSON.stringify(['bhima', 'arjun', 'nakul', 'sahadev']);
     try {
         const [rows] = await db.query('SELECT id, role FROM users WHERE id = ?', [userId]);
         if (rows.length === 0) return res.status(404).json({ message: 'User not found' });
         if (rows[0].role === 'owner') return res.status(400).json({ message: 'Cannot assign Brahmacari to the owner' });
 
-        await db.query('UPDATE users SET role = "admin", group_name = "brahmacari" WHERE id = ?', [userId]);
+        await db.query(
+            'UPDATE users SET role = "admin", group_name = "brahmacari", group_permissions = ? WHERE id = ?',
+            [allGroupPerms, userId]
+        );
         res.json({ message: 'User assigned as Brahmacari successfully' });
     } catch (err) {
         res.status(500).json({ message: err.message });
