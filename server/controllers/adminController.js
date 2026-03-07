@@ -105,9 +105,9 @@ exports.promoteUser = async (req, res) => {
 exports.demoteUser = async (req, res) => {
     const { userId } = req.params;
     try {
-        // Clear role, group_name AND group_permissions to prevent permission leakage on re-promotion
+        // Preserve group_name (their sadhana group e.g. arjun/bhima) — only reset role and permissions
         await db.query(
-            'UPDATE users SET role = "devotee", group_name = NULL, group_permissions = NULL WHERE id = ?',
+            'UPDATE users SET role = "devotee", group_permissions = NULL WHERE id = ?',
             [userId]
         );
         res.json({ message: 'User demoted to Devotee successfully' });

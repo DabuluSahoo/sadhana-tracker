@@ -181,14 +181,22 @@ const AdminDashboard = () => {
             <div className="flex flex-wrap gap-4 items-end">
                 <div>
                     <p className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">📥 Group Report</p>
-                    <select
-                        value={groupReportGroup}
-                        onChange={e => setGroupReportGroup(e.target.value)}
-                        className="text-sm border border-amber-300 rounded-lg px-3 py-1.5 bg-amber-50 text-amber-900 focus:outline-none focus:ring-1 focus:ring-amber-400"
-                    >
-                        <option value="all">All Groups</option>
-                        {GROUPS.map(g => <option key={g} value={g}>{GROUP_EMOJI[g]} {g.charAt(0).toUpperCase() + g.slice(1)}</option>)}
-                    </select>
+                    {(() => {
+                        const isOwnerOrBrahmacari = user.role === 'owner' || user.group_name === 'brahmacari';
+                        let perms = user.group_permissions;
+                        if (typeof perms === 'string') { try { perms = JSON.parse(perms); } catch { perms = []; } }
+                        const allowedGroups = isOwnerOrBrahmacari ? GROUPS : (Array.isArray(perms) ? perms.filter(g => GROUPS.includes(g)) : []);
+                        return (
+                            <select
+                                value={groupReportGroup}
+                                onChange={e => setGroupReportGroup(e.target.value)}
+                                className="text-sm border border-amber-300 rounded-lg px-3 py-1.5 bg-amber-50 text-amber-900 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                            >
+                                {isOwnerOrBrahmacari && <option value="all">All Groups</option>}
+                                {allowedGroups.map(g => <option key={g} value={g}>{GROUP_EMOJI[g]} {g.charAt(0).toUpperCase() + g.slice(1)}</option>)}
+                            </select>
+                        );
+                    })()}
                 </div>
                 {/* Last Week button */}
                 <button
