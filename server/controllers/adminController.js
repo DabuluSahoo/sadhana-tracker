@@ -105,7 +105,11 @@ exports.promoteUser = async (req, res) => {
 exports.demoteUser = async (req, res) => {
     const { userId } = req.params;
     try {
-        await db.query('UPDATE users SET role = "devotee" WHERE id = ?', [userId]);
+        // Clear role, group_name AND group_permissions to prevent permission leakage on re-promotion
+        await db.query(
+            'UPDATE users SET role = "devotee", group_name = NULL, group_permissions = NULL WHERE id = ?',
+            [userId]
+        );
         res.json({ message: 'User demoted to Devotee successfully' });
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -185,7 +189,7 @@ exports.assignBrahmacari = async (req, res) => {
     }
 };
 
-// Owner-only: revoke Brahmacari status (keeps admin role, clears brahmacari group)
+// Owner-only: revoke Brahmacari status (keeps admin role, clears brahmacari group AND permissions)
 exports.revokeBrahmacari = async (req, res) => {
     const { userId } = req.params;
     try {
@@ -193,8 +197,12 @@ exports.revokeBrahmacari = async (req, res) => {
         if (rows.length === 0) return res.status(404).json({ message: 'User not found' });
         if (rows[0].group_name !== 'brahmacari') return res.status(400).json({ message: 'User is not a Brahmacari' });
 
-        await db.query('UPDATE users SET group_name = NULL WHERE id = ?', [userId]);
-        res.json({ message: 'Brahmacari status revoked. User remains an admin.' });
+        // Clear group_name AND group_permissions — prevents all-groups access from persisting
+        await db.query(
+            'UPDATE users SET role = "devotee", group_name = NULL, group_permissions = NULL WHERE id = ?',
+            [userId]
+        );
+        res.json({ message: 'Brahmacari status revoked. User returned to Devotee.' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
