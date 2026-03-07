@@ -22,6 +22,24 @@ function AppRoutes() {
   // Show group select modal for non-owner, non-brahmacari users who haven't chosen a group yet
   const needsGroupSelect = user && user.role !== 'owner' && user.group_name !== 'brahmacari' && user.group_name === null;
 
+  // Prefetch all lazy chunks silently once user is logged in
+  useEffect(() => {
+    if (user) {
+      // Use requestIdleCallback so we don't compete with the initial render
+      const prefetch = () => {
+        import('./pages/Dashboard');
+        import('./pages/History');
+        import('./pages/AdminDashboard');
+        import('./components/GroupSelectModal');
+      };
+      if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(prefetch);
+      } else {
+        setTimeout(prefetch, 2000);
+      }
+    }
+  }, [user]);
+
   return (
     <>
       {needsGroupSelect && (
