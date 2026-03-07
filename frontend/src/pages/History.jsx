@@ -1,17 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import api from '../api';
-import { format } from 'date-fns';
-import { FileText } from 'lucide-react';
+import { format, subDays } from 'date-fns';
+import { FileText, ChevronDown } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import SadhanaAnalytics from '../components/SadhanaAnalytics';
-import { generateWeeklySadhanaReport } from '../utils/reportUtils';
-import { useContext } from 'react';
+import { generateWeeklySadhanaReport, generateCustomRangeSadhanaReport } from '../utils/reportUtils';
 import AuthContext from '../context/AuthContext';
 
 const History = () => {
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const { user } = useContext(AuthContext);
+    const [showCustom, setShowCustom] = useState(false);
+    const [customStart, setCustomStart] = useState('');
+    const [customEnd, setCustomEnd] = useState('');
 
     useEffect(() => {
         const fetchHistory = async () => {
@@ -29,17 +31,75 @@ const History = () => {
 
     if (loading) return <LoadingSpinner />;
 
+    const minDate = format(subDays(new Date(), 30), 'yyyy-MM-dd');
+    const maxDate = format(subDays(new Date(), 1), 'yyyy-MM-dd');
+
     return (
         <div className="space-y-8 max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <h2 className="text-3xl font-serif font-bold text-gray-800">Your Sadhana Progress</h2>
-                <button
-                    onClick={() => generateWeeklySadhanaReport(user.username, logs)}
-                    className="flex items-center px-4 py-2 bg-saffron-600 text-white rounded-lg hover:bg-saffron-700 transition-colors shadow-md text-sm font-medium"
-                >
-                    <FileText size={18} className="mr-2" />
-                    Download Weekly Report
-                </button>
+
+                {/* Download buttons */}
+                <div className="flex flex-wrap gap-2 items-start">
+                    {/* Last completed week */}
+                    <button
+                        onClick={() => generateWeeklySadhanaReport(user.username, logs)}
+                        className="flex items-center px-4 py-2 bg-saffron-600 text-white rounded-lg hover:bg-saffron-700 transition-colors shadow-md text-sm font-medium"
+                    >
+                        <FileText size={16} className="mr-2" />
+                        Download Last Week
+                    </button>
+
+                    {/* Custom range toggle */}
+                    <div className="flex flex-col gap-1">
+                        <button
+                            onClick={() => setShowCustom(v => !v)}
+                            className="flex items-center px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors shadow-md text-sm font-medium"
+                        >
+                            <FileText size={16} className="mr-2" />
+                            Custom Range
+                            <ChevronDown size={14} className={`ml-1.5 transition-transform ${showCustom ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {showCustom && (
+                            <div className="flex flex-col gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl shadow-sm">
+                                <p className="text-xs text-amber-700 font-semibold">Select date range (last 30 days only)</p>
+                                <div className="flex gap-2 items-end flex-wrap">
+                                    <div>
+                                        <p className="text-[10px] text-gray-500 mb-0.5">From</p>
+                                        <input
+                                            type="date"
+                                            value={customStart}
+                                            onChange={e => setCustomStart(e.target.value)}
+                                            min={minDate} max={maxDate}
+                                            className="text-sm border border-amber-300 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                                        />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] text-gray-500 mb-0.5">To</p>
+                                        <input
+                                            type="date"
+                                            value={customEnd}
+                                            onChange={e => setCustomEnd(e.target.value)}
+                                            min={minDate} max={maxDate}
+                                            className="text-sm border border-amber-300 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            if (!customStart || !customEnd) return alert('Please select both dates');
+                                            if (customEnd < customStart) return alert('End date must be after start date');
+                                            generateCustomRangeSadhanaReport(user.username, logs, customStart, customEnd);
+                                        }}
+                                        className="px-4 py-1.5 bg-amber-700 text-white rounded-lg text-sm font-medium hover:bg-amber-800"
+                                    >
+                                        Download
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {logs.length > 0 && <SadhanaAnalytics logs={logs} />}
@@ -72,29 +132,21 @@ const History = () => {
                                             {log.rounds}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {log.reading_time}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {log.study_time}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {log.dayrest_time}
-                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.reading_time}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.study_time}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.dayrest_time}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {log.mangala_aarti ?
                                             <span className="text-green-600">Yes</span> :
                                             <span className="text-gray-400">No</span>
                                         }
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                                        {log.comments}
-                                    </td>
+                                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{log.comments}</td>
                                 </tr>
                             ))}
                             {logs.length === 0 && (
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-8 text-center text-gray-500">No history found. Start your sadhana today!</td>
+                                    <td colSpan="7" className="px-6 py-8 text-center text-gray-500">No history found. Start your sadhana today!</td>
                                 </tr>
                             )}
                         </tbody>

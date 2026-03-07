@@ -1,11 +1,11 @@
 import { useState, useEffect, useContext } from 'react';
 import api from '../api';
-import { format } from 'date-fns';
-import { ChevronRight, FileText } from 'lucide-react';
+import { format, subDays } from 'date-fns';
+import { ChevronRight, FileText, Download, ChevronDown } from 'lucide-react';
 import AuthContext from '../context/AuthContext';
 import LoadingSpinner from '../components/LoadingSpinner';
 import SadhanaAnalytics from '../components/SadhanaAnalytics';
-import { generateWeeklySadhanaReport } from '../utils/reportUtils';
+import { generateWeeklySadhanaReport, generateCustomRangeSadhanaReport, generateGroupReport, getTargetWeek } from '../utils/reportUtils';
 
 const GROUPS = ['bhima', 'arjun', 'nakul', 'sahadev'];
 const GROUP_EMOJI = { bhima: '🏆', arjun: '🪷', nakul: '🌿', sahadev: '🌱' };
@@ -25,7 +25,14 @@ const AdminDashboard = () => {
     const [savingPerms, setSavingPerms] = useState(false);
     const [renaming, setRenaming] = useState(false);
     const [newUsername, setNewUsername] = useState('');
-    const [expandedGroup, setExpandedGroup] = useState(null); // accordion: only one open at a time
+    const [expandedGroup, setExpandedGroup] = useState(null);
+    const [groupReportGroup, setGroupReportGroup] = useState('all');
+    const [showCustomRange, setShowCustomRange] = useState(false);
+    const [customStart, setCustomStart] = useState('');
+    const [customEnd, setCustomEnd] = useState('');
+    const [showDevoteeCustom, setShowDevoteeCustom] = useState(false);
+    const [devoteeCustomStart, setDevoteeCustomStart] = useState('');
+    const [devoteeCustomEnd, setDevoteeCustomEnd] = useState('');
     // ... existing code ...
     // (Note: Replace only up to the detail header section)
 
@@ -151,10 +158,81 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleGroupReport = async ({ start, end, restrictionNote }) => {
+        try {
+            const startStr = format(start, 'yyyy-MM-dd');
+            const endStr   = format(end,   'yyyy-MM-dd');
+            const { data } = await api.get('/sadhana/group-logs', {
+                params: { group: groupReportGroup, startDate: startStr, endDate: endStr }
+            });
+            const label = groupReportGroup === 'all' ? 'All Groups' : groupReportGroup.charAt(0).toUpperCase() + groupReportGroup.slice(1);
+            generateGroupReport(label, data, startStr, endStr, restrictionNote);
+        } catch (err) {
+            alert('Failed to fetch group data: ' + (err.response?.data?.message || err.message));
+        }
+    };
+
     if (loading) return <LoadingSpinner />;
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-140px)]">
+        <div className="space-y-4">
+        {/* Group Report Panel */}
+        <div className="bg-white rounded-xl shadow-sm border border-amber-100 p-4">
+            <div className="flex flex-wrap gap-4 items-end">
+                <div>
+                    <p className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">📥 Group Report</p>
+                    <select
+                        value={groupReportGroup}
+                        onChange={e => setGroupReportGroup(e.target.value)}
+                        className="text-sm border border-amber-300 rounded-lg px-3 py-1.5 bg-amber-50 text-amber-900 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                    >
+                        <option value="all">All Groups</option>
+                        {GROUPS.map(g => <option key={g} value={g}>{GROUP_EMOJI[g]} {g.charAt(0).toUpperCase() + g.slice(1)}</option>)}
+                    </select>
+                </div>
+                {/* Last Week button */}
+                <button
+                    onClick={() => { const w = getTargetWeek(); handleGroupReport(w); }}
+                    className="flex items-center gap-1.5 px-4 py-1.5 bg-saffron-600 text-white rounded-lg text-xs font-bold hover:bg-saffron-700 transition-colors shadow-sm"
+                >
+                    <Download size={13} /> Last Completed Week
+                </button>
+                {/* Custom Range toggle */}
+                <button
+                    onClick={() => setShowCustomRange(v => !v)}
+                    className="flex items-center gap-1.5 px-4 py-1.5 bg-amber-500 text-white rounded-lg text-xs font-bold hover:bg-amber-600 transition-colors shadow-sm"
+                >
+                    <Download size={13} /> Custom Range <ChevronDown size={12} className={`transition-transform ${showCustomRange ? 'rotate-180' : ''}`} />
+                </button>
+                {showCustomRange && (
+                    <div className="flex items-end gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                        <div>
+                            <p className="text-[10px] text-amber-700 font-semibold mb-0.5">From</p>
+                            <input type="date" value={customStart} onChange={e => setCustomStart(e.target.value)}
+                                min={format(subDays(new Date(), 30), 'yyyy-MM-dd')}
+                                max={format(subDays(new Date(), 1), 'yyyy-MM-dd')}
+                                className="text-xs border border-amber-300 rounded px-2 py-1 bg-white" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] text-amber-700 font-semibold mb-0.5">To</p>
+                            <input type="date" value={customEnd} onChange={e => setCustomEnd(e.target.value)}
+                                min={format(subDays(new Date(), 30), 'yyyy-MM-dd')}
+                                max={format(subDays(new Date(), 1), 'yyyy-MM-dd')}
+                                className="text-xs border border-amber-300 rounded px-2 py-1 bg-white" />
+                        </div>
+                        <button
+                            onClick={() => {
+                                if (!customStart || !customEnd) return alert('Please select both dates');
+                                handleGroupReport({ start: new Date(customStart), end: new Date(customEnd), restrictionNote: null });
+                            }}
+                            className="text-xs bg-amber-700 text-white rounded px-3 py-1.5 hover:bg-amber-800 font-bold"
+                        >Download</button>
+                    </div>
+                )}
+            </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-220px)]">
             {/* Users List */}
             <div className="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
                 <div className="p-4 border-b border-gray-200 bg-gray-50">
@@ -364,13 +442,42 @@ const AdminDashboard = () => {
                                 >
                                     Test Reminders
                                 </button>
-                                <button
-                                    onClick={() => generateWeeklySadhanaReport(selectedUser.username, userLogs)}
-                                    className="flex items-center px-3 py-1.5 bg-saffron-600 text-white rounded-md hover:bg-saffron-700 transition-colors shadow-sm text-xs font-medium"
-                                >
-                                    <FileText size={14} className="mr-1.5" />
-                                    Download PDF Report
-                                </button>
+                                {/* Download: This Devotee */}
+                                <div className="flex flex-col gap-1">
+                                    <button
+                                        onClick={() => generateWeeklySadhanaReport(selectedUser.username, userLogs)}
+                                        className="flex items-center px-3 py-1.5 bg-saffron-600 text-white rounded-md hover:bg-saffron-700 transition-colors shadow-sm text-xs font-medium"
+                                    >
+                                        <FileText size={13} className="mr-1.5" />
+                                        Last Week
+                                    </button>
+                                    <button
+                                        onClick={() => setShowDevoteeCustom(v => !v)}
+                                        className="flex items-center px-3 py-1.5 bg-amber-500 text-white rounded-md hover:bg-amber-600 transition-colors shadow-sm text-xs font-medium"
+                                    >
+                                        <FileText size={13} className="mr-1.5" />
+                                        Custom Range
+                                    </button>
+                                    {showDevoteeCustom && (
+                                        <div className="flex flex-col gap-1 p-2 bg-amber-50 border border-amber-200 rounded-md">
+                                            <input type="date" value={devoteeCustomStart} onChange={e => setDevoteeCustomStart(e.target.value)}
+                                                min={format(subDays(new Date(), 30), 'yyyy-MM-dd')}
+                                                max={format(subDays(new Date(), 1), 'yyyy-MM-dd')}
+                                                className="text-xs border border-gray-300 rounded px-1 py-0.5" />
+                                            <input type="date" value={devoteeCustomEnd} onChange={e => setDevoteeCustomEnd(e.target.value)}
+                                                min={format(subDays(new Date(), 30), 'yyyy-MM-dd')}
+                                                max={format(subDays(new Date(), 1), 'yyyy-MM-dd')}
+                                                className="text-xs border border-gray-300 rounded px-1 py-0.5" />
+                                            <button
+                                                onClick={() => {
+                                                    if (!devoteeCustomStart || !devoteeCustomEnd) return alert('Please select both dates');
+                                                    generateCustomRangeSadhanaReport(selectedUser.username, userLogs, devoteeCustomStart, devoteeCustomEnd);
+                                                }}
+                                                className="text-xs bg-amber-600 text-white rounded px-2 py-0.5 hover:bg-amber-700"
+                                            >Download</button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
@@ -473,6 +580,7 @@ const AdminDashboard = () => {
                     </div>
                 )}
             </div>
+        </div>
         </div>
     );
 };

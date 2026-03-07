@@ -42,3 +42,56 @@ exports.getHistory = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+
+// Admin/Owner: fetch logs for all users in a group (or all) for a date range
+exports.getGroupLogs = async (req, res) => {
+    const { group, startDate, endDate } = req.query;
+    if (!startDate || !endDate) return res.status(400).json({ message: 'startDate and endDate are required' });
+
+    try {
+        // Build group filter — brahmacari/owner see all, else filter by group_permissions
+        let groupClause = '';
+        const params = [startDate, endDate];
+
+        if (group && group !== 'all') {
+            groupClause = 'AND u.group_name = ?';
+            params.push(group);
+        } else if (req.user.role !== 'owner' && req.user.group_name !== 'brahmacari') {
+            // Regular admin: only their permitted groups
+            let perms = req.user.group_permissions;
+            if (typeof perms === 'string') { try { perms = JSON.parse(perms); } catch { perms = []; } }
+            if (!Array.isArray(perms) || perms.length === 0) return res.status(403).json({ message: 'No group permissions' });
+            groupClause = `AND u.group_name IN (${perms.map(() => '?').join(',')})`;
+            params.push(...perms);
+        }
+
+        // Exclude owner from results always (non-owners can't see owner data)
+        const ownerClause = req.user.role !== 'owner' ? 'AND u.role != "owner"' : '';
+
+        const [rows] = await db.query(
+            `SELECT u.id AS user_id, u.username, u.group_name,
+                    ds.date, ds.rounds, ds.reading_time, ds.hearing_time,
+                    ds.study_time, ds.service_hours, ds.mangala_aarti,
+                    ds.wakeup_time, ds.sleep_time, ds.comments
+             FROM users u
+             LEFT JOIN daily_sadhana ds ON ds.user_id = u.id AND ds.date BETWEEN ? AND ?
+             WHERE u.role != 'owner' ${groupClause} ${ownerClause}
+             ORDER BY u.group_name, u.username, ds.date ASC`,
+            params
+        );
+
+        // Group rows by user
+        const usersMap = {};
+        for (const row of rows) {
+            if (!usersMap[row.user_id]) {
+                usersMap[row.user_id] = { user_id: row.user_id, username: row.username, group_name: row.group_name, logs: [] };
+            }
+            if (row.date) usersMap[row.user_id].logs.push(row);
+        }
+
+        res.json(Object.values(usersMap));
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
