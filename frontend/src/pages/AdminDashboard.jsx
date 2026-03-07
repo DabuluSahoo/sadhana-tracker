@@ -25,7 +25,7 @@ const AdminDashboard = () => {
     const [savingPerms, setSavingPerms] = useState(false);
     const [renaming, setRenaming] = useState(false);
     const [newUsername, setNewUsername] = useState('');
-    const [expandedGroups, setExpandedGroups] = useState({}); // default: all collapsed
+    const [expandedGroup, setExpandedGroup] = useState(null); // accordion: only one open at a time
     // ... existing code ...
     // (Note: Replace only up to the detail header section)
 
@@ -160,7 +160,7 @@ const AdminDashboard = () => {
                 <div className="p-4 border-b border-gray-200 bg-gray-50">
                     <h3 className="font-semibold text-gray-700">Devotees</h3>
                 </div>
-                <div className="overflow-y-auto flex-grow">
+                <div className="overflow-hidden flex flex-col flex-grow">
                     {(() => {
                         const owners = user.role === 'owner' ? users.filter(u => u.role === 'owner') : [];
                         const brahmacaris = users.filter(u => u.group_name === 'brahmacari');
@@ -205,45 +205,45 @@ const AdminDashboard = () => {
                                 {brahmacaris.length > 0 && (
                                     <div>
                                         <button
-                                            onClick={() => setExpandedGroups(prev => ({ ...prev, brahmacari: !prev.brahmacari }))}
+                                            onClick={() => setExpandedGroup(prev => prev === 'brahmacari' ? null : 'brahmacari')}
                                             className="w-full px-4 py-1.5 border-y flex items-center gap-2 sticky top-0 z-10 bg-amber-50 border-amber-200 text-amber-800 cursor-pointer"
                                         >
                                             <span className="w-2 h-2 rounded-full bg-amber-500" />
                                             <span className="text-xs font-bold uppercase tracking-wider">🕉️ Brahmacari</span>
                                             <span className="ml-auto text-xs opacity-60 mr-1">{brahmacaris.length}</span>
-                                            <svg className={`w-3.5 h-3.5 transition-transform duration-200 ${expandedGroups.brahmacari ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                                            <svg className={`w-3.5 h-3.5 transition-transform duration-200 ${expandedGroup === 'brahmacari' ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
                                         </button>
-                                        {expandedGroups.brahmacari && brahmacaris.map(renderUser)}
+                                        {expandedGroup === 'brahmacari' && <div className="overflow-y-auto max-h-56">{brahmacaris.map(renderUser)}</div>}
                                     </div>
                                 )}
 
                                 {['bhima', 'arjun', 'nakul', 'sahadev'].map(g => grouped[g].length > 0 && (
                                     <div key={g}>
                                         <button
-                                            onClick={() => setExpandedGroups(prev => ({ ...prev, [g]: !prev[g] }))}
+                                            onClick={() => setExpandedGroup(prev => prev === g ? null : g)}
                                             className={`w-full px-4 py-1.5 border-y flex items-center gap-2 sticky top-0 z-10 cursor-pointer ${sectionStyles[g].header}`}
                                         >
                                             <span className={`w-2 h-2 rounded-full ${sectionStyles[g].dot}`} />
                                             <span className="text-xs font-bold uppercase tracking-wider capitalize">{GROUP_EMOJI[g]} {g} Group</span>
                                             <span className="ml-auto text-xs opacity-60 mr-1">{grouped[g].length}</span>
-                                            <svg className={`w-3.5 h-3.5 transition-transform duration-200 ${expandedGroups[g] ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                                            <svg className={`w-3.5 h-3.5 transition-transform duration-200 ${expandedGroup === g ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
                                         </button>
-                                        {expandedGroups[g] && grouped[g].map(renderUser)}
+                                        {expandedGroup === g && <div className="overflow-y-auto max-h-56">{grouped[g].map(renderUser)}</div>}
                                     </div>
                                 ))}
 
                                 {unassigned.length > 0 && (
                                     <div>
                                         <button
-                                            onClick={() => setExpandedGroups(prev => ({ ...prev, unassigned: !prev.unassigned }))}
+                                            onClick={() => setExpandedGroup(prev => prev === 'unassigned' ? null : 'unassigned')}
                                             className="w-full px-4 py-1.5 border-y flex items-center gap-2 sticky top-0 z-10 bg-gray-50 border-gray-200 text-gray-500 cursor-pointer"
                                         >
                                             <span className="w-2 h-2 rounded-full bg-gray-300" />
                                             <span className="text-xs font-bold uppercase tracking-wider">Unassigned</span>
                                             <span className="ml-auto text-xs opacity-60 mr-1">{unassigned.length}</span>
-                                            <svg className={`w-3.5 h-3.5 transition-transform duration-200 ${expandedGroups.unassigned ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                                            <svg className={`w-3.5 h-3.5 transition-transform duration-200 ${expandedGroup === 'unassigned' ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
                                         </button>
-                                        {expandedGroups.unassigned && unassigned.map(renderUser)}
+                                        {expandedGroup === 'unassigned' && <div className="overflow-y-auto max-h-56">{unassigned.map(renderUser)}</div>}
                                     </div>
                                 )}
                             </>
