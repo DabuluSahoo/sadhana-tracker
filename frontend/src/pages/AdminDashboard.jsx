@@ -192,7 +192,7 @@ const AdminDashboard = () => {
                                 onChange={e => setGroupReportGroup(e.target.value)}
                                 className="text-sm border border-amber-300 rounded-lg px-3 py-1.5 bg-amber-50 text-amber-900 focus:outline-none focus:ring-1 focus:ring-amber-400"
                             >
-                                {isOwnerOrBrahmacari && <option value="all">All Groups</option>}
+                                {isOwnerOrBrahmacari ? <option value="all">All Groups</option> : <option value="all">All (My Groups)</option>}
                                 {allowedGroups.map(g => <option key={g} value={g}>{GROUP_EMOJI[g]} {g.charAt(0).toUpperCase() + g.slice(1)}</option>)}
                             </select>
                         );
