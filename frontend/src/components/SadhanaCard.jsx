@@ -97,13 +97,13 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
                     <div className="space-y-2">
                         <label className="flex items-center text-sm font-medium text-gray-700">
                             <div className="bg-orange-100 p-1.5 rounded-md mr-2 text-saffron-700"><Sun size={16} /></div>
-                            Japa Rounds (1-16+)
+                            Japa Rounds
                         </label>
                         <input
                             type="number"
                             name="rounds"
                             min="0"
-                            max="64"
+                            max={9999}
                             value={formData.rounds}
                             onChange={handleChange}
                             disabled={isReadOnly}
