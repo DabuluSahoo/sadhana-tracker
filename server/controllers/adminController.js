@@ -22,9 +22,11 @@ const buildGroupFilter = (reqUser) => {
 
 exports.getAllUsers = async (req, res) => {
     const { clause, params } = buildGroupFilter(req.user);
+    // Brahmacari should not see the owner
+    const ownerClause = req.user.group_name === 'brahmacari' ? 'AND u.role != "owner"' : '';
     try {
         const [users] = await db.query(
-            `SELECT id, username, email, role, group_name, group_permissions, created_at FROM users u WHERE 1=1 ${clause}`,
+            `SELECT id, username, email, role, group_name, group_permissions, created_at FROM users u WHERE 1=1 ${clause} ${ownerClause}`,
             params
         );
         res.json(users);
@@ -41,17 +43,23 @@ exports.getUserLogs = async (req, res) => {
 
     // Verify the requesting admin actually has access to this user's group
     if (req.user.role !== 'owner') {
-        let permissions = req.user.group_permissions;
-        if (typeof permissions === 'string') { try { permissions = JSON.parse(permissions); } catch { permissions = []; } }
-        if (!Array.isArray(permissions) || permissions.length === 0) {
-            return res.status(403).json({ message: 'Access denied: no group permissions' });
+        // Brahmacari can see all groups but NOT the owner
+        if (req.user.group_name === 'brahmacari') {
+            const [check] = await db.query('SELECT id FROM users WHERE id = ? AND role != "owner"', [userId]);
+            if (check.length === 0) return res.status(403).json({ message: 'Access denied: cannot view owner records' });
+        } else {
+            let permissions = req.user.group_permissions;
+            if (typeof permissions === 'string') { try { permissions = JSON.parse(permissions); } catch { permissions = []; } }
+            if (!Array.isArray(permissions) || permissions.length === 0) {
+                return res.status(403).json({ message: 'Access denied: no group permissions' });
+            }
+            const placeholders = permissions.map(() => '?').join(',');
+            const [check] = await db.query(
+                `SELECT id FROM users WHERE id = ? AND group_name IN (${placeholders})`,
+                [userId, ...permissions]
+            );
+            if (check.length === 0) return res.status(403).json({ message: 'Access denied: user is not in your permitted groups' });
         }
-        const placeholders = permissions.map(() => '?').join(',');
-        const [check] = await db.query(
-            `SELECT id FROM users WHERE id = ? AND group_name IN (${placeholders})`,
-            [userId, ...permissions]
-        );
-        if (check.length === 0) return res.status(403).json({ message: 'Access denied: user is not in your permitted groups' });
     }
 
     try {
