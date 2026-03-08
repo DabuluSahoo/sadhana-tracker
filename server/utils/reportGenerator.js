@@ -1,5 +1,5 @@
 const { jsPDF } = require('jspdf');
-require('jspdf-autotable');
+const autoTable = require('jspdf-autotable').default;
 const { format, isSameDay } = require('date-fns');
 
 // Group colors (cloned from frontend reportUtils.js)
@@ -96,7 +96,7 @@ exports.generateGroupReportBase64 = (groupName, usersData, start, end, days) => 
         );
         y += 11;
 
-        doc.autoTable({
+        autoTable(doc, {
             startY: y,
             head: [TABLE_COLS],
             body: buildRows(days, logs),
