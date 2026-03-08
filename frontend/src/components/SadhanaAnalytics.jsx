@@ -9,8 +9,10 @@ const SadhanaAnalytics = ({ logs }) => {
     const chartData = useMemo(() => {
         if (!logs || logs.length === 0) return [];
 
-        // Sort logs by date ascending
-        const sortedLogs = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
+        // Sort logs by date ascending and take the last 30 days
+        const sortedLogs = [...logs]
+            .sort((a, b) => new Date(a.date) - new Date(b.date))
+            .slice(-30);
 
         return sortedLogs.map(log => ({
             date: format(parseISO(log.date), 'MMM d'),
@@ -56,15 +58,15 @@ const SadhanaAnalytics = ({ logs }) => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
                 {/* Japa Rounds Trend */}
                 <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm transition-colors">
                     <h3 className="text-lg font-serif font-bold text-gray-800 mb-6 flex items-center">
                         <span className="w-2 h-6 bg-saffron-500 rounded-full mr-3"></span>
-                        Japa Rounds Trend
+                        Japa Rounds Trend (30 Days)
                     </h3>
                     <div className="h-[220px] sm:h-[300px] w-full relative">
-                        <ResponsiveContainer width="99%" height="100%" debounce={100}>
+                        <ResponsiveContainer width="100%" height="100%" debounce={100}>
                             <LineChart data={chartData}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                                 <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#666' }} />
@@ -85,28 +87,40 @@ const SadhanaAnalytics = ({ logs }) => {
                     </div>
                 </div>
 
-                {/* Time Distribution Bar Chart */}
+                {/* Time Distribution Bar Chart - Grouped & Scrollable */}
                 <div className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200 shadow-sm transition-colors">
-                    <h3 className="text-lg font-serif font-bold text-gray-800 mb-6 flex items-center">
-                        <span className="w-2 h-6 bg-blue-500 rounded-full mr-3"></span>
-                        Time Distribution (m)
-                    </h3>
-                    <div className="h-[220px] sm:h-[300px] w-full relative">
-                        <ResponsiveContainer width="99%" height="100%" debounce={100}>
-                            <BarChart data={chartData}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#666' }} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#666' }} />
-                                <Tooltip
-                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                />
-                                <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '10px' }} />
-                                <Bar dataKey="reading" name="Reading" fill="#ef4444" stackId="a" radius={[0, 0, 0, 0]} />
-                                <Bar dataKey="hearing" name="Hearing" fill="#8b5cf6" stackId="a" radius={[0, 0, 0, 0]} />
-                                <Bar dataKey="study" name="Study" fill="#3b82f6" stackId="a" radius={[0, 0, 0, 0]} />
-                                <Bar dataKey="service" name="Service" fill="#10b981" stackId="a" radius={[4, 4, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-lg font-serif font-bold text-gray-800 flex items-center">
+                            <span className="w-2 h-6 bg-blue-500 rounded-full mr-3"></span>
+                            Sadhana Time Distribution (m)
+                        </h3>
+                        <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tight bg-gray-100 px-2 py-1 rounded">Last 30 Days • Scroll Left/Right ↔</p>
+                    </div>
+                    
+                    <div className="overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+                        <div className="h-[300px]" style={{ minWidth: logs.length > 7 ? `${logs.length * 50}px` : '100%' }}>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                                    <XAxis 
+                                        dataKey="date" 
+                                        axisLine={false} 
+                                        tickLine={false} 
+                                        tick={{ fontSize: 10, fill: '#666' }} 
+                                        interval={0}
+                                    />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#666' }} />
+                                    <Tooltip
+                                        cursor={{ fill: '#f8fafc' }}
+                                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                    />
+                                    <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px', fontWeight: 'bold' }} />
+                                    <Bar dataKey="reading" name="📖 Reading" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={12} />
+                                    <Bar dataKey="hearing" name="🎧 Hearing" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={12} />
+                                    <Bar dataKey="study" name="📚 Study" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={12} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
                 </div>
             </div>
