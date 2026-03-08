@@ -99,8 +99,8 @@ const sendUsernameChangeNotification = async (email, oldUsername, newUsername) =
     });
 };
 
-const sendEmailWithAttachment = async (email, subject, html, attachment) => {
-    const body = JSON.stringify({
+const sendEmailWithAttachment = async (email, subject, html, attachment, headers = {}) => {
+    const bodyObj = {
         from: 'Sadhana Tracker <noreply@wsahoo.space>',
         to: [email],
         subject,
@@ -111,7 +111,16 @@ const sendEmailWithAttachment = async (email, subject, html, attachment) => {
                 filename: attachment.filename,
             },
         ],
-    });
+    };
+
+    if (headers['In-Reply-To']) {
+        bodyObj.headers = { ...bodyObj.headers, 'In-Reply-To': headers['In-Reply-To'] };
+    }
+    if (headers['References']) {
+        bodyObj.headers = { ...bodyObj.headers, 'References': headers['References'] };
+    }
+
+    const body = JSON.stringify(bodyObj);
 
     return new Promise((resolve, reject) => {
         const req = https.request({

@@ -124,3 +124,82 @@ exports.generateGroupReportBase64 = (groupName, usersData, start, end, days) => 
     // Output Base64 string for Resend attachment
     return doc.output('datauristring').split(',')[1];
 };
+/**
+ * Generates a consolidated weekly report PDF for all groups.
+ * @param {Array} groupsData - [{ groupName, usersData: [{ username, logs: [] }] }]
+ * @param {Date} start 
+ * @param {Date} end 
+ * @param {Array} days 
+ */
+exports.generateConsolidatedReportBase64 = (groupsData, start, end, days) => {
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const pageH = doc.internal.pageSize.getHeight();
+    const pageW = doc.internal.pageSize.getWidth();
+
+    groupsData.forEach((groupObj, gIdx) => {
+        const { groupName, usersData } = groupObj;
+        
+        // Add a new page for each group after the first
+        if (gIdx > 0) doc.addPage();
+
+        addPDFHeader(
+            doc,
+            `Weekly Consolidated Sadhana Report – ${groupName.toUpperCase()} Group`,
+            `${format(start, 'MMM d')} to ${format(end, 'MMM d, yyyy')}`
+        );
+
+        let y = 38;
+
+        usersData.forEach(({ username, logs }, idx) => {
+            const color = GROUP_COLORS[groupName.toLowerCase()] || [100, 100, 100];
+            const existing = days.map(d => logs.find(l => isSameDay(new Date(l.date), d))).filter(Boolean);
+            const daysLogged = existing.length;
+            const avgRounds = daysLogged
+                ? (existing.reduce((s, l) => s + (l.rounds || 0), 0) / daysLogged).toFixed(1)
+                : 0;
+
+            // Banner + Table height check
+            if (y + 40 > pageH - 15) {
+                doc.addPage();
+                y = 15;
+            }
+
+            doc.setFillColor(...color);
+            doc.rect(14, y, pageW - 28, 11, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont('times', 'bold');
+            doc.setFontSize(11);
+            doc.text(
+                `${groupName.toUpperCase()} GROUP  -  ${username}  |  Days Logged: ${daysLogged}/${days.length}  |  Avg Rounds: ${avgRounds}`,
+                17, y + 7.5
+            );
+            y += 11;
+
+            autoTable(doc, {
+                startY: y,
+                head: [TABLE_COLS],
+                body: buildRows(days, logs),
+                theme: 'striped',
+                headStyles: {
+                    fillColor: color.map(c => Math.min(255, c + 60)),
+                    textColor: [255, 255, 255],
+                    fontSize: 9.5,
+                    fontStyle: 'bold',
+                },
+                bodyStyles: { fontSize: 9 },
+                alternateRowStyles: { fillColor: [255, 252, 245] },
+                styles: { font: 'times', cellPadding: 1.5 },
+                columnStyles: { 9: { cellWidth: 45 } },
+                margin: { left: 14, right: 14 },
+            });
+
+            y = doc.lastAutoTable.finalY + (idx < usersData.length - 1 ? 10 : 6);
+        });
+
+        doc.setFontSize(9);
+        doc.setTextColor(160);
+        doc.text('Your spiritual progress is a gift to the world. 🙏', pageW / 2, pageH - 8, { align: 'center' });
+    });
+
+    return doc.output('datauristring').split(',')[1];
+};
