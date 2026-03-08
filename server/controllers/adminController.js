@@ -231,3 +231,13 @@ exports.changeUserGroup = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+const { runWeeklyReport } = require('../jobs/weeklyReport');
+
+exports.triggerWeeklyReportConsolidated = async (req, res) => {
+    try {
+        const result = await runWeeklyReport();
+        res.json({ message: 'Weekly consolidated reports triggered successfully', result });
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to trigger weekly reports', error: err.message });
+    }
+};

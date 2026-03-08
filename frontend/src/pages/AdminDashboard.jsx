@@ -33,6 +33,22 @@ const AdminDashboard = () => {
     const [showDevoteeCustom, setShowDevoteeCustom] = useState(false);
     const [devoteeCustomStart, setDevoteeCustomStart] = useState('');
     const [devoteeCustomEnd, setDevoteeCustomEnd] = useState('');
+    const [triggeringReport, setTriggeringReport] = useState(false);
+
+    const handleTriggerConsolidatedReport = async () => {
+        if (!confirm('Are you sure you want to trigger the weekly consolidated reports for ALL groups right now? \n\nThis will send emails to all Brahmacaris.')) return;
+        
+        setTriggeringReport(true);
+        try {
+            await api.post('/admin/trigger-weekly-report');
+            alert('✅ Weekly reports have been triggered successfully! They will arrive in the Brahmacaris\' inboxes shortly.');
+        } catch (err) {
+            console.error('Trigger failed:', err);
+            alert('❌ Failed to trigger reports: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setTriggeringReport(false);
+        }
+    };
     // ... existing code ...
     // (Note: Replace only up to the detail header section)
 
@@ -220,6 +236,21 @@ const AdminDashboard = () => {
                 >
                     <Download size={13} /> Last Completed Week
                 </button>
+                {/* Trigger All Weekly Reports (Owner ONLY) */}
+                {user.role === 'owner' && (
+                    <button
+                        onClick={handleTriggerConsolidatedReport}
+                        disabled={triggeringReport}
+                        className={`flex items-center gap-1.5 px-4 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed`}
+                    >
+                        {triggeringReport ? (
+                            <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent" />
+                        ) : (
+                            <span>📧</span>
+                        )}
+                        {triggeringReport ? 'Sending...' : 'Trigger All Weekly Reports'}
+                    </button>
+                )}
                 {/* Custom Range toggle */}
                 <button
                     onClick={() => setShowCustomRange(v => !v)}

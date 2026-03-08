@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAllUsers, getUserLogs, editUserLog, promoteUser, demoteUser, setAdminGroupPermissions, renameUser, assignBrahmacari, revokeBrahmacari, changeUserGroup } = require('../controllers/adminController');
+const { getAllUsers, getUserLogs, editUserLog, promoteUser, demoteUser, setAdminGroupPermissions, renameUser, assignBrahmacari, revokeBrahmacari, changeUserGroup, triggerWeeklyReportConsolidated } = require('../controllers/adminController');
 const { protect, adminObj, ownerOnly } = require('../middleware');
 
 router.get('/users', protect, adminObj, getAllUsers);
@@ -13,5 +13,8 @@ router.put('/users/:userId/rename', protect, ownerOnly, renameUser);
 router.put('/users/:userId/assign-brahmacari', protect, ownerOnly, assignBrahmacari);
 router.put('/users/:userId/revoke-brahmacari', protect, ownerOnly, revokeBrahmacari);
 router.put('/users/:userId/change-group', protect, ownerOnly, changeUserGroup);
+
+// Manual trigger for consolidated weekly reports (Owner only)
+router.post('/trigger-weekly-report', protect, ownerOnly, triggerWeeklyReportConsolidated);
 
 module.exports = router;
