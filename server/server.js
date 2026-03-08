@@ -3,6 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const compression = require('compression');
 const db = require('./config/db');
 require('./jobs/reminder');
 require('./jobs/weeklyReport');
@@ -15,6 +16,7 @@ fixSchema();
 
 const app = express();
 
+app.use(compression());
 app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));

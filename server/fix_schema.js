@@ -16,12 +16,20 @@ async function fixSchema() {
             console.log('✅ Column "email" added successfully.');
         }
 
-        // Ensure role ENUM includes 'owner'
-        const [roleColumns] = await db.query('SHOW COLUMNS FROM users LIKE "role"');
-        if (roleColumns.length > 0 && !roleColumns[0].Type.includes("'owner'")) {
-            console.log('Updating "role" column to include "owner"...');
-            await db.query("ALTER TABLE users MODIFY COLUMN role ENUM('devotee', 'admin', 'owner') DEFAULT 'devotee'");
-            console.log('✅ Role column updated successfully.');
+        // Ensure group_name column exists
+        const [gnColumns] = await db.query('SHOW COLUMNS FROM users LIKE "group_name"');
+        if (gnColumns.length === 0) {
+            console.log('Adding missing "group_name" column to users table...');
+            await db.query("ALTER TABLE users ADD COLUMN group_name ENUM('bhima','arjun','nakul','sahadev','brahmacari','yudhisthir','other') DEFAULT NULL AFTER role");
+            console.log('✅ Column "group_name" added successfully.');
+        }
+
+        // Ensure group_permissions column exists
+        const [gpColumns] = await db.query('SHOW COLUMNS FROM users LIKE "group_permissions"');
+        if (gpColumns.length === 0) {
+            console.log('Adding missing "group_permissions" column to users table...');
+            await db.query("ALTER TABLE users ADD COLUMN group_permissions JSON DEFAULT NULL AFTER group_name");
+            console.log('✅ Column "group_permissions" added successfully.');
         }
 
         // Check for otp_tokens table
@@ -57,6 +65,22 @@ async function fixSchema() {
                 )
             `);
             console.log('✅ Table "cron_logs" created successfully.');
+        }
+
+        // Check and add indexes for speed optimization
+        const [indices] = await db.query('SHOW INDEX FROM users');
+        const indexNames = indices.map(idx => idx.Key_name);
+
+        if (!indexNames.includes('idx_group_name')) {
+            console.log('Creating index "idx_group_name" on users table...');
+            await db.query('CREATE INDEX idx_group_name ON users(group_name)');
+            console.log('✅ Index "idx_group_name" created.');
+        }
+
+        if (!indexNames.includes('idx_role')) {
+            console.log('Creating index "idx_role" on users table...');
+            await db.query('CREATE INDEX idx_role ON users(role)');
+            console.log('✅ Index "idx_role" created.');
         }
 
         console.log('--- SCHEMA FIX COMPLETED ---');

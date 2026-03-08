@@ -54,9 +54,22 @@ const AdminDashboard = () => {
 
     useEffect(() => {
         const fetchUsers = async () => {
+            // 1. Try to load from cache first for instant UI
+            const cachedData = sessionStorage.getItem('ADMIN_USERS_CACHE');
+            if (cachedData) {
+                try {
+                    setUsers(JSON.parse(cachedData));
+                    setLoading(false); // Stop main spinner if we have cached data
+                } catch (e) {
+                    sessionStorage.removeItem('ADMIN_USERS_CACHE');
+                }
+            }
+
             try {
                 const { data } = await api.get('/admin/users');
                 setUsers(data);
+                // 2. Update cache with fresh data
+                sessionStorage.setItem('ADMIN_USERS_CACHE', JSON.stringify(data));
             } catch (error) {
                 console.error('Error fetching users:', error);
             } finally {
