@@ -1,7 +1,7 @@
 const cron = require('node-cron');
 const db = require('../config/db');
 const { sendEmailWithAttachment } = require('../config/mailer');
-const { generateGroupReportBase64 } = require('../utils/reportGenerator');
+const { generateConsolidatedReportBase64 } = require('../utils/reportGenerator');
 const { format, startOfWeek, endOfWeek, subWeeks, eachDayOfInterval } = require('date-fns');
 
 const runWeeklyReport = async () => {
