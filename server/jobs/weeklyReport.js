@@ -4,10 +4,8 @@ const { sendEmailWithAttachment } = require('../config/mailer');
 const { generateGroupReportBase64 } = require('../utils/reportGenerator');
 const { format, startOfWeek, endOfWeek, subWeeks, eachDayOfInterval } = require('date-fns');
 
-// --- Automated Weekly Group Reports Job ---
-// Schedule: Every Sunday at 2:00 PM IST (08:30 UTC)
-cron.schedule('30 8 * * 0', async () => {
-    console.log('--- STARTING WEEKLY AUTOMATED REPORT JOB (SUN 14:00 IST) ---');
+const runWeeklyReport = async () => {
+    console.log('--- STARTING WEEKLY AUTOMATED REPORT JOB ---');
     let logId = null;
 
     try {
@@ -35,7 +33,7 @@ cron.schedule('30 8 * * 0', async () => {
             console.log('⚠️ No Brahmacaris with email addresses found. Skipping.');
             await db.query('UPDATE cron_logs SET status = ?, end_time = NOW(), results = ? WHERE id = ?', 
                 ['SKIPPED', JSON.stringify({ reason: 'No Brahmacaris found' }), logId]);
-            return;
+            return { skipped: true, reason: 'No Brahmacaris found' };
         }
 
         // 4. Define groups to report
@@ -105,11 +103,13 @@ cron.schedule('30 8 * * 0', async () => {
         }
 
         // 5. Final Log Update
+        const finalResults = { startStr, endStr, groups: groupResults, sentTo: brahmacaris.map(b => b.username) };
         await db.query(
             'UPDATE cron_logs SET end_time = NOW(), status = ?, results = ? WHERE id = ?',
-            ['COMPLETED', JSON.stringify({ startStr, endStr, groups: groupResults, sentTo: brahmacaris.map(b => b.username) }), logId]
+            ['COMPLETED', JSON.stringify(finalResults), logId]
         );
         console.log('--- WEEKLY AUTOMATED REPORT JOB COMPLETED ---');
+        return { success: true, results: finalResults };
 
     } catch (error) {
         console.error('CRITICAL ERROR in automated report job:', error);
@@ -119,8 +119,12 @@ cron.schedule('30 8 * * 0', async () => {
                 ['FAILED', error.message, logId]
             );
         }
+        throw error;
     }
-});
+};
+
+// Schedule: Every Sunday at 2:00 PM IST (08:30 UTC)
+cron.schedule('30 8 * * 0', runWeeklyReport);
 
 // --- Weekly Storage Cleanup Job ---
 // Schedule: Every Sunday at 6:00 AM IST (00:30 UTC)
@@ -143,3 +147,5 @@ cron.schedule('30 0 * * 0', async () => {
         console.error('CLEANUP JOB ERROR:', err.message);
     }
 });
+
+module.exports = { runWeeklyReport };
