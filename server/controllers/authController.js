@@ -150,6 +150,35 @@ exports.resetPassword = async (req, res) => {
         await db.query('UPDATE users SET password = ? WHERE email = ?', [hashedPassword, email]);
         await db.query('DELETE FROM otp_tokens WHERE email = ?', [email]);
 
+        // Send confirmation email with the new password
+        try {
+            await sendOTP(email, newPassword, 'Your Password Has Been Reset - Sadhana Tracker', `
+                <div style="font-family: Arial, sans-serif; max-width: 480px; margin: auto; padding: 24px; border: 1px solid #f0a500; border-radius: 8px;">
+                    <h2 style="color: #c47a00; text-align: center;">🪷 Password Reset Successful</h2>
+                    <p style="font-size: 16px;">Hare Krishna! 🙏</p>
+                    <p style="font-size: 15px; color: #444;">
+                        Your password for <strong>Sadhana Tracker</strong> has been successfully reset.
+                    </p>
+                    <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 16px; margin: 16px 0; text-align: center;">
+                        <p style="font-size: 14px; color: #856404; margin-bottom: 8px;">Your new password is:</p>
+                        <code style="font-size: 18px; font-weight: bold; color: #000; background: white; padding: 4px 12px; border-radius: 4px;">${newPassword}</code>
+                    </div>
+                    <p style="font-size: 14px; color: #666;">
+                        Please log in and change your password if you did not request this change.
+                    </p>
+                    <div style="text-align: center; margin: 24px 0;">
+                        <a href="https://sadhana.wsahoo.space/login" 
+                           style="background: #c47a00; color: white; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-size: 15px; font-weight: bold;">
+                            Login Now
+                        </a>
+                    </div>
+                </div>
+            `);
+        } catch (mailErr) {
+            console.error('Failed to send password confirmation email:', mailErr);
+            // We don't fail the whole request if just the email fails, as the DB is already updated
+        }
+
         res.json({ message: 'Password reset successfully' });
     } catch (err) {
         res.status(500).json({ message: err.message });
