@@ -1,11 +1,14 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    BarChart, Bar, Legend
+    BarChart, Bar
 } from 'recharts';
 import { format, parseISO } from 'date-fns';
 
 const SadhanaAnalytics = ({ logs }) => {
+    const japaScrollRef = useRef(null);
+    const timeScrollRef = useRef(null);
+
     const chartData = useMemo(() => {
         if (!logs || logs.length === 0) return [];
 
@@ -23,6 +26,20 @@ const SadhanaAnalytics = ({ logs }) => {
             service: (log.service_hours || 0) * 60, // Convert hours to minutes for scaling
         }));
     }, [logs]);
+
+    // Auto-scroll to the rightmost side (latest data)
+    useEffect(() => {
+        if (chartData.length > 0) {
+            setTimeout(() => {
+                if (japaScrollRef.current) {
+                    japaScrollRef.current.scrollLeft = japaScrollRef.current.scrollWidth;
+                }
+                if (timeScrollRef.current) {
+                    timeScrollRef.current.scrollLeft = timeScrollRef.current.scrollWidth;
+                }
+            }, 100);
+        }
+    }, [chartData]);
 
     const stats = useMemo(() => {
         if (!logs || logs.length === 0) return null;
@@ -59,31 +76,60 @@ const SadhanaAnalytics = ({ logs }) => {
             </div>
 
             <div className="grid grid-cols-1 gap-6">
-                {/* Japa Rounds Trend */}
-                <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm transition-colors">
-                    <h3 className="text-lg font-serif font-bold text-gray-800 mb-6 flex items-center">
-                        <span className="w-2 h-6 bg-saffron-500 rounded-full mr-3"></span>
-                        Japa Rounds Trend (30 Days)
-                    </h3>
-                    <div className="h-[220px] sm:h-[300px] w-full relative">
-                        <ResponsiveContainer width="100%" height="100%" debounce={100}>
-                            <LineChart data={chartData}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#666' }} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#666' }} domain={[0, 20]} />
-                                <Tooltip
-                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                />
-                                <Line
-                                    type="monotone"
-                                    dataKey="rounds"
-                                    stroke="#ea580c"
-                                    strokeWidth={2.5}
-                                    dot={{ r: 3, fill: '#ea580c', strokeWidth: 1.5, stroke: '#fff' }}
-                                    activeDot={{ r: 5, strokeWidth: 0 }}
-                                />
-                            </LineChart>
-                        </ResponsiveContainer>
+                {/* Japa Rounds Trend - Scrollable with Fixed Y-Axis */}
+                <div className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200 shadow-sm transition-colors relative">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-2">
+                        <h3 className="text-lg font-serif font-bold text-gray-800 flex items-center">
+                            <span className="w-2 h-6 bg-saffron-500 rounded-full mr-3"></span>
+                            Japa Rounds Trend (30 Days)
+                        </h3>
+                        <div className="flex items-center gap-2">
+                             <div className="w-3 h-0.5 bg-saffron-600"></div>
+                             <span className="text-xs font-bold text-gray-600">Rounds</span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-start">
+                        {/* FIXED Y-AXIS */}
+                        <div className="flex-none w-10 flex flex-col justify-between py-1 text-right pr-2 text-[10px] font-bold text-gray-400 h-[220px] sm:h-[270px] border-r border-gray-50 bg-white z-10">
+                            {[20, 16, 12, 8, 4, 0].map(val => (
+                                <span key={val}>{val}</span>
+                            ))}
+                        </div>
+
+                        {/* SCROLLABLE CHART */}
+                        <div 
+                            ref={japaScrollRef}
+                            className="flex-grow overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent"
+                        >
+                            <div style={{ minWidth: chartData.length > 7 ? `${chartData.length * 50}px` : '100%', height: '250px' }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f5f5f5" />
+                                        <XAxis 
+                                            dataKey="date" 
+                                            axisLine={false} 
+                                            tickLine={false} 
+                                            tick={{ fontSize: 10, fill: '#666', fontWeight: 600 }} 
+                                            interval={0}
+                                            height={30}
+                                        />
+                                        <YAxis hide domain={[0, 20]} />
+                                        <Tooltip
+                                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                                        />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="rounds"
+                                            stroke="#ea580c"
+                                            strokeWidth={3}
+                                            dot={{ r: 4, fill: '#ea580c', strokeWidth: 2, stroke: '#fff' }}
+                                            activeDot={{ r: 6, strokeWidth: 0 }}
+                                        />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -124,7 +170,10 @@ const SadhanaAnalytics = ({ logs }) => {
                         </div>
 
                         {/* SCROLLABLE CHART */}
-                        <div className="flex-grow overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+                        <div 
+                            ref={timeScrollRef}
+                            className="flex-grow overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent"
+                        >
                             <div style={{ minWidth: chartData.length > 6 ? `${chartData.length * 60}px` : '100%', height: '300px' }}>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart 
