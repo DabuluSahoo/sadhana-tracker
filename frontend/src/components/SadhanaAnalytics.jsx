@@ -89,24 +89,40 @@ const SadhanaAnalytics = ({ logs }) => {
 
                 {/* Time Distribution Bar Chart - Grouped & Scrollable */}
                 <div className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200 shadow-sm transition-colors">
-                    <div className="flex justify-between items-center mb-6">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-2">
                         <h3 className="text-lg font-serif font-bold text-gray-800 flex items-center">
                             <span className="w-2 h-6 bg-blue-500 rounded-full mr-3"></span>
                             Sadhana Time Distribution (m)
                         </h3>
                         <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tight bg-gray-100 px-2 py-1 rounded">Last 30 Days • Scroll Left/Right ↔</p>
                     </div>
+
+                    {/* Static Custom Legend */}
+                    <div className="flex flex-wrap gap-4 mb-6 px-2 justify-center sm:justify-end">
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#ef4444' }}></div>
+                            <span className="text-xs font-bold text-gray-600">📖 Reading</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#8b5cf6' }}></div>
+                            <span className="text-xs font-bold text-gray-600">🎧 Hearing</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#3b82f6' }}></div>
+                            <span className="text-xs font-bold text-gray-600">📚 Study</span>
+                        </div>
+                    </div>
                     
-                    <div className="flex h-[300px]">
+                    <div className="flex h-[300px] relative">
                         {/* Fixed Y-Axis */}
-                        <div className="flex-none bg-white z-10 pr-2 border-r border-gray-50">
-                            <ResponsiveContainer width={40} height="100%">
-                                <BarChart data={chartData} margin={{ top: 10, right: 0, left: -15, bottom: 25 }}>
+                        <div className="flex-none bg-white pr-2 border-r border-gray-100 min-w-[45px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={chartData} margin={{ top: 10, right: 0, left: 5, bottom: 25 }}>
                                     <YAxis 
                                         axisLine={false} 
                                         tickLine={false} 
-                                        tick={{ fontSize: 10, fill: '#999' }} 
-                                        width={40}
+                                        tick={{ fontSize: 10, fill: '#999', fontWeight: 600 }}
+                                        width={35}
                                     />
                                 </BarChart>
                             </ResponsiveContainer>
@@ -114,10 +130,10 @@ const SadhanaAnalytics = ({ logs }) => {
 
                         {/* Scrollable Bars & X-Axis */}
                         <div className="flex-grow overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
-                            <div style={{ minWidth: logs.length > 7 ? `${logs.length * 60}px` : '100%', height: '100%' }}>
+                            <div style={{ minWidth: chartData.length > 6 ? `${chartData.length * 60}px` : '100%', height: '100%' }}>
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                                    <BarChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f5f5f5" />
                                         <XAxis 
                                             dataKey="date" 
                                             axisLine={false} 
@@ -126,15 +142,14 @@ const SadhanaAnalytics = ({ logs }) => {
                                             interval={0}
                                             height={30}
                                         />
-                                        <YAxis hide domain={['auto', 'auto']} />
+                                        <YAxis hide type="number" />
                                         <Tooltip
-                                            cursor={{ fill: '#f8fafc' }}
-                                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                            cursor={{ fill: 'rgba(241, 245, 249, 0.5)' }}
+                                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                                         />
-                                        <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px', fontWeight: 'bold' }} />
-                                        <Bar dataKey="reading" name="📖 Reading" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={12} />
-                                        <Bar dataKey="hearing" name="🎧 Hearing" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={12} />
-                                        <Bar dataKey="study" name="📚 Study" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={12} />
+                                        <Bar dataKey="reading" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={12} />
+                                        <Bar dataKey="hearing" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={12} />
+                                        <Bar dataKey="study" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={12} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
