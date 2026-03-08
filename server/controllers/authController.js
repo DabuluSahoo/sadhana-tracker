@@ -39,8 +39,7 @@ exports.verifyOtp = async (req, res) => {
         );
         if (rows.length === 0) return res.status(400).json({ message: 'Invalid or expired OTP' });
 
-        // Delete OTP after successful verification
-        await db.query('DELETE FROM otp_tokens WHERE email = ?', [email]);
+        // We no longer delete the OTP here to allow final Register/Reset step to also verify it
         res.json({ message: 'OTP verified successfully' });
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -62,8 +61,19 @@ exports.register = async (req, res) => {
         const [existing] = await db.query('SELECT * FROM users WHERE username = ? OR email = ?', [username, email]);
         if (existing.length > 0) return res.status(400).json({ message: 'Username or email already exists' });
 
+        // 1. Verify OTP first
+        const [otpRows] = await db.query(
+            'SELECT * FROM otp_tokens WHERE email = ? AND otp = ? AND expires_at > NOW()',
+            [email, req.body.otp]
+        );
+        if (otpRows.length === 0) return res.status(400).json({ message: 'Invalid or expired OTP' });
+
+        // 2. Hash and Save
         const hashedPassword = await bcrypt.hash(password, 10);
         await db.query('INSERT INTO users (email, username, password, group_name) VALUES (?, ?, ?, ?)', [email, username, hashedPassword, group_name]);
+
+        // 3. Cleanup OTP
+        await db.query('DELETE FROM otp_tokens WHERE email = ?', [email]);
 
         res.status(201).json({ message: 'User registered successfully' });
     } catch (err) {

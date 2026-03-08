@@ -30,8 +30,15 @@ const ForgotPassword = () => {
 
     const handleVerifyOtp = async (e) => {
         e.preventDefault();
-        // We'll verify OTP on the reset step to avoid double verification
-        setStep(3);
+        setLoading(true);
+        try {
+            await api.post('/auth/verify-otp', { email, otp });
+            toast.success('OTP verified!');
+            setStep(3);
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Invalid OTP or expired');
+        }
+        setLoading(false);
     };
 
     const handleReset = async (e) => {

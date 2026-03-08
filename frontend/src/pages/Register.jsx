@@ -45,7 +45,7 @@ const Register = () => {
         if (!groupName) return toast.error('Please select your group');
         setLoading(true);
         try {
-            await api.post('/auth/register', { email, username, password, group_name: groupName });
+            await api.post('/auth/register', { email, otp, username, password, group_name: groupName });
             toast.success('Registration successful! Please login.');
             navigate('/login');
         } catch (err) {
