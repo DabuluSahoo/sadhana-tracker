@@ -27,8 +27,9 @@ export const AuthProvider = ({ children }) => {
             return true;
         } catch (error) {
             console.error(error);
-            toast.error(error.response?.data?.message || error.message || 'Login failed');
-            return false;
+            const message = error.response?.data?.message || error.message || 'Login failed';
+            toast.error(message);
+            return message;
         }
     };
 

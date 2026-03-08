@@ -46,7 +46,7 @@ const Register = () => {
         setLoading(true);
         try {
             await api.post('/auth/register', { email, otp, username, password, group_name: groupName });
-            toast.success('Registration successful! Please login.');
+            toast.success('Registration successful! Waiting for owner approval.', { duration: 6000 });
             navigate('/login');
         } catch (err) {
             toast.error(err.response?.data?.message || 'Registration failed');

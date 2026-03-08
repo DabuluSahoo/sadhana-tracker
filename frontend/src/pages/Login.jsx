@@ -25,10 +25,15 @@ const Login = () => {
         e.preventDefault();
         setLoading(true);
         setError('');
-        const success = await login(username, password);
+        const result = await login(username, password);
         setLoading(false);
-        if (success) navigate('/');
-        else setError('Invalid username or password. Please try again.');
+        if (result === true) {
+            navigate('/');
+        } else if (typeof result === 'string') {
+            setError(result);
+        } else {
+            setError('Invalid username or password. Please try again.');
+        }
     };
 
     return (

@@ -1,7 +1,12 @@
 const db = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { sendOTP } = require('../config/mailer');
+const crypto = require('crypto');
+const { 
+    sendOTP, 
+    sendApprovalNotificationToOwner, 
+    sendApprovalConfirmationToUser 
+} = require('../config/mailer');
 
 // Generate a 6-digit OTP
 const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
@@ -58,7 +63,7 @@ exports.register = async (req, res) => {
             return res.status(400).json({ message: 'Please select a valid group' });
         }
 
-        const [existing] = await db.query('SELECT * FROM users WHERE username = ? OR email = ?', [username, email]);
+        const [existing] = await db.query('SELECT id FROM users WHERE username = ? OR email = ?', [username, email]);
         if (existing.length > 0) return res.status(400).json({ message: 'Username or email already exists' });
 
         // 1. Verify OTP first
@@ -70,12 +75,28 @@ exports.register = async (req, res) => {
 
         // 2. Hash and Save
         const hashedPassword = await bcrypt.hash(password, 10);
-        await db.query('INSERT INTO users (email, username, password, group_name) VALUES (?, ?, ?, ?)', [email, username, hashedPassword, group_name]);
+        const approvalToken = crypto.randomBytes(32).toString('hex');
+        
+        await db.query(
+            'INSERT INTO users (email, username, password, group_name, is_approved, approval_token) VALUES (?, ?, ?, ?, 0, ?)', 
+            [email, username, hashedPassword, group_name, approvalToken]
+        );
 
         // 3. Cleanup OTP
         await db.query('DELETE FROM otp_tokens WHERE email = ?', [email]);
 
-        res.status(201).json({ message: 'User registered successfully' });
+        // 4. Notify Owner
+        try {
+            const [owners] = await db.query("SELECT email FROM users WHERE role = 'owner' LIMIT 1");
+            if (owners.length > 0) {
+                const approvalLink = `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/auth/approve?token=${approvalToken}`;
+                await sendApprovalNotificationToOwner(owners[0].email, { email, username, group_name }, approvalLink);
+            }
+        } catch (mailErr) {
+            console.error('Failed to notify owner of new registration:', mailErr.message);
+        }
+
+        res.status(201).json({ message: 'User registered successfully. Waiting for owner approval.' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -95,6 +116,11 @@ exports.login = async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
+        // Check approval status
+        if (!user.is_approved) {
+            return res.status(403).json({ message: 'Your account has not been approved by the owner.' });
+        }
+
         const tokenPayload = { id: user.id, role: user.role, group_name: user.group_name, group_permissions: user.group_permissions };
         const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '7d' });
         res.json({
@@ -109,6 +135,42 @@ exports.login = async (req, res) => {
         });
     } catch (err) {
         res.status(500).json({ message: err.message });
+    }
+};
+
+// Approve User (Owner only, via link)
+exports.approveUser = async (req, res) => {
+    const { token } = req.query;
+    if (!token) return res.status(400).send('Invalid approval token.');
+
+    try {
+        const [users] = await db.query('SELECT id, email, username FROM users WHERE approval_token = ?', [token]);
+        if (users.length === 0) return res.status(404).send('Approval token not found or already used.');
+
+        const user = users[0];
+        
+        // Approve and clear token
+        await db.query('UPDATE users SET is_approved = 1, approval_token = NULL WHERE id = ?', [user.id]);
+
+        // Notify User
+        try {
+            await sendApprovalConfirmationToUser(user.email, user.username);
+        } catch (mailErr) {
+            console.error('Failed to send approval confirmation to user:', mailErr.message);
+        }
+
+        res.send(`
+            <div style="font-family: sans-serif; text-align: center; padding: 50px;">
+                <h1 style="color: #c47a00;">🪷 Account Approved</h1>
+                <p>Hare Krishna! The account for <strong>${user.username}</strong> has been successfully approved.</p>
+                <p>The devotee has been notified via email.</p>
+                <div style="margin-top: 30px;">
+                    <a href="https://sadhana.wsahoo.space" style="color: #c47a00; font-weight: bold;">Go to Website</a>
+                </div>
+            </div>
+        `);
+    } catch (err) {
+        res.status(500).send('Error approving user: ' + err.message);
     }
 };
 
@@ -150,7 +212,7 @@ exports.resetPassword = async (req, res) => {
         await db.query('UPDATE users SET password = ? WHERE email = ?', [hashedPassword, email]);
         await db.query('DELETE FROM otp_tokens WHERE email = ?', [email]);
 
-        // Send confirmation email with the new password
+        // Send confirmation email
         try {
             await sendOTP(email, newPassword, 'Your Password Has Been Reset - Sadhana Tracker', `
                 <div style="font-family: Arial, sans-serif; max-width: 480px; margin: auto; padding: 24px; border: 1px solid #f0a500; border-radius: 8px;">
@@ -176,7 +238,6 @@ exports.resetPassword = async (req, res) => {
             `);
         } catch (mailErr) {
             console.error('Failed to send password confirmation email:', mailErr);
-            // We don't fail the whole request if just the email fails, as the DB is already updated
         }
 
         res.json({ message: 'Password reset successfully' });
