@@ -88,64 +88,69 @@ const SadhanaAnalytics = ({ logs }) => {
                 </div>
 
                 {/* Time Distribution Bar Chart - Grouped & Scrollable */}
-                <div className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200 shadow-sm transition-colors">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-2">
+                <div className="bg-white p-4 sm:p-6 rounded-xl border border-gray-200 shadow-sm transition-colors relative overflow-hidden">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-2">
                         <h3 className="text-lg font-serif font-bold text-gray-800 flex items-center">
                             <span className="w-2 h-6 bg-blue-500 rounded-full mr-3"></span>
                             Sadhana Time Distribution (m)
                         </h3>
-                        <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tight bg-gray-100 px-2 py-1 rounded">Last 30 Days • Scroll Left/Right ↔</p>
-                    </div>
-
-                    {/* Static Custom Legend */}
-                    <div className="flex flex-wrap gap-4 mb-6 px-2 justify-center sm:justify-end">
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#ef4444' }}></div>
-                            <span className="text-xs font-bold text-gray-600">📖 Reading</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#8b5cf6' }}></div>
-                            <span className="text-xs font-bold text-gray-600">🎧 Hearing</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#3b82f6' }}></div>
-                            <span className="text-xs font-bold text-gray-600">📚 Study</span>
+                        {/* Static Custom Legend */}
+                        <div className="flex flex-wrap gap-4 px-2 justify-center sm:justify-end">
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#ef4444' }}></div>
+                                <span className="text-[11px] font-bold text-gray-600">Reading</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#8b5cf6' }}></div>
+                                <span className="text-[11px] font-bold text-gray-600">Hearing</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#3b82f6' }}></div>
+                                <span className="text-[11px] font-bold text-gray-600">Study</span>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div className="flex h-[300px] relative">
-                        {/* Fixed Y-Axis */}
-                        <div className="flex-none bg-white pr-2 border-r border-gray-100 min-w-[45px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={chartData} margin={{ top: 10, right: 0, left: 5, bottom: 25 }}>
-                                    <YAxis 
-                                        axisLine={false} 
-                                        tickLine={false} 
-                                        tick={{ fontSize: 10, fill: '#999', fontWeight: 600 }}
-                                        width={35}
-                                    />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
 
-                        {/* Scrollable Bars & X-Axis */}
-                        <div className="flex-grow overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
-                            <div style={{ minWidth: chartData.length > 6 ? `${chartData.length * 60}px` : '100%', height: '100%' }}>
+                    <div className="relative">
+                        {/* FIXED Y-AXIS OVERLAY */}
+                        <div className="absolute left-0 top-0 bottom-0 w-[45px] bg-white/90 backdrop-blur-[2px] z-20 flex flex-col justify-between py-[10px] pointer-events-none border-r border-gray-50 uppercase text-[10px] font-bold text-gray-400">
+                            <div className="pl-2">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
+                                    <BarChart data={chartData} margin={{ top: 0, right: 0, left: -25, bottom: 30 }}>
+                                        <YAxis 
+                                            axisLine={false} 
+                                            tickLine={false} 
+                                            tick={{ fontSize: 10, fill: '#999', fontWeight: 'bold' }}
+                                            width={40}
+                                        />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                        {/* SCROLLABLE CONTENT */}
+                        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent pl-[45px]">
+                            <div style={{ minWidth: chartData.length > 6 ? `${chartData.length * 60}px` : '100%', height: '300px' }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={chartData} margin={{ top: 0, right: 20, left: 10, bottom: 0 }}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f5f5f5" />
                                         <XAxis 
                                             dataKey="date" 
                                             axisLine={false} 
                                             tickLine={false} 
-                                            tick={{ fontSize: 10, fill: '#666' }} 
+                                            tick={{ fontSize: 10, fill: '#666', fontWeight: 500 }} 
                                             interval={0}
                                             height={30}
                                         />
-                                        <YAxis hide type="number" />
+                                        <YAxis hide domain={[0, 'auto']} />
                                         <Tooltip
                                             cursor={{ fill: 'rgba(241, 245, 249, 0.5)' }}
-                                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                                            contentStyle={{ 
+                                                borderRadius: '12px', 
+                                                border: 'none', 
+                                                boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                                                padding: '12px'
+                                            }}
                                         />
                                         <Bar dataKey="reading" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={12} />
                                         <Bar dataKey="hearing" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={12} />
@@ -154,6 +159,12 @@ const SadhanaAnalytics = ({ logs }) => {
                                 </ResponsiveContainer>
                             </div>
                         </div>
+                    </div>
+                    
+                    <div className="mt-4 text-center">
+                        <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tight bg-gray-50 inline-block px-3 py-1 rounded-full border border-gray-100">
+                           ↔ Scroll horizontally to view {chartData.length} days of history
+                        </p>
                     </div>
                 </div>
             </div>
