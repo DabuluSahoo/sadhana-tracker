@@ -101,7 +101,7 @@ const runWeeklyReport = async () => {
                     `
                         <div style="font-family: sans-serif; padding: 20px; border: 1px solid #f0a500; border-radius: 8px;">
                             <h2 style="color: #c47a00;">Weekly Consolidated Sadhana Report</h2>
-                            <p>Hare Krishna, <strong>${b.username}</strong>! 🙏</p>
+                            <p>Hare Krishna Prabhuji! 🙏</p>
                             <p>Please find attached the consolidated weekly sadhana report for all groups.</p>
                             <p style="font-size: 14px; color: #666;">
                                 <strong>Period:</strong> ${format(lastWeekStart, 'PPP')} to ${format(lastWeekEnd, 'PPP')}<br/>
