@@ -145,6 +145,8 @@ cron.schedule('29 2 * * *', async () => {
             FROM users u
             WHERE u.email IS NOT NULL 
               AND u.email != ''
+              AND u.role != 'owner'
+              AND u.group_name != 'brahmacari'
               AND u.id NOT IN (
                   SELECT user_id FROM daily_sadhana WHERE date = ?
               )
