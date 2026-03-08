@@ -1,0 +1,126 @@
+const { jsPDF } = require('jspdf');
+require('jspdf-autotable');
+const { format, isSameDay } = require('date-fns');
+
+// Group colors (cloned from frontend reportUtils.js)
+const GROUP_COLORS = {
+    bhima:      [180, 100, 0],   // Amber dark
+    arjun:      [200, 80,  10],  // Saffron
+    nakul:      [0,   110, 100], // Teal
+    yudhisthir: [255, 120, 0],   // Bright Orange
+    other:      [140, 140, 140], // Medium Gray
+    brahmacari: [217, 119, 6],   // Amber medium
+};
+
+const TABLE_COLS = ['Date', 'Wake', 'Sleep', 'Rounds', 'Read', 'Hear', 'Study', 'Svc(h)', 'Mangala', 'Comments'];
+
+const buildRows = (days, logs) =>
+    days.map(day => {
+        const log = logs.find(l => isSameDay(new Date(l.date), day));
+        if (!log) return [format(day, 'EEE, MMM d'), '-', '-', '-', '-', '-', '-', '-', '-', 'NOT FILLED'];
+        return [
+            format(day, 'EEE, MMM d'),
+            log.wakeup_time ? log.wakeup_time.slice(0, 5) : '-',
+            log.sleep_time  ? log.sleep_time.slice(0, 5)  : '-',
+            log.rounds        || 0,
+            `${log.reading_time  || 0}m`,
+            `${log.hearing_time  || 0}m`,
+            `${log.study_time    || 0}m`,
+            `${log.service_hours || 0}h`,
+            log.mangala_aarti ? 'Yes' : 'No',
+            log.comments || '',
+        ];
+    });
+
+const addPDFHeader = (doc, title, subtitle) => {
+    doc.setFont('times', 'bold');
+    doc.setTextColor(234, 88, 12);
+    doc.setFontSize(22);
+    doc.text('HARE KRISHNA', 148, 18, { align: 'center' });
+
+    doc.setFont('times', 'normal');
+    doc.setTextColor(80);
+    doc.setFontSize(14);
+    doc.text(title, 148, 26, { align: 'center' });
+
+    if (subtitle) {
+        doc.setFontSize(10);
+        doc.setTextColor(120);
+        doc.text(subtitle, 148, 33, { align: 'center' });
+    }
+};
+
+/**
+ * Generates a weekly group report PDF as a Base64 string.
+ * @param {string} groupName 
+ * @param {Array} usersData - [{ username, logs: [] }]
+ * @param {Date} start 
+ * @param {Date} end 
+ * @param {Array} days - Generated days of the week
+ */
+exports.generateGroupReportBase64 = (groupName, usersData, start, end, days) => {
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    
+    addPDFHeader(
+        doc,
+        `Weekly Group Sadhana Report – ${groupName.toUpperCase()}`,
+        `${format(start, 'MMM d')} to ${format(end, 'MMM d, yyyy')}`
+    );
+
+    let y = 38;
+    const pageH = doc.internal.pageSize.getHeight();
+    const pageW = doc.internal.pageSize.getWidth();
+
+    usersData.forEach(({ username, logs }, idx) => {
+        const color = GROUP_COLORS[groupName.toLowerCase()] || [100, 100, 100];
+        const existing = days.map(d => logs.find(l => isSameDay(new Date(l.date), d))).filter(Boolean);
+        const daysLogged = existing.length;
+        const avgRounds = daysLogged
+            ? (existing.reduce((s, l) => s + (l.rounds || 0), 0) / daysLogged).toFixed(1)
+            : 0;
+
+        // Banner check
+        if (y + 35 > pageH - 15) {
+            doc.addPage();
+            y = 15;
+        }
+
+        doc.setFillColor(...color);
+        doc.rect(14, y, pageW - 28, 11, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('times', 'bold');
+        doc.setFontSize(11);
+        doc.text(
+            `${groupName.toUpperCase()} GROUP  -  ${username}  |  Days Logged: ${daysLogged}/${days.length}  |  Avg Rounds: ${avgRounds}`,
+            17, y + 7.5
+        );
+        y += 11;
+
+        doc.autoTable({
+            startY: y,
+            head: [TABLE_COLS],
+            body: buildRows(days, logs),
+            theme: 'striped',
+            headStyles: {
+                fillColor: color.map(c => Math.min(255, c + 60)),
+                textColor: [255, 255, 255],
+                fontSize: 9.5,
+                fontStyle: 'bold',
+            },
+            bodyStyles: { fontSize: 9 },
+            alternateRowStyles: { fillColor: [255, 252, 245] },
+            styles: { font: 'times', cellPadding: 1.5 },
+            columnStyles: { 9: { cellWidth: 45 } },
+            margin: { left: 14, right: 14 },
+        });
+
+        y = doc.lastAutoTable.finalY + (idx < usersData.length - 1 ? 10 : 6);
+    });
+
+    doc.setFontSize(9);
+    doc.setTextColor(160);
+    doc.text('Your spiritual progress is a gift to the world. 🙏', pageW / 2, pageH - 8, { align: 'center' });
+
+    // Output Base64 string for Resend attachment
+    return doc.output('datauristring').split(',')[1];
+};

@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const db = require('./config/db');
 require('./jobs/reminder');
+require('./jobs/weeklyReport');
 
 dotenv.config();
 
