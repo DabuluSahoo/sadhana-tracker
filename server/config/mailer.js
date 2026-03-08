@@ -1,11 +1,7 @@
 const https = require('https');
 
-const sendOTP = async (email, otp, subject = 'Your OTP - Sadhana Tracker') => {
-    const body = JSON.stringify({
-        from: 'Sadhana Tracker <noreply@wsahoo.space>',
-        to: [email],
-        subject,
-        html: `
+const sendOTP = async (email, otp, subject = 'Your OTP - Sadhana Tracker', customHtml = null) => {
+    const defaultHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 400px; margin: auto; padding: 24px; border: 1px solid #f0a500; border-radius: 8px;">
                 <h2 style="color: #c47a00; text-align: center;">🪷 Sadhana Tracker</h2>
                 <p style="font-size: 16px;">Your One-Time Password (OTP) is:</p>
@@ -14,7 +10,13 @@ const sendOTP = async (email, otp, subject = 'Your OTP - Sadhana Tracker') => {
                 </div>
                 <p style="color: #888; font-size: 13px; margin-top: 16px;">This OTP is valid for <strong>10 minutes</strong>. Do not share it with anyone.</p>
             </div>
-        `,
+        `;
+
+    const body = JSON.stringify({
+        from: 'Sadhana Tracker <noreply@wsahoo.space>',
+        to: [email],
+        subject,
+        html: customHtml || defaultHtml,
     });
 
     return new Promise((resolve, reject) => {
