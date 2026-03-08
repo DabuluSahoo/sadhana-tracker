@@ -97,29 +97,47 @@ const SadhanaAnalytics = ({ logs }) => {
                         <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tight bg-gray-100 px-2 py-1 rounded">Last 30 Days • Scroll Left/Right ↔</p>
                     </div>
                     
-                    <div className="overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
-                        <div className="h-[300px]" style={{ minWidth: logs.length > 7 ? `${logs.length * 50}px` : '100%' }}>
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                                    <XAxis 
-                                        dataKey="date" 
+                    <div className="flex h-[300px]">
+                        {/* Fixed Y-Axis */}
+                        <div className="flex-none bg-white z-10 pr-2 border-r border-gray-50">
+                            <ResponsiveContainer width={40} height="100%">
+                                <BarChart data={chartData} margin={{ top: 10, right: 0, left: -15, bottom: 25 }}>
+                                    <YAxis 
                                         axisLine={false} 
                                         tickLine={false} 
-                                        tick={{ fontSize: 10, fill: '#666' }} 
-                                        interval={0}
+                                        tick={{ fontSize: 10, fill: '#999' }} 
+                                        width={40}
                                     />
-                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#666' }} />
-                                    <Tooltip
-                                        cursor={{ fill: '#f8fafc' }}
-                                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                    />
-                                    <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px', fontWeight: 'bold' }} />
-                                    <Bar dataKey="reading" name="📖 Reading" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={12} />
-                                    <Bar dataKey="hearing" name="🎧 Hearing" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={12} />
-                                    <Bar dataKey="study" name="📚 Study" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={12} />
                                 </BarChart>
                             </ResponsiveContainer>
+                        </div>
+
+                        {/* Scrollable Bars & X-Axis */}
+                        <div className="flex-grow overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+                            <div style={{ minWidth: logs.length > 7 ? `${logs.length * 60}px` : '100%', height: '100%' }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                                        <XAxis 
+                                            dataKey="date" 
+                                            axisLine={false} 
+                                            tickLine={false} 
+                                            tick={{ fontSize: 10, fill: '#666' }} 
+                                            interval={0}
+                                            height={30}
+                                        />
+                                        <YAxis hide domain={['auto', 'auto']} />
+                                        <Tooltip
+                                            cursor={{ fill: '#f8fafc' }}
+                                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                        />
+                                        <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px', fontWeight: 'bold' }} />
+                                        <Bar dataKey="reading" name="📖 Reading" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={12} />
+                                        <Bar dataKey="hearing" name="🎧 Hearing" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={12} />
+                                        <Bar dataKey="study" name="📚 Study" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={12} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
                         </div>
                     </div>
                 </div>
