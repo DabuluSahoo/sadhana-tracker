@@ -91,6 +91,8 @@ router.post('/trigger-reminder', protect, async (req, res) => {
                     });
                 }
                 results.push({ user: user.username, status: 'SUCCESS' });
+                // Add delay to prevent rate limit failures
+                await new Promise(resolve => setTimeout(resolve, 1500));
             } catch (err) {
                 results.push({ user: user.username, status: 'FAILED', error: err.message });
             }
