@@ -82,7 +82,7 @@ router.post('/trigger-reminder', protect, async (req, res) => {
         const results = [];
         for (const user of users) {
             try {
-                await sendReminderEmail(user.email.trim(), user.username, yesterdayStr);
+                // await sendReminderEmail(user.email.trim(), user.username, yesterdayStr);
                 
                 if (user.device_token) {
                     await sendPushNotification(user.device_token, {
