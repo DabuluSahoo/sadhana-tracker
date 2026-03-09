@@ -1,27 +1,75 @@
 import { createContext, useState, useEffect } from 'react';
 import api from '../api';
 import toast from 'react-hot-toast';
+import { isNative } from '../utils/platform';
+import { Preferences } from '@capacitor/preferences';
+import { BiometricAuth } from '@aparajita/capacitor-biometric-auth';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [biometricEnabled, setBiometricEnabled] = useState(false);
 
     useEffect(() => {
-        const token = sessionStorage.getItem('token');
-        const storedUser = sessionStorage.getItem('user');
-        if (token && storedUser) {
-            setUser(JSON.parse(storedUser));
-        }
-        setLoading(false);
+        const loadStoredAuth = async () => {
+            if (isNative()) {
+                const token = await Preferences.get({ key: 'token' });
+                const user = await Preferences.get({ key: 'user' });
+                const bioPref = await Preferences.get({ key: 'biometricEnabled' });
+                const isBioOn = bioPref.value === 'true';
+                setBiometricEnabled(isBioOn);
+
+                if (token.value && user.value) {
+                    let authSuccess = true;
+                    if (isBioOn) {
+                        try {
+                            const info = await BiometricAuth.checkBiometry();
+                            if (info.isAvailable) {
+                                await BiometricAuth.authenticate({ reason: 'Unlock Sadhana Tracker' });
+                                // If we reach here, it authenticated.
+                            }
+                        } catch (err) {
+                            console.error('Biometric authentication failed:', err);
+                            authSuccess = false;
+                        }
+                    }
+                    
+                    if (authSuccess) {
+                        setUser(JSON.parse(user.value));
+                        api.defaults.headers.common['Authorization'] = `Bearer ${token.value}`;
+                    } else {
+                        // Securely wipe memory variables if biometric fails/cancels
+                        api.defaults.headers.common['Authorization'] = '';
+                    }
+                }
+            } else {
+                const token = sessionStorage.getItem('token');
+                const storedUser = sessionStorage.getItem('user');
+                if (token && storedUser) {
+                    setUser(JSON.parse(storedUser));
+                }
+            }
+            setLoading(false);
+        };
+        loadStoredAuth();
     }, []);
 
     const login = async (username, password) => {
         try {
             const { data } = await api.post('/auth/login', { username, password });
-            sessionStorage.setItem('token', data.token);
-            sessionStorage.setItem('user', JSON.stringify(data.user));
+            
+            if (isNative()) {
+                await Preferences.set({ key: 'token', value: data.token });
+                await Preferences.set({ key: 'user', value: JSON.stringify(data.user) });
+            } else {
+                sessionStorage.setItem('token', data.token);
+                sessionStorage.setItem('user', JSON.stringify(data.user));
+            }
+
+            api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+
             setUser(data.user);
             toast.success('Welcome back!');
             return true;
@@ -45,24 +93,69 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const logout = () => {
-        sessionStorage.removeItem('token');
-        sessionStorage.removeItem('user');
+    const logout = async () => {
+        if (isNative()) {
+            await Preferences.remove({ key: 'token' });
+            await Preferences.remove({ key: 'user' });
+        } else {
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('user');
+        }
         setUser(null);
         toast.success('Logged out');
     };
 
     // Patch user fields (e.g. after group selection) without re-login
-    const updateUser = (fields) => {
+    const updateUser = async (fields) => {
         setUser(prev => {
             const updated = { ...prev, ...fields };
-            sessionStorage.setItem('user', JSON.stringify(updated));
+            if (isNative()) {
+                Preferences.set({ key: 'user', value: JSON.stringify(updated) });
+            } else {
+                sessionStorage.setItem('user', JSON.stringify(updated));
+            }
             return updated;
         });
     };
 
+    const toggleBiometric = async () => {
+        if (!isNative()) {
+            toast.error('Biometric lock is only available on the mobile app.');
+            return false;
+        }
+        
+        try {
+            const info = await BiometricAuth.checkBiometry();
+            if (!info.isAvailable) {
+                toast.error('Biometric hardware is not available on this device.');
+                return false;
+            }
+
+            const newState = !biometricEnabled;
+            // Ask for fingerprint before *enabling* it to confirm ownership
+            if (newState) {
+                try {
+                    await BiometricAuth.authenticate({ reason: 'Confirm to enable App Lock' });
+                } catch (authError) {
+                    console.error('Authentication failed:', authError);
+                    toast.error('Authentication failed or canceled.');
+                    return false;
+                }
+            }
+            
+            await Preferences.set({ key: 'biometricEnabled', value: String(newState) });
+            setBiometricEnabled(newState);
+            toast.success(newState ? 'Biometric App Lock enabled 🛡️' : 'Biometric App Lock disabled');
+            return true;
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to configure biometric lock.');
+            return false;
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ user, login, register, logout, loading, updateUser }}>
+        <AuthContext.Provider value={{ user, login, register, logout, loading, updateUser, biometricEnabled, toggleBiometric }}>
             {children}
         </AuthContext.Provider>
     );

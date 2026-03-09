@@ -1,10 +1,12 @@
 import { useContext, useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
-import { LogOut, LayoutDashboard, History as HistoryIcon, Users, Menu, X, Volume2 } from 'lucide-react';
+import { LogOut, LayoutDashboard, History as HistoryIcon, Users, Menu, X, Lock } from 'lucide-react';
+import NotificationCenter from './NotificationCenter';
+import { isNative } from '../utils/platform';
 
 const Layout = () => {
-    const { user, logout } = useContext(AuthContext);
+    const { user, logout, biometricEnabled, toggleBiometric } = useContext(AuthContext);
     const navigate = useNavigate();
     const location = useLocation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -51,7 +53,17 @@ const Layout = () => {
                                 </Link>
                             ))}
                             <div className="flex items-center space-x-3">
+                                {user?.role === 'owner' && <NotificationCenter />}
                                 <span className="font-medium">{user?.username}</span>
+                                {isNative() && (
+                                    <button
+                                        onClick={toggleBiometric}
+                                        className={`flex items-center space-x-1 px-3 py-2 rounded-md transition-colors ${biometricEnabled ? 'bg-green-600 hover:bg-green-700 text-white' : 'hover:bg-saffron-800 text-gray-200'}`}
+                                        title="Toggle Biometric App Lock"
+                                    >
+                                        <Lock size={18} />
+                                    </button>
+                                )}
                                 <button
                                     onClick={handleLogout}
                                     className="flex items-center space-x-1 hover:bg-saffron-800 px-3 py-2 rounded-md transition-colors"
@@ -63,7 +75,8 @@ const Layout = () => {
                         </div>
 
                         {/* Mobile Menu Button */}
-                        <div className="md:hidden">
+                        <div className="md:hidden flex items-center space-x-2">
+                            {user?.role === 'owner' && <NotificationCenter />}
                             <button
                                 aria-label="Toggle Mobile Menu"
                                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -90,6 +103,18 @@ const Layout = () => {
                                 <span>{item.label}</span>
                             </Link>
                         ))}
+                        {isNative() && (
+                            <button
+                                onClick={() => {
+                                    toggleBiometric();
+                                    setIsMobileMenuOpen(false);
+                                }}
+                                className={`flex items-center space-x-2 w-full text-left px-3 py-2 rounded-md text-base font-medium ${biometricEnabled ? 'bg-green-600 hover:bg-green-700' : 'hover:bg-saffron-700'}`}
+                            >
+                                <Lock size={20} />
+                                <span>{biometricEnabled ? 'App Lock On' : 'App Lock Off'}</span>
+                            </button>
+                        )}
                         <button
                             onClick={() => {
                                 handleLogout();

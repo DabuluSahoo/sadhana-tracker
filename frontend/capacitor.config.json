@@ -1,5 +1,8 @@
 {
-  "appId": "com.sadhana.tracker",
+  "appId": "com.sadhanatracker.app",
   "appName": "Sadhana Tracker",
-  "webDir": "dist"
+  "webDir": "dist",
+  "server": {
+    "cleartext": true
+  }
 }

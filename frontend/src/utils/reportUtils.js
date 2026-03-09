@@ -2,6 +2,44 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format, subWeeks, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, subDays } from 'date-fns';
 import toast from 'react-hot-toast';
+import { isNative } from './platform';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
+
+/**
+ * Helper to handle PDF output across platforms.
+ * On Web: Direct browser download via doc.save()
+ * On Native: Save to Documents folder and prompt Share dialog.
+ */
+const saveOrSharePDF = async (doc, filename) => {
+    if (isNative()) {
+        try {
+            const pdfBase64 = doc.output('datauristring').split(',')[1];
+            const savedFile = await Filesystem.writeFile({
+                path: filename,
+                data: pdfBase64,
+                directory: Directory.Documents,
+                recursive: true
+            });
+
+            toast.success('Report saved to Documents!');
+
+            // Automatically offer to share the file
+            await Share.share({
+                title: 'Sadhana Report',
+                text: 'Hare Krishna! Here is the sadhana report.',
+                url: savedFile.uri,
+                dialogTitle: 'Share Sadhana Report'
+            });
+        } catch (err) {
+            console.error('Mobile PDF error:', err);
+            toast.error('Failed to save or share report');
+        }
+    } else {
+        doc.save(filename);
+        toast.success('Report downloaded!');
+    }
+};
 
 // --- Group colours for PDF section headers ---
 const GROUP_COLORS = {
@@ -100,7 +138,7 @@ const addPDFHeader = (doc, title, subtitle) => {
 // ─────────────────────────────────────────────────────────────────────────────
 // generateWeeklySadhanaReport — single user, auto-resolved last week
 // ─────────────────────────────────────────────────────────────────────────────
-export const generateWeeklySadhanaReport = (username, logs) => {
+export const generateWeeklySadhanaReport = async (username, logs) => {
     const { start, end, restrictionNote } = getTargetWeek();
     const days = eachDayOfInterval({ start, end });
 
@@ -157,14 +195,14 @@ export const generateWeeklySadhanaReport = (username, logs) => {
     doc.setFontSize(9);
     doc.setTextColor(160);
     doc.text('Your spiritual progress is a gift to the world.', 148, 195, { align: 'center' });
-    doc.save(`Weekly_Sadhana_${username}_${format(start, 'MMM_d')}.pdf`);
-    toast.success('Weekly report downloaded!');
+    const fileName = `Weekly_Sadhana_${username}_${format(start, 'MMM_d')}.pdf`;
+    await saveOrSharePDF(doc, fileName);
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // generateCustomRangeSadhanaReport — single user, custom date range
 // ─────────────────────────────────────────────────────────────────────────────
-export const generateCustomRangeSadhanaReport = (username, logs, startDate, endDate) => {
+export const generateCustomRangeSadhanaReport = async (username, logs, startDate, endDate) => {
     const start = new Date(startDate + 'T00:00:00');
     const end   = new Date(endDate   + 'T23:59:59');
     const days  = eachDayOfInterval({ start, end });
@@ -200,8 +238,8 @@ export const generateCustomRangeSadhanaReport = (username, logs, startDate, endD
     doc.setFontSize(9);
     doc.setTextColor(160);
     doc.text('Your spiritual progress is a gift to the world.', 148, 195, { align: 'center' });
-    doc.save(`Custom_Sadhana_${username}_${startDate}_to_${endDate}.pdf`);
-    toast.success('Custom range report downloaded!');
+    const fileName = `Custom_Sadhana_${username}_${startDate}_to_${endDate}.pdf`;
+    await saveOrSharePDF(doc, fileName);
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -213,7 +251,7 @@ export const generateCustomRangeSadhanaReport = (username, logs, startDate, endD
 const GROUP_ORDER = ['yudhisthir', 'bhima', 'arjun', 'nakul', 'sahadev', 'other'];
 // Note: no emoji map — jsPDF standard fonts cannot render emoji (shows as '?' symbols)
 
-export const generateGroupReport = (groupLabel, usersData, startDate, endDate, restrictionNote = null) => {
+export const generateGroupReport = async (groupLabel, usersData, startDate, endDate, restrictionNote = null) => {
     const start = new Date(startDate + 'T00:00:00');
     const end   = new Date(endDate   + 'T23:59:59');
     const days  = eachDayOfInterval({ start, end });
@@ -306,7 +344,7 @@ export const generateGroupReport = (groupLabel, usersData, startDate, endDate, r
     doc.setTextColor(160);
     doc.text('Your spiritual progress is a gift to the world. 🙏', pageW / 2, pageH - 8, { align: 'center' });
 
-    doc.save(`Group_Sadhana_${groupLabel}_${startDate}_to_${endDate}.pdf`);
-    toast.success(`Group report for ${groupLabel} downloaded!`);
+    const fileName = `Group_Sadhana_${groupLabel}_${startDate}_to_${endDate}.pdf`;
+    await saveOrSharePDF(doc, fileName);
 };
 

@@ -241,3 +241,51 @@ exports.triggerWeeklyReportConsolidated = async (req, res) => {
         res.status(500).json({ message: 'Failed to trigger weekly reports', error: err.message });
     }
 };
+
+// Owner-only: get list of unapproved users
+exports.getPendingApprovals = async (req, res) => {
+    try {
+        const [users] = await db.query(
+            'SELECT id, username, email, group_name, created_at FROM users WHERE is_approved = 0 ORDER BY created_at DESC'
+        );
+        res.json(users);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// Owner-only: manually approve a user
+const { sendApprovalConfirmationToUser } = require('../config/mailer');
+exports.approveManual = async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const [users] = await db.query('SELECT id, email, username FROM users WHERE id = ?', [userId]);
+        if (users.length === 0) return res.status(404).json({ message: 'User not found' });
+
+        const user = users[0];
+        
+        // Approve and clear token
+        await db.query('UPDATE users SET is_approved = 1, approval_token = NULL WHERE id = ?', [user.id]);
+
+        // Notify User
+        try {
+            await sendApprovalConfirmationToUser(user.email, user.username);
+
+            // Push Notification (Mobile App)
+            const [devotee] = await db.query('SELECT device_token FROM users WHERE id = ?', [user.id]);
+            if (devotee[0]?.device_token) {
+                const { sendPushNotification } = require('../config/pushService');
+                await sendPushNotification(devotee[0].device_token, {
+                    title: 'Account Approved! ✨',
+                    body: `Hare Krishna ${user.username}! Your account is now active. You can log in and start your sadhana tracking.`
+                });
+            }
+        } catch (mailErr) {
+            console.error('Failed to send approval confirmation:', mailErr.message);
+        }
+
+        res.json({ message: 'User approved successfully' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};

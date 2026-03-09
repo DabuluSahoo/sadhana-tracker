@@ -87,10 +87,22 @@ exports.register = async (req, res) => {
 
         // 4. Notify Owner
         try {
-            const [owners] = await db.query("SELECT email FROM users WHERE role = 'owner' LIMIT 1");
+            const [owners] = await db.query("SELECT email, device_token FROM users WHERE role = 'owner' LIMIT 1");
             if (owners.length > 0) {
+                const owner = owners[0];
                 const approvalLink = `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/auth/approve?token=${approvalToken}`;
-                await sendApprovalNotificationToOwner(owners[0].email, { email, username, group_name }, approvalLink);
+                
+                // Email
+                await sendApprovalNotificationToOwner(owner.email, { email, username, group_name }, approvalLink);
+                
+                // Push Notification (Mobile App)
+                if (owner.device_token) {
+                    const { sendPushNotification } = require('../config/pushService');
+                    await sendPushNotification(owner.device_token, {
+                        title: 'New Devotee Registered 🪷',
+                        body: `${username} has joined the ${group_name} group and is waiting for your approval.`
+                    });
+                }
             }
         } catch (mailErr) {
             console.error('Failed to notify owner of new registration:', mailErr.message);
@@ -155,6 +167,16 @@ exports.approveUser = async (req, res) => {
         // Notify User
         try {
             await sendApprovalConfirmationToUser(user.email, user.username);
+            
+            // Push Notification (Mobile App)
+            const [devotee] = await db.query('SELECT device_token FROM users WHERE id = ?', [user.id]);
+            if (devotee[0]?.device_token) {
+                const { sendPushNotification } = require('../config/pushService');
+                await sendPushNotification(devotee[0].device_token, {
+                    title: 'Account Approved! ✨',
+                    body: `Hare Krishna ${user.username}! Your account is now active. You can log in and start your sadhana tracking.`
+                });
+            }
         } catch (mailErr) {
             console.error('Failed to send approval confirmation to user:', mailErr.message);
         }
@@ -267,5 +289,23 @@ exports.setGroup = async (req, res) => {
         res.json({ message: 'Group set successfully', group_name });
     } catch (err) {
         res.status(500).json({ message: err.message });
+    }
+};
+
+// Register Device Token (for Push Notifications)
+exports.registerDevice = async (req, res) => {
+    const { deviceToken } = req.body;
+    const userId = req.user.id;
+
+    if (!deviceToken) {
+        return res.status(400).json({ message: 'Device token is required' });
+    }
+
+    try {
+        await db.query('UPDATE users SET device_token = ? WHERE id = ?', [deviceToken, userId]);
+        res.json({ message: 'Device token registered successfully' });
+    } catch (err) {
+        console.error('Failed to register device token:', err);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };

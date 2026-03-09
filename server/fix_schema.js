@@ -16,6 +16,14 @@ async function fixSchema() {
             console.log('✅ Column "email" added successfully.');
         }
 
+        // Check if device_token column exists
+        const [tokenColumns] = await db.query('SHOW COLUMNS FROM users LIKE "device_token"');
+        if (tokenColumns.length === 0) {
+            console.log('Adding "device_token" column to users table...');
+            await db.query('ALTER TABLE users ADD COLUMN device_token VARCHAR(255) DEFAULT NULL');
+            console.log('✅ Column "device_token" added successfully.');
+        }
+
         // Ensure group_name column exists
         const [gnColumns] = await db.query('SHOW COLUMNS FROM users LIKE "group_name"');
         if (gnColumns.length === 0) {

@@ -209,7 +209,7 @@ const AdminDashboard = () => {
                 params: { group: groupReportGroup, startDate: startStr, endDate: endStr }
             });
             const label = groupReportGroup === 'all' ? 'All Groups' : groupReportGroup.charAt(0).toUpperCase() + groupReportGroup.slice(1);
-            generateGroupReport(label, data, startStr, endStr, restrictionNote);
+            await generateGroupReport(label, data, startStr, endStr, restrictionNote);
         } catch (err) {
             alert('Failed to fetch group data: ' + (err.response?.data?.message || err.message));
         }
@@ -538,7 +538,7 @@ const AdminDashboard = () => {
                                 {/* Download Buttons as a flex row to avoid height issues */}
                                 <div className="flex gap-2 ml-auto">
                                     <button
-                                        onClick={() => generateWeeklySadhanaReport(selectedUser.username, userLogs)}
+                                        onClick={async () => await generateWeeklySadhanaReport(selectedUser.username, userLogs)}
                                         className="flex items-center px-3 py-1.5 bg-saffron-600 text-white rounded-md hover:bg-saffron-700 transition-colors shadow-sm text-xs font-medium whitespace-nowrap"
                                     >
                                         <FileText size={13} className="mr-1.5" />
@@ -569,9 +569,9 @@ const AdminDashboard = () => {
                                                         className="text-xs border border-gray-300 rounded px-1 py-1" />
                                                 </div>
                                                 <button
-                                                    onClick={() => {
+                                                    onClick={async () => {
                                                         if (!devoteeCustomStart || !devoteeCustomEnd) return alert('Please select both dates');
-                                                        generateCustomRangeSadhanaReport(selectedUser.username, userLogs, devoteeCustomStart, devoteeCustomEnd);
+                                                        await generateCustomRangeSadhanaReport(selectedUser.username, userLogs, devoteeCustomStart, devoteeCustomEnd);
                                                         setShowDevoteeCustom(false);
                                                     }}
                                                     className="mt-1 text-xs bg-amber-600 text-white rounded px-2 py-1.5 hover:bg-amber-700 font-bold"
