@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const db = require('../config/db');
 const { sendOTP } = require('../config/mailer');
+const { sendPushNotification } = require('../config/pushService');
 
 // Send a reminder email (reusing mailer's HTTP helper)
 const sendReminderEmail = async (email, username, date) => {
@@ -141,7 +142,7 @@ cron.schedule('29 2 * * *', async () => {
         const yesterdayStr = yesterday.toISOString().slice(0, 10);
 
         const [users] = await db.query(`
-            SELECT u.id, u.username, u.email
+            SELECT u.id, u.username, u.email, u.device_token
             FROM users u
             WHERE u.email IS NOT NULL 
               AND u.email != ''
@@ -157,6 +158,15 @@ cron.schedule('29 2 * * *', async () => {
             try {
                 process.stdout.write(`Sending to ${user.username}... `);
                 await sendReminderEmail(user.email.trim(), user.username, yesterdayStr);
+                
+                // Trigger Native Push Notification if user has the Mobile App installed
+                if (user.device_token) {
+                    await sendPushNotification(user.device_token, {
+                        title: '🪷 Daily Sadhana Reminder',
+                        body: `Hare Krishna ${user.username}! Please take a moment to log yesterday's spiritual activities.`
+                    });
+                }
+                
                 results.push({ user: user.username, status: 'SUCCESS' });
                 console.log('✅');
                 await new Promise(resolve => setTimeout(resolve, 1500));
