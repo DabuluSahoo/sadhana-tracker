@@ -3,6 +3,7 @@ const router = express.Router();
 const { protect } = require('../middleware');
 const db = require('../config/db');
 const https = require('https');
+const { sendPushNotification } = require('../config/pushService');
 
 // Helper to send email (copied from reminder.js for testing)
 const sendReminderEmail = async (email, username, date) => {
@@ -56,7 +57,48 @@ const sendReminderEmail = async (email, username, date) => {
 const { runWeeklyReport } = require('../jobs/weeklyReport');
 
 router.post('/trigger-reminder', protect, async (req, res) => {
-    // ... rest of code ...
+    // Owner only route
+    if (req.user.role !== 'owner') {
+        return res.status(403).json({ message: 'Only owner can trigger generic test reminders' });
+    }
+
+    try {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().slice(0, 10);
+
+        const [users] = await db.query(`
+            SELECT u.id, u.username, u.email, u.device_token
+            FROM users u
+            WHERE u.email IS NOT NULL 
+              AND u.email != ''
+              AND u.role != 'owner'
+              AND u.group_name != 'brahmacari'
+              AND u.id NOT IN (
+                  SELECT user_id FROM daily_sadhana WHERE date = ?
+              )
+        `, [yesterdayStr]);
+
+        const results = [];
+        for (const user of users) {
+            try {
+                await sendReminderEmail(user.email.trim(), user.username, yesterdayStr);
+                
+                if (user.device_token) {
+                    await sendPushNotification(user.device_token, {
+                        title: '🪷 Daily Sadhana Reminder (Test)',
+                        body: `Hare Krishna ${user.username}! Please take a moment to log yesterday's spiritual activities.`
+                    });
+                }
+                results.push({ user: user.username, status: 'SUCCESS' });
+            } catch (err) {
+                results.push({ user: user.username, status: 'FAILED', error: err.message });
+            }
+        }
+        res.json({ message: 'Reminders triggered', count: results.length, details: results });
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to trigger reminders', error: err.message });
+    }
 });
 
 // Force trigger the weekly automated report
