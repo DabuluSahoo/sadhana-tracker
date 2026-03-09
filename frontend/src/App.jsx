@@ -1,6 +1,6 @@
 import { useEffect, useContext, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
+import { Toaster, toast } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import AuthContext from './context/AuthContext';
 import Layout from './components/Layout';
@@ -35,35 +35,46 @@ function AppRoutes() {
           }
 
           if (permStatus.receive === 'granted') {
-            // Register with Apple / Google to receive tokens
-            await PushNotifications.register();
-
+            // CRITICAL: Handle listeners BEFORE registering to avoid race conditions
+            
             // Handle successful registration
-            PushNotifications.addListener('registration', async (token) => {
-              console.log('Push registration success, token: ' + token.value);
+            await PushNotifications.addListener('registration', async (token) => {
+              console.log('Push registration success');
               try {
                 await api.post('/auth/register-device', { deviceToken: token.value });
+                // Quiet success for now, logic is solid
               } catch (err) {
                 console.error('Failed to register device token with backend:', err);
+                toast.error('Notification system sync failed');
               }
             });
 
             // Handle registration errors
-            PushNotifications.addListener('registrationError', (error) => {
+            await PushNotifications.addListener('registrationError', (error) => {
               console.error('Push registration error: ', error);
+              toast.error('Mobile Notification setup failed');
             });
 
             // Handle received notifications while app is in foreground
-            PushNotifications.addListener('pushNotificationReceived', (notification) => {
+            await PushNotifications.addListener('pushNotificationReceived', (notification) => {
               console.log('Push received: ', notification);
-              // You can show a custom toast or alert here if needed
+              // Show a nice toast if received while the app is actively open
+              toast(notification.title || 'Sadhana Reminder! 🪷', {
+                icon: '🔔',
+                duration: 4000
+              });
             });
 
             // Handle notification clicks
-            PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
+            await PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
               console.log('Push action performed: ', notification);
-              // Deep linking logic can be added here
             });
+
+            // Finally, register with FCM
+            await PushNotifications.register();
+          } else {
+            // Show one-time warning if permissions are blocked at the OS level
+            toast.error('Permissions blocked. Please enable notifications in your phone settings to receive 8 AM reminders.', { duration: 6000 });
           }
         } catch (err) {
           console.error('Push notification setup error:', err);

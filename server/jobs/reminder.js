@@ -157,7 +157,7 @@ cron.schedule('29 2 * * *', async () => {
         for (const user of users) {
             try {
                 process.stdout.write(`Sending to ${user.username}... `);
-                await sendReminderEmail(user.email.trim(), user.username, yesterdayStr);
+                // await sendReminderEmail(user.email.trim(), user.username, yesterdayStr);
                 
                 // Trigger Native Push Notification if user has the Mobile App installed
                 if (user.device_token) {
