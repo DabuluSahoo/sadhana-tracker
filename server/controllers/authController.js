@@ -92,8 +92,8 @@ exports.register = async (req, res) => {
                 const owner = owners[0];
                 const approvalLink = `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/auth/approve?token=${approvalToken}`;
                 
-                // Email
-                await sendApprovalNotificationToOwner(owner.email, { email, username, group_name }, approvalLink);
+                // Email (DISABLED - Shifted to Push Only)
+                // await sendApprovalNotificationToOwner(owner.email, { email, username, group_name }, approvalLink);
                 
                 // Push Notification (Mobile App)
                 if (owner.device_token) {

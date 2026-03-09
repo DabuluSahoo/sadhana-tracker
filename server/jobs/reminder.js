@@ -232,10 +232,10 @@ cron.schedule('0 3 * * *', async () => {
             return;
         }
 
-        // 2. Fetch all admin and owner users who have an email
+        // 2. Fetch all admin and owner users
         const [admins] = await db.query(`
-            SELECT id, username, email FROM users
-            WHERE role IN ('admin', 'owner') AND email IS NOT NULL
+            SELECT id, username, email, device_token FROM users
+            WHERE role IN ('admin', 'owner')
         `);
 
         if (admins.length === 0) {
@@ -243,12 +243,19 @@ cron.schedule('0 3 * * *', async () => {
             return;
         }
 
-        // 3. Send one summary email to each admin/owner
-        console.log(`📧 Notifying ${admins.length} admin(s)/owner(s) about ${expiringUsers.length} expiring devotee(s)...`);
+        // 3. Send one summary push notification to each admin/owner
+        console.log(`🔔 Notifying ${admins.length} admin(s)/owner(s) about ${expiringUsers.length} expiring devotee(s)...`);
         for (const admin of admins) {
             try {
-                await sendDataExpiryWarningToAdmin(admin.email, admin.username, expiringUsers);
-                console.log(`  ✅ Alert sent to ${admin.username} (${admin.email})`);
+                if (admin.device_token) {
+                    await sendPushNotification(admin.device_token, {
+                        title: '⚠️ Data Expiry Warning',
+                        body: `${expiringUsers.length} Devotee(s) have data expiring in 7 days. Open the Admin Dashboard to review.`
+                    });
+                    console.log(`  ✅ Push Alert sent to ${admin.username}`);
+                } else {
+                    console.log(`  ⏭️ Skipped ${admin.username} (no device token)`);
+                }
                 await new Promise(resolve => setTimeout(resolve, 1000)); // rate-limit
             } catch (err) {
                 console.error(`  ❌ Failed for ${admin.username}: ${err.message}`);
