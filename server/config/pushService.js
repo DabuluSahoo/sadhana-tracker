@@ -8,19 +8,30 @@ const serviceAccountPath = path.join(__dirname, '../config/firebase-service-acco
 
 let messaging = null;
 
-if (fs.existsSync(serviceAccountPath)) {
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    try {
+        const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+        admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount)
+        });
+        messaging = admin.messaging();
+        console.log('✅ Firebase Admin initialized successfully from ENV');
+    } catch (err) {
+        console.error('❌ Failed to initialize Firebase Admin from ENV:', err.message);
+    }
+} else if (fs.existsSync(serviceAccountPath)) {
     try {
         const serviceAccount = require(serviceAccountPath);
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount)
         });
         messaging = admin.messaging();
-        console.log('✅ Firebase Admin initialized successfully');
+        console.log('✅ Firebase Admin initialized successfully from local file');
     } catch (err) {
-        console.error('❌ Failed to initialize Firebase Admin:', err.message);
+        console.error('❌ Failed to initialize Firebase Admin from local file:', err.message);
     }
 } else {
-    console.log('ℹ️ Firebase service account file missing. Push notifications will be disabled until setup.');
+    console.log('ℹ️ Firebase service account missing. Push notifications disabled until FIREBASE_SERVICE_ACCOUNT env is set.');
 }
 
 /**
