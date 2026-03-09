@@ -5,6 +5,7 @@ const { sendPushNotification } = require('../config/pushService');
 
 // Send a reminder email (reusing mailer's HTTP helper)
 const sendReminderEmail = async (email, username, date) => {
+    return; // HARD KILL SWITCH: reminders are push-only now.
     const https = require('https');
     const body = JSON.stringify({
         from: 'Sadhana Tracker <noreply@wsahoo.space>',

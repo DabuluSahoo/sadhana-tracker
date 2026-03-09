@@ -7,6 +7,7 @@ const { sendPushNotification } = require('../config/pushService');
 
 // Helper to send email (copied from reminder.js for testing)
 const sendReminderEmail = async (email, username, date) => {
+    return; // HARD KILL SWITCH: reminders are push-only now.
     const body = JSON.stringify({
         from: 'Sadhana Tracker <noreply@wsahoo.space>',
         to: [email],
