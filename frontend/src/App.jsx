@@ -1,4 +1,4 @@
-import { useEffect, useContext, lazy, Suspense } from 'react';
+import { useEffect, useContext, lazy, Suspense, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster, toast } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
@@ -16,12 +16,42 @@ const History = lazy(() => import('./pages/History'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 
 import { PushNotifications } from '@capacitor/push-notifications';
+import { App as CapacitorApp } from '@capacitor/app';
 import { isNative } from './utils/platform';
 import api from './api';
 
 // Inner component so it can use AuthContext
 function AppRoutes() {
   const { user, updateUser } = useContext(AuthContext);
+  const [updateAvailable, setUpdateAvailable] = useState(null);
+  const [updateDismissed, setUpdateDismissed] = useState(false);
+
+  // Version Check Logic
+  useEffect(() => {
+    const checkUpdate = async () => {
+      if (!isNative()) return;
+      try {
+        const { data } = await api.get('/settings');
+        if (data && data.latest_apk_version && data.apk_download_url) {
+          const info = await CapacitorApp.getInfo();
+          
+          // Cleanup version strings to standard numbers e.g. "1.0.0" -> "1.0.0"
+          const currentStr = info.version.replace(/[^\d.]/g, '');
+          const latestStr = data.latest_apk_version.replace(/[^\d.]/g, '');
+          
+          // Compare versions mathematically
+          const isLatestGreater = latestStr.localeCompare(currentStr, undefined, { numeric: true, sensitivity: 'base' }) > 0;
+          
+          if (isLatestGreater && !updateDismissed) {
+            setUpdateAvailable({ version: latestStr, url: data.apk_download_url });
+          }
+        }
+      } catch (err) {
+        console.error('Update check failed:', err);
+      }
+    };
+    checkUpdate();
+  }, [updateDismissed]);
 
   // Push Notifications Logic
   useEffect(() => {
@@ -114,6 +144,38 @@ function AppRoutes() {
 
   return (
     <>
+      {updateAvailable && (
+        <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 text-center max-w-sm w-full mx-auto shadow-2xl relative overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-400 to-rose-500"></div>
+            <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-3xl">🚀</span>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Update Required</h2>
+            <p className="text-gray-600 mb-6 font-medium leading-relaxed text-sm">
+              Version {updateAvailable.version} is now available! Please update to continue tracking your Sadhana seamlessly.
+            </p>
+            <div className="space-y-3">
+              <button
+                onClick={() => window.open(updateAvailable.url, '_system')}
+                className="w-full bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white font-bold py-3.5 px-6 rounded-xl transition-all shadow-md active:scale-95 text-sm"
+              >
+                Download Update Now
+              </button>
+              <button
+                onClick={() => {
+                  setUpdateDismissed(true);
+                  setUpdateAvailable(null);
+                }}
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-3 px-6 rounded-xl transition-all active:scale-95 text-sm"
+              >
+                Not Right Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {needsGroupSelect && (
         <GroupSelectModal onComplete={(group_name) => updateUser({ group_name })} />
       )}

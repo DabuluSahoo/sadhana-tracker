@@ -12,7 +12,8 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     try {
         const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
         admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount)
+            credential: admin.credential.cert(serviceAccount),
+            storageBucket: 'sadhana-tracker-bde1d.firebasestorage.app'
         });
         messaging = admin.messaging();
         console.log('✅ Firebase Admin initialized successfully from ENV');
@@ -23,7 +24,8 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT) {
     try {
         const serviceAccount = require(serviceAccountPath);
         admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount)
+            credential: admin.credential.cert(serviceAccount),
+            storageBucket: 'sadhana-tracker-bde1d.firebasestorage.app'
         });
         messaging = admin.messaging();
         console.log('✅ Firebase Admin initialized successfully from local file');
@@ -58,4 +60,4 @@ const sendPushNotification = async (deviceToken, { title, body, data = {} }) => 
     }
 };
 
-module.exports = { sendPushNotification };
+module.exports = { admin, sendPushNotification };

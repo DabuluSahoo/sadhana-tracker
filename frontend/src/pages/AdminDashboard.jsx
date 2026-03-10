@@ -34,6 +34,10 @@ const AdminDashboard = () => {
     const [devoteeCustomStart, setDevoteeCustomStart] = useState('');
     const [devoteeCustomEnd, setDevoteeCustomEnd] = useState('');
     const [triggeringReport, setTriggeringReport] = useState(false);
+    // Release Management states
+    const [releaseVersion, setReleaseVersion] = useState('');
+    const [releaseFile, setReleaseFile] = useState(null);
+    const [uploadingRelease, setUploadingRelease] = useState(false);
 
     const handleTriggerConsolidatedReport = async () => {
         if (!confirm('Are you sure you want to trigger the weekly consolidated reports for ALL groups right now? \n\nThis will send emails to all Brahmacaris.')) return;
@@ -47,6 +51,30 @@ const AdminDashboard = () => {
             alert('❌ Failed to trigger reports: ' + (err.response?.data?.message || err.message));
         } finally {
             setTriggeringReport(false);
+        }
+    };
+
+    const handleReleaseUpload = async (e) => {
+        e.preventDefault();
+        if (!releaseVersion || !releaseFile) return alert('Please provide both version and APK file.');
+        
+        const formData = new FormData();
+        formData.append('version', releaseVersion);
+        formData.append('apkFile', releaseFile);
+
+        setUploadingRelease(true);
+        try {
+            const { data } = await api.post('/settings/upload-release', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            alert('✅ Release uploaded successfully! New version: ' + data.version);
+            setReleaseVersion('');
+            setReleaseFile(null);
+        } catch (err) {
+            console.error('Upload failed:', err);
+            alert('❌ Upload failed: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setUploadingRelease(false);
         }
     };
     // ... existing code ...
@@ -219,6 +247,46 @@ const AdminDashboard = () => {
 
     return (
         <div className="space-y-4">
+        
+        {/* Release Management Panel (Owner Only) */}
+        {user.role === 'owner' && (
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5 shadow-sm">
+                <h3 className="text-sm font-bold text-blue-900 mb-3 flex items-center gap-2">
+                    <span>🚀</span> New App Release
+                </h3>
+                <form onSubmit={handleReleaseUpload} className="flex flex-col sm:flex-row gap-3 items-end">
+                    <div className="flex-1 min-w-[120px]">
+                        <label className="block text-xs font-semibold text-blue-800 mb-1">Version Code</label>
+                        <input 
+                            type="text" 
+                            placeholder="e.g. 1.0.5" 
+                            value={releaseVersion}
+                            onChange={(e) => setReleaseVersion(e.target.value)}
+                            className="w-full text-sm border border-blue-300 rounded-lg px-3 py-2 bg-white focus:ring-1 focus:ring-blue-400 focus:outline-none"
+                            required
+                        />
+                    </div>
+                    <div className="flex-[2] min-w-[200px]">
+                        <label className="block text-xs font-semibold text-blue-800 mb-1">APK File (.apk)</label>
+                        <input 
+                            type="file" 
+                            accept=".apk"
+                            onChange={(e) => setReleaseFile(e.target.files[0])}
+                            className="w-full text-sm border border-blue-300 rounded-lg px-2 py-1.5 bg-white text-blue-800 file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 cursor-pointer"
+                            required
+                        />
+                    </div>
+                    <button 
+                        type="submit" 
+                        disabled={uploadingRelease}
+                        className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 text-white font-bold text-sm rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md whitespace-nowrap"
+                    >
+                        {uploadingRelease ? 'Uploading to GitHub...' : 'Upload & Deploy'}
+                    </button>
+                </form>
+            </div>
+        )}
+
         {/* Group Report Panel */}
         <div className="bg-white rounded-xl shadow-sm border border-amber-100 p-4">
             <div className="flex flex-wrap gap-4 items-end">
