@@ -268,11 +268,9 @@ const AdminDashboard = () => {
                     <h3 className="text-lg font-bold text-orange-800 flex items-center gap-2">
                         <span>🚀</span> Release Management
                     </h3>
-                    {currentVersion && (
-                        <span className="text-sm font-semibold text-orange-700 bg-orange-200 px-3 py-1 rounded-full">
-                            Current Live Version: {currentVersion}
-                        </span>
-                    )}
+                    <span className="text-sm font-semibold text-orange-700 bg-orange-200 px-3 py-1 rounded-full">
+                        Current Live Version: {currentVersion || 'None Yet'}
+                    </span>
                 </div>
                 <p className="text-sm text-gray-700 mb-4 font-medium leading-relaxed">Upload new APKs to GitHub Releases. This will trigger a new app version for users.</p>
                 <form onSubmit={handleReleaseUpload} className="flex flex-col sm:flex-row gap-3 items-end">
