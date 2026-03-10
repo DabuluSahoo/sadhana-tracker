@@ -4,6 +4,7 @@ const axios = require('axios');
 // Get current settings
 exports.getSettings = async (req, res) => {
     try {
+        await db.query(`CREATE TABLE IF NOT EXISTS settings (setting_key VARCHAR(255) PRIMARY KEY, setting_value TEXT) ENGINE=InnoDB`);
         const [rows] = await db.query('SELECT setting_key, setting_value FROM settings');
         const settings = rows.reduce((acc, row) => {
             acc[row.setting_key] = row.setting_value;
@@ -79,6 +80,7 @@ exports.configureRelease = async (req, res) => {
         console.log(`✅ Upload complete! Global Download URL: ${downloadUrl}`);
 
         // 3. Update database with new version and the direct GitHub URL
+        await db.query(`CREATE TABLE IF NOT EXISTS settings (setting_key VARCHAR(255) PRIMARY KEY, setting_value TEXT) ENGINE=InnoDB`);
         await db.query('REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)', ['latest_apk_version', version]);
         await db.query('REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)', ['apk_download_url', downloadUrl]);
 
