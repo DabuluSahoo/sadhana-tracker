@@ -35,6 +35,7 @@ const AdminDashboard = () => {
     const [devoteeCustomEnd, setDevoteeCustomEnd] = useState('');
     const [triggeringReport, setTriggeringReport] = useState(false);
     // Release Management states
+    const [currentVersion, setCurrentVersion] = useState('');
     const [releaseVersion, setReleaseVersion] = useState('');
     const [releaseFile, setReleaseFile] = useState(null);
     const [uploadingRelease, setUploadingRelease] = useState(false);
@@ -79,6 +80,18 @@ const AdminDashboard = () => {
     };
     // ... existing code ...
     // (Note: Replace only up to the detail header section)
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const { data } = await api.get('/settings');
+                if (data.latest_apk_version) setCurrentVersion(data.latest_apk_version);
+            } catch (err) {
+                console.error("Failed to fetch current version", err);
+            }
+        };
+        fetchSettings();
+    }, []);
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -250,10 +263,18 @@ const AdminDashboard = () => {
         
         {/* Release Management Panel (Owner Only) */}
         {user.role === 'owner' && (
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5 shadow-sm">
-                <h3 className="text-sm font-bold text-blue-900 mb-3 flex items-center gap-2">
-                    <span>🚀</span> New App Release
-                </h3>
+            <div className="bg-orange-50 rounded-xl p-5 mb-8 border border-orange-200">
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-orange-800 flex items-center gap-2">
+                        <span>🚀</span> Release Management
+                    </h3>
+                    {currentVersion && (
+                        <span className="text-sm font-semibold text-orange-700 bg-orange-200 px-3 py-1 rounded-full">
+                            Current Live Version: {currentVersion}
+                        </span>
+                    )}
+                </div>
+                <p className="text-sm text-gray-700 mb-4 font-medium leading-relaxed">Upload new APKs to GitHub Releases. This will trigger a new app version for users.</p>
                 <form onSubmit={handleReleaseUpload} className="flex flex-col sm:flex-row gap-3 items-end">
                     <div className="flex-1 min-w-[120px]">
                         <label className="block text-xs font-semibold text-blue-800 mb-1">Version Code</label>
