@@ -26,8 +26,8 @@ exports.configureRelease = async (req, res) => {
             return res.status(400).json({ message: 'Version number and APK file are required' });
         }
 
-        const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-        const GITHUB_REPO = process.env.GITHUB_REPO;
+        const GITHUB_TOKEN = process.env.GITHUB_TOKEN?.trim();
+        const GITHUB_REPO = process.env.GITHUB_REPO?.trim();
 
         if (!GITHUB_TOKEN || !GITHUB_REPO) {
             console.error('Missing GitHub credentials in .env file!');
