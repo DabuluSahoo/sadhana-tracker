@@ -76,15 +76,15 @@ exports.configureRelease = async (req, res) => {
             }
         );
 
-        const downloadUrl = assetRes.data.browser_download_url;
-        console.log(`✅ Upload complete! Global Download URL: ${downloadUrl}`);
+        const releaseUrl = releaseRes.data.html_url;
+        console.log(`✅ Upload complete! Release Page URL: ${releaseUrl}`);
 
-        // 3. Update database with new version and the direct GitHub URL
+        // 3. Update database with new version and the GitHub Release Webpage (bypasses Android download intent bugs)
         await db.query(`CREATE TABLE IF NOT EXISTS settings (setting_key VARCHAR(255) PRIMARY KEY, setting_value TEXT) ENGINE=InnoDB`);
         await db.query('REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)', ['latest_apk_version', version]);
-        await db.query('REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)', ['apk_download_url', downloadUrl]);
+        await db.query('REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)', ['apk_download_url', releaseUrl]);
 
-        res.json({ message: 'Release published to GitHub successfully', version, url: downloadUrl });
+        res.json({ message: 'Release published to GitHub successfully', version, url: releaseUrl });
 
     } catch (error) {
         console.error('Error in GitHub Release process:', error.response?.data || error);
