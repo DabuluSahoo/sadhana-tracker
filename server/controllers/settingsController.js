@@ -87,7 +87,11 @@ exports.configureRelease = async (req, res) => {
     } catch (error) {
         console.error('Error in GitHub Release process:', error.response?.data || error);
         
-        let errorMessage = 'Error uploading release to GitHub.';
+        let errorMessage = `Error: ${error.message}`;
+        if (error.response?.data) {
+            errorMessage += ` | GitHub Details: ${JSON.stringify(error.response.data)}`;
+        }
+
         if (error.response?.status === 401) errorMessage = 'Unauthorized: Invalid GitHub Token in server config.';
         if (error.response?.status === 404) errorMessage = 'Repository not found. Check GITHUB_REPO name.';
         if (error.response?.data?.errors?.[0]?.code === 'already_exists') errorMessage = `Release version v${version} already exists on GitHub! Please use a higher version.`;
