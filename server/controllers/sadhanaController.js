@@ -1,19 +1,19 @@
 const db = require('../config/db');
 
 exports.createOrUpdateLog = async (req, res) => {
-    const { date, rounds, reading_time, hearing_time, study_time, dayrest_time, mangala_aarti, wakeup_time, sleep_time, service_hours, comments } = req.body;
+    const { date, rounds, reading_time, hearing_time, study_time, dayrest_time, mangala_aarti, wakeup_time, sleep_time, service_hours, comments, nrcm, reading_details, hearing_details, japa_completed_time } = req.body;
     const userId = req.user.id;
 
     try {
         const [existing] = await db.query('SELECT * FROM daily_sadhana WHERE user_id = ? AND date = ?', [userId, date]);
 
         if (existing.length > 0) {
-            await db.query(`UPDATE daily_sadhana SET rounds=?, reading_time=?, hearing_time=?, study_time=?, dayrest_time=?, mangala_aarti=?, wakeup_time=?, sleep_time=?, service_hours=?, comments=? WHERE id=?`,
-                [rounds, reading_time, hearing_time, study_time || 0, dayrest_time || 0, mangala_aarti, wakeup_time, sleep_time, service_hours, comments, existing[0].id]);
+            await db.query(`UPDATE daily_sadhana SET rounds=?, reading_time=?, hearing_time=?, study_time=?, dayrest_time=?, mangala_aarti=?, wakeup_time=?, sleep_time=?, service_hours=?, comments=?, nrcm=?, reading_details=?, hearing_details=?, japa_completed_time=? WHERE id=?`,
+                [rounds, reading_time, hearing_time, study_time || 0, dayrest_time || 0, mangala_aarti, wakeup_time, sleep_time, service_hours, comments, nrcm || 0, reading_details || null, hearing_details || null, japa_completed_time || null, existing[0].id]);
             return res.json({ message: 'Report updated' });
         } else {
-            await db.query(`INSERT INTO daily_sadhana (user_id, date, rounds, reading_time, hearing_time, study_time, dayrest_time, mangala_aarti, wakeup_time, sleep_time, service_hours, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [userId, date, rounds, reading_time, hearing_time, study_time || 0, dayrest_time || 0, mangala_aarti, wakeup_time, sleep_time, service_hours, comments]);
+            await db.query(`INSERT INTO daily_sadhana (user_id, date, rounds, reading_time, hearing_time, study_time, dayrest_time, mangala_aarti, wakeup_time, sleep_time, service_hours, comments, nrcm, reading_details, hearing_details, japa_completed_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [userId, date, rounds, reading_time, hearing_time, study_time || 0, dayrest_time || 0, mangala_aarti, wakeup_time, sleep_time, service_hours, comments, nrcm || 0, reading_details || null, hearing_details || null, japa_completed_time || null]);
             return res.status(201).json({ message: 'Report submitted' });
         }
     } catch (err) {
@@ -72,7 +72,8 @@ exports.getGroupLogs = async (req, res) => {
             `SELECT u.id AS user_id, u.username, u.group_name,
                     ds.date, ds.rounds, ds.reading_time, ds.hearing_time,
                     ds.study_time, ds.service_hours, ds.mangala_aarti,
-                    ds.wakeup_time, ds.sleep_time, ds.comments
+                    ds.wakeup_time, ds.sleep_time, ds.comments,
+                    ds.nrcm, ds.reading_details, ds.hearing_details, ds.japa_completed_time
              FROM users u
              LEFT JOIN daily_sadhana ds ON ds.user_id = u.id AND ds.date BETWEEN ? AND ?
              WHERE u.role != 'owner' AND (u.group_name IS NULL OR u.group_name != 'brahmacari') ${groupClause} ${ownerClause}

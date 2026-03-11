@@ -32,7 +32,10 @@ const Layout = () => {
     return (
         <div className="min-h-screen bg-devotional-bg flex flex-col">
             {/* Navbar */}
-            <nav className="bg-saffron-700 text-white shadow-md sticky top-0 z-50">
+            <nav 
+                className="bg-saffron-700 text-white shadow-md sticky top-0 z-50"
+                style={{ paddingTop: isNative() ? 'max(env(safe-area-inset-top), 36px)' : '0px' }}
+            >
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between h-16 items-center">
                         <div className="flex items-center">

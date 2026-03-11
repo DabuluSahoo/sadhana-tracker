@@ -12,17 +12,18 @@ const GROUP_COLORS = {
     brahmacari: [217, 119, 6],   // Amber medium
 };
 
-const TABLE_COLS = ['Date', 'Wake', 'Sleep', 'Rounds', 'Read', 'Hear', 'Study', 'Svc(h)', 'Mangala', 'Comments'];
+const TABLE_COLS = ['Date', 'Wake', 'Sleep', 'Rounds', 'NRCM', 'Read', 'Hear', 'Study', 'Svc(h)', 'Mangala', 'Comments'];
 
 const buildRows = (days, logs) =>
     days.map(day => {
         const log = logs.find(l => isSameDay(new Date(l.date), day));
-        if (!log) return [format(day, 'EEE, MMM d'), '-', '-', '-', '-', '-', '-', '-', '-', 'NOT FILLED'];
+        if (!log) return [format(day, 'EEE, MMM d'), '-', '-', '-', '-', '-', '-', '-', '-', '-', 'NOT FILLED'];
         return [
             format(day, 'EEE, MMM d'),
             log.wakeup_time ? log.wakeup_time.slice(0, 5) : '-',
             log.sleep_time  ? log.sleep_time.slice(0, 5)  : '-',
             log.rounds        || 0,
+            log.nrcm          || 0,
             `${log.reading_time  || 0}m`,
             `${log.hearing_time  || 0}m`,
             `${log.study_time    || 0}m`,
@@ -78,6 +79,9 @@ exports.generateGroupReportBase64 = (groupName, usersData, start, end, days) => 
         const avgRounds = daysLogged
             ? (existing.reduce((s, l) => s + (l.rounds || 0), 0) / daysLogged).toFixed(1)
             : 0;
+        const avgNrcm = daysLogged
+            ? (existing.reduce((s, l) => s + (l.nrcm || 0), 0) / daysLogged).toFixed(1)
+            : 0;
 
         // Banner check
         if (y + 35 > pageH - 15) {
@@ -91,7 +95,7 @@ exports.generateGroupReportBase64 = (groupName, usersData, start, end, days) => 
         doc.setFont('times', 'bold');
         doc.setFontSize(11);
         doc.text(
-            `${groupName.toUpperCase()} GROUP  -  ${username}  |  Days Logged: ${daysLogged}/${days.length}  |  Avg Rounds: ${avgRounds}`,
+            `${groupName.toUpperCase()} GROUP  -  ${username}  |  Days Logged: ${daysLogged}/${days.length}  |  Avg Rounds: ${avgRounds}  |  Avg NRCM: ${avgNrcm}`,
             17, y + 7.5
         );
         y += 11;
@@ -110,7 +114,7 @@ exports.generateGroupReportBase64 = (groupName, usersData, start, end, days) => 
             bodyStyles: { fontSize: 9 },
             alternateRowStyles: { fillColor: [255, 252, 245] },
             styles: { font: 'times', cellPadding: 1.5 },
-            columnStyles: { 9: { cellWidth: 45 } },
+            columnStyles: { 10: { cellWidth: 45 } },
             margin: { left: 14, right: 14 },
         });
 
@@ -157,6 +161,9 @@ exports.generateConsolidatedReportBase64 = (groupsData, start, end, days) => {
             const avgRounds = daysLogged
                 ? (existing.reduce((s, l) => s + (l.rounds || 0), 0) / daysLogged).toFixed(1)
                 : 0;
+            const avgNrcm = daysLogged
+                ? (existing.reduce((s, l) => s + (l.nrcm || 0), 0) / daysLogged).toFixed(1)
+                : 0;
 
             // Banner + Table height check
             if (y + 40 > pageH - 15) {
@@ -170,7 +177,7 @@ exports.generateConsolidatedReportBase64 = (groupsData, start, end, days) => {
             doc.setFont('times', 'bold');
             doc.setFontSize(11);
             doc.text(
-                `${groupName.toUpperCase()} GROUP  -  ${username}  |  Days Logged: ${daysLogged}/${days.length}  |  Avg Rounds: ${avgRounds}`,
+                `${groupName.toUpperCase()} GROUP  -  ${username}  |  Days Logged: ${daysLogged}/${days.length}  |  Avg Rounds: ${avgRounds}  |  Avg NRCM: ${avgNrcm}`,
                 17, y + 7.5
             );
             y += 11;
@@ -189,7 +196,7 @@ exports.generateConsolidatedReportBase64 = (groupsData, start, end, days) => {
                 bodyStyles: { fontSize: 9 },
                 alternateRowStyles: { fillColor: [255, 252, 245] },
                 styles: { font: 'times', cellPadding: 1.5 },
-                columnStyles: { 9: { cellWidth: 45 } },
+                columnStyles: { 10: { cellWidth: 45 } },
                 margin: { left: 14, right: 14 },
             });
 
