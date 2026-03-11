@@ -114,9 +114,9 @@ const History = () => {
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rounds</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reading (m)</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Study (m)</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rest (m)</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">NRCM</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Read/Hear</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Study/Service</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mangala In</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comments</th>
                             </tr>
@@ -129,12 +129,24 @@ const History = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${log.rounds >= 16 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                                            {log.rounds}
+                                            {log.rounds} {log.japa_completed_time && `(${log.japa_completed_time})`}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.reading_time}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.study_time}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.dayrest_time}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-bold">
+                                        {log.nrcm || 0}
+                                    </td>
+                                    <td className="px-6 py-4 text-sm text-gray-500 max-w-[200px]">
+                                        <div className="flex flex-col gap-1">
+                                            {log.reading_time > 0 && <span>📚 {log.reading_time}m {log.reading_details && <span className="text-gray-400 text-xs truncate">({log.reading_details})</span>}</span>}
+                                            {log.hearing_time > 0 && <span>🎧 {log.hearing_time}m {log.hearing_details && <span className="text-gray-400 text-xs truncate">({log.hearing_details})</span>}</span>}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <div className="flex flex-col gap-1">
+                                            {log.study_time > 0 && <span>📖 {log.study_time}m</span>}
+                                            {log.service_hours > 0 && <span>🧹 {log.service_hours}h</span>}
+                                        </div>
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {log.mangala_aarti ?
                                             <span className="text-green-600">Yes</span> :

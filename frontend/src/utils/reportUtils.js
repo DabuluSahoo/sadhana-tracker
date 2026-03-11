@@ -97,12 +97,13 @@ export const getTargetWeek = () => {
 const buildRows = (days, logs) =>
     days.map(day => {
         const log = logs.find(l => isSameDay(new Date(l.date), day));
-        if (!log) return [format(day, 'EEE, MMM d'), '-', '-', '-', '-', '-', '-', '-', '-', 'NOT FILLED'];
+        if (!log) return [format(day, 'EEE, MMM d'), '-', '-', '-', '-', '-', '-', '-', '-', '-', 'NOT FILLED'];
         return [
             format(day, 'EEE, MMM d'),
             log.wakeup_time ? log.wakeup_time.slice(0, 5) : '-',
             log.sleep_time  ? log.sleep_time.slice(0, 5)  : '-',
             log.rounds        || 0,
+            log.nrcm          || 0,
             `${log.reading_time  || 0}m`,
             `${log.hearing_time  || 0}m`,
             `${log.study_time    || 0}m`,
@@ -112,7 +113,7 @@ const buildRows = (days, logs) =>
         ];
     });
 
-const TABLE_COLS = ['Date', 'Wake', 'Sleep', 'Rounds', 'Read', 'Hear', 'Study', 'Svc(h)', 'Mangala', 'Comments'];
+const TABLE_COLS = ['Date', 'Wake', 'Sleep', 'Rounds', 'NRCM', 'Read', 'Hear', 'Study', 'Svc(h)', 'Mangala', 'Comments'];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // addPDFHeader: standard Hare Krishna header for any PDF
@@ -164,6 +165,7 @@ export const generateWeeklySadhanaReport = async (username, logs) => {
     // Summary box
     const existing = days.map(d => logs.find(l => isSameDay(new Date(l.date), d))).filter(Boolean);
     const avgRounds = existing.length ? (existing.reduce((s, l) => s + (l.rounds || 0), 0) / existing.length).toFixed(1) : 0;
+    const avgNrcm = existing.length ? (existing.reduce((s, l) => s + (l.nrcm || 0), 0) / existing.length).toFixed(1) : 0;
     const totalStudy = existing.reduce((s, l) => s + (l.study_time || 0), 0);
     const mangala = existing.filter(l => l.mangala_aarti).length;
 
@@ -175,7 +177,7 @@ export const generateWeeklySadhanaReport = async (username, logs) => {
     doc.text('WEEKLY SUMMARY', 25, y + 6);
     doc.setTextColor(60);
     doc.text(`Avg Rounds: ${avgRounds}`, 30, y + 13);
-    doc.text(`Total Study: ${totalStudy}m`, 90, y + 13);
+    doc.text(`Avg NRCM: ${avgNrcm}`, 90, y + 13);
     doc.text(`Mangala Aarti: ${mangala}/${existing.length}`, 160, y + 13);
     doc.text(`Days Logged: ${existing.length}/7`, 230, y + 13);
     y += 22;
@@ -189,7 +191,7 @@ export const generateWeeklySadhanaReport = async (username, logs) => {
         bodyStyles: { fontSize: 8 },
         alternateRowStyles: { fillColor: [255, 252, 240] },
         styles: { font: 'times' },
-        columnStyles: { 9: { cellWidth: 50 } },
+        columnStyles: { 10: { cellWidth: 50 } },
     });
 
     doc.setFontSize(9);
@@ -232,7 +234,7 @@ export const generateCustomRangeSadhanaReport = async (username, logs, startDate
         bodyStyles: { fontSize: 8 },
         alternateRowStyles: { fillColor: [255, 252, 240] },
         styles: { font: 'times' },
-        columnStyles: { 9: { cellWidth: 50 } },
+        columnStyles: { 10: { cellWidth: 50 } },
     });
 
     doc.setFontSize(9);
@@ -297,6 +299,9 @@ export const generateGroupReport = async (groupLabel, usersData, startDate, endD
         const avgRounds  = daysLogged
             ? (existing.reduce((s, l) => s + (l.rounds || 0), 0) / daysLogged).toFixed(1)
             : 0;
+        const avgNrcm  = daysLogged
+            ? (existing.reduce((s, l) => s + (l.nrcm || 0), 0) / daysLogged).toFixed(1)
+            : 0;
 
         // ── Colored banner row ───────────────────────────────────────
         // Check if we need a new page for the banner + at least 2 data rows (~25pt)
@@ -311,7 +316,7 @@ export const generateGroupReport = async (groupLabel, usersData, startDate, endD
         doc.setFont('times', 'bold');
         doc.setFontSize(11);
         doc.text(
-            `${grpKey.toUpperCase()} GROUP  -  ${username}  |  Days Logged: ${daysLogged}/${days.length}  |  Avg Rounds: ${avgRounds}`,
+            `${grpKey.toUpperCase()} GROUP  -  ${username}  |  Days Logged: ${daysLogged}/${days.length}  |  Avg Rounds: ${avgRounds}  |  Avg NRCM: ${avgNrcm}`,
             17, y + 7.5
         );
         y += 11;
@@ -331,7 +336,7 @@ export const generateGroupReport = async (groupLabel, usersData, startDate, endD
             bodyStyles:          { fontSize: 9 },
             alternateRowStyles:  { fillColor: [255, 252, 245] },
             styles:              { font: 'times', cellPadding: 1.5 },
-            columnStyles:        { 9: { cellWidth: 45 } },
+            columnStyles:        { 10: { cellWidth: 45 } },
             margin:              { left: 14, right: 14 },
         });
 

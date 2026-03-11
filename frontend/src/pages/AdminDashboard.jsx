@@ -723,11 +723,13 @@ const AdminDashboard = () => {
                                                         <h4 className="font-medium text-saffron-700">{format(new Date(log.date), 'EEEE, MMM d, yyyy')}</h4>
                                                         <span className="text-xs text-gray-500">Submitted: {format(new Date(log.created_at), 'MMM d, p')}</span>
                                                     </div>
-                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-                                                        <div><span className="text-gray-500">Rounds:</span> <span className="font-medium">{log.rounds}</span></div>
-                                                        <div><span className="text-gray-500">Reading:</span> <span className="font-medium">{log.reading_time}m</span></div>
-                                                        <div><span className="text-gray-500">Hearing:</span> <span className="font-medium">{log.hearing_time}m</span></div>
+                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm mt-3">
+                                                        <div><span className="text-gray-500">Rounds:</span> <span className="font-medium">{log.rounds}</span> {log.japa_completed_time && <span className="text-xs text-gray-400 ml-1">({log.japa_completed_time})</span>}</div>
+                                                        <div><span className="text-gray-500">NRCM:</span> <span className="font-medium">{log.nrcm || 0}</span></div>
+                                                        <div className="col-span-2"><span className="text-gray-500">Reading:</span> <span className="font-medium">{log.reading_time}m</span> {log.reading_details && <span className="text-gray-400 text-xs ml-1">({log.reading_details})</span>}</div>
+                                                        <div className="col-span-2"><span className="text-gray-500">Hearing:</span> <span className="font-medium">{log.hearing_time}m</span> {log.hearing_details && <span className="text-gray-400 text-xs ml-1">({log.hearing_details})</span>}</div>
                                                         <div><span className="text-gray-500">Service:</span> <span className="font-medium">{log.service_hours}h</span></div>
+                                                        <div><span className="text-gray-500">Study:</span> <span className="font-medium">{log.study_time}m</span></div>
                                                         <div><span className="text-gray-500">Wake:</span> <span className="font-medium">{log.wakeup_time}</span></div>
                                                         <div><span className="text-gray-500">Sleep:</span> <span className="font-medium">{log.sleep_time}</span></div>
                                                     </div>
