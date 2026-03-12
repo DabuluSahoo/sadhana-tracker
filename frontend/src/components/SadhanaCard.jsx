@@ -4,6 +4,8 @@ import api from '../api';
 import toast from 'react-hot-toast';
 import { Save, Clock, BookOpen, Music, Moon, Sun, Coffee, Award } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { LocalNotifications } from '@capacitor/local-notifications';
+import { isNative } from '../utils/platform';
 
 const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
     const [formData, setFormData] = useState({
@@ -86,6 +88,17 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
         try {
             await api.post('/sadhana', { ...formData, date: format(date, 'yyyy-MM-dd') });
             toast.success('Sadhana report saved successfully');
+            
+            // 🪷 Clear sticky reminder if it exists
+            if (isNative()) {
+                try {
+                    await LocalNotifications.cancel({ notifications: [{ id: 108 }] });
+                    console.log('Sticky reminder cleared');
+                } catch (err) {
+                    console.error('Failed to clear local notification:', err);
+                }
+            }
+
             setShowSuccess(true);
             if (onSave) onSave();
         } catch (error) {

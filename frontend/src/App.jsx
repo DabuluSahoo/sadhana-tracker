@@ -16,6 +16,7 @@ const History = lazy(() => import('./pages/History'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 
 import { PushNotifications } from '@capacitor/push-notifications';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { App as CapacitorApp } from '@capacitor/app';
 import { isNative } from './utils/platform';
 import api from './api';
@@ -85,14 +86,40 @@ function AppRoutes() {
               toast.error('Mobile Notification setup failed');
             });
 
-            // Handle received notifications while app is in foreground
-            await PushNotifications.addListener('pushNotificationReceived', (notification) => {
+            // Handle received notifications while app is in foreground or silent data messages
+            await PushNotifications.addListener('pushNotificationReceived', async (notification) => {
               console.log('Push received: ', notification);
-              // Show a nice toast if received while the app is actively open
-              toast(notification.title || 'Sadhana Reminder! 🪷', {
-                icon: '🔔',
-                duration: 4000
-              });
+              
+              const { data } = notification;
+              
+              // 🪷 Sticky Reminder Logic
+              if (data && data.type === 'SADHANA_REMINDER') {
+                try {
+                  // Create a local notification that is STICKY (ongoing: true)
+                  await LocalNotifications.schedule({
+                    notifications: [
+                      {
+                        id: 108,
+                        title: data.title || '🪷 Daily Sadhana Reminder',
+                        body: data.body || 'Hare Krishna! Please take a moment to log yesterday\'s spiritual activities.',
+                        ongoing: true, // This makes it non-dismissable on Android
+                        smallIcon: 'ic_stat_name', // ensure this exists in res/drawable
+                        schedule: { at: new Date(Date.now() + 100) }, // Schedule for immediate display
+                        extra: { type: 'sticky_reminder' }
+                      }
+                    ]
+                  });
+                  console.log('Sticky Local Notification scheduled');
+                } catch (err) {
+                  console.error('Failed to schedule local notification:', err);
+                }
+              } else if (notification.title) {
+                // Show a nice toast if a regular (non-sticky) notification arrives while open
+                toast(notification.title, {
+                  icon: '🔔',
+                  duration: 4000
+                });
+              }
             });
 
             // Handle notification clicks
