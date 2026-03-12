@@ -163,8 +163,11 @@ cron.schedule('29 2 * * *', async () => {
                 // Trigger Native Push Notification if user has the Mobile App installed
                 if (user.device_token) {
                     await sendPushNotification(user.device_token, {
-                        title: '🪷 Daily Sadhana Reminder',
-                        body: `Hare Krishna ${user.username}! Please take a moment to log yesterday's spiritual activities.`
+                        data: { 
+                            type: 'SADHANA_REMINDER',
+                            title: '🪷 Daily Sadhana Reminder',
+                            body: `Hare Krishna ${user.username}! Please take a moment to log yesterday's spiritual activities.`
+                        }
                     });
                 }
                 

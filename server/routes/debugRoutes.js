@@ -87,8 +87,11 @@ router.post('/trigger-reminder', protect, async (req, res) => {
                 
                 if (user.device_token) {
                     await sendPushNotification(user.device_token, {
-                        title: '🪷 Daily Sadhana Reminder (Test)',
-                        body: `Hare Krishna ${user.username}! Please take a moment to log yesterday's spiritual activities.`
+                        data: { 
+                            type: 'SADHANA_REMINDER',
+                            title: '🪷 Daily Sadhana Reminder (Test)',
+                            body: `Hare Krishna ${user.username}! Please take a moment to log yesterday's spiritual activities.`
+                        }
                     });
                 }
                 results.push({ user: user.username, status: 'SUCCESS' });

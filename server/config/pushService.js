@@ -46,9 +46,14 @@ const sendPushNotification = async (deviceToken, { title, body, data = {} }) => 
 
     const message = {
         token: deviceToken,
-        notification: { title, body },
-        data: { ...data, click_action: 'FLUTTER_NOTIFICATION_CLICK' } // Standard for various mobile frameworks
+        data: { ...data, click_action: 'FLUTTER_NOTIFICATION_CLICK' }
     };
+
+    // Only add notification object if title is provided
+    // This allows sending "data-only" messages which don't show a system popup
+    if (title) {
+        message.notification = { title, body };
+    }
 
     try {
         const response = await messaging.send(message);
@@ -56,7 +61,6 @@ const sendPushNotification = async (deviceToken, { title, body, data = {} }) => 
         return response;
     } catch (error) {
         console.error('Error sending push notification:', error);
-        // If the token is invalid/expired, we could potentially clear it from the DB here
     }
 };
 
