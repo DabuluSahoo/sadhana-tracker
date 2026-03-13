@@ -88,12 +88,14 @@ function AppRoutes() {
 
             // Handle received notifications while app is in foreground or silent data messages
             await PushNotifications.addListener('pushNotificationReceived', async (notification) => {
-              console.log('Push received: ', notification);
+              console.log('Push received (raw): ', JSON.stringify(notification, null, 2));
               
               const { data } = notification;
+              console.log('Push data payload: ', JSON.stringify(data, null, 2));
               
               // 🪷 Sticky Reminder Logic
               if (data && data.type === 'SADHANA_REMINDER') {
+                console.log('Targeted SADHANA_REMINDER logic triggered');
                 try {
                   // Create a local notification that is STICKY (ongoing: true)
                   await LocalNotifications.schedule({
@@ -110,7 +112,7 @@ function AppRoutes() {
                       }
                     ]
                   });
-                  console.log('Sticky Local Notification scheduled');
+                  console.log('✅ Sticky Local Notification successfully scheduled');
                 } catch (err) {
                   console.error('Failed to schedule local notification:', err);
                 }
