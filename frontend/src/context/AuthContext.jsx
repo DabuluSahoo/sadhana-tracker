@@ -95,6 +95,13 @@ export const AuthProvider = ({ children }) => {
 
     const logout = async () => {
         if (isNative()) {
+            try {
+                // Tell the server to remove the device token association
+                await api.post('/auth/unregister-device');
+                console.log('Device token unregistered from server');
+            } catch (err) {
+                console.error('Failed to unregister device from server:', err);
+            }
             await Preferences.remove({ key: 'token' });
             await Preferences.remove({ key: 'user' });
         } else {
