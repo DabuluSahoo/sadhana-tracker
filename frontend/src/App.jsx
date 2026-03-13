@@ -59,10 +59,33 @@ function AppRoutes() {
     if (user && isNative()) {
       const setupPush = async () => {
         try {
-          // Request permissions
+          // Request permissions for both Push and Local notifications
           let permStatus = await PushNotifications.checkPermissions();
           if (permStatus.receive !== 'granted') {
             permStatus = await PushNotifications.requestPermissions();
+          }
+          
+          let localPermStatus = await LocalNotifications.checkPermissions();
+          if (localPermStatus.display !== 'granted') {
+            await LocalNotifications.requestPermissions();
+          }
+
+          // Create a high-priority channel for sticky reminders (Required for Android 8+)
+          if (isNative()) {
+            try {
+              await LocalNotifications.createChannel({
+                id: 'sadhana_reminders',
+                name: 'Sadhana Reminders',
+                description: 'Crucial daily reminders for spiritual activities',
+                importance: 5, // 5 = High/Max importance
+                visibility: 1, // 1 = Public
+                sound: 'default',
+                vibration: true
+              });
+              console.log('✅ Notification channel created');
+            } catch (err) {
+              console.error('Failed to create notification channel:', err);
+            }
           }
 
           if (permStatus.receive === 'granted') {
@@ -107,6 +130,7 @@ function AppRoutes() {
                         ongoing: true, // This makes it non-dismissable on Android
                         autoCancel: false, // 🪷 NEW: Prevents dismissal even when clicked
                         smallIcon: 'ic_launcher', // using standard launcher icon as fallback
+                        channelId: 'sadhana_reminders', // 🪷 Match the channel we created
                         schedule: { at: new Date(Date.now() + 100) }, // Schedule for immediate display
                         extra: { type: 'sticky_reminder' }
                       }
