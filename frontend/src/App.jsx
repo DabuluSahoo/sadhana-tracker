@@ -103,6 +103,7 @@ function AppRoutes() {
                         title: data.title || '🪷 Daily Sadhana Reminder',
                         body: data.body || 'Hare Krishna! Please take a moment to log yesterday\'s spiritual activities.',
                         ongoing: true, // This makes it non-dismissable on Android
+                        autoCancel: false, // 🪷 NEW: Prevents dismissal even when clicked
                         smallIcon: 'ic_launcher', // using standard launcher icon as fallback
                         schedule: { at: new Date(Date.now() + 100) }, // Schedule for immediate display
                         extra: { type: 'sticky_reminder' }
