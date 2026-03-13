@@ -19,6 +19,7 @@ import { PushNotifications } from '@capacitor/push-notifications';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { App as CapacitorApp } from '@capacitor/app';
 import { isNative } from './utils/platform';
+import { format } from 'date-fns';
 import api from './api';
 
 // Inner component so it can use AuthContext
@@ -211,7 +212,7 @@ function AppRoutes() {
           }
         };
 
-        const listener = App.addListener('appStateChange', handleStateChange);
+        const listener = CapacitorApp.addListener('appStateChange', handleStateChange);
         
         // Run once on initial load
         handleStateChange({ isActive: true });
