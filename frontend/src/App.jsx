@@ -128,7 +128,14 @@ function AppRoutes() {
             });
 
             // Finally, register with FCM
+            // This will trigger the 'registration' listener above
             await PushNotifications.register();
+            
+            // Fallback: If for some reason the listener doesn't fire (already registered),
+            // you might need to check if you can get the token directly.
+            // But Capacitor doesn't provide a 'getToken' method outside the listener.
+            // So we'll rely on the register call and maybe add a small timeout check if needed.
+            console.log('Push register called');
           } else {
             // Show one-time warning if permissions are blocked at the OS level
             toast.error('Permissions blocked. Please enable notifications in your phone settings to receive 8 AM reminders.', { duration: 6000 });
