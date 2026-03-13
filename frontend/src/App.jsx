@@ -71,21 +71,33 @@ function AppRoutes() {
             await LocalNotifications.requestPermissions();
           }
 
-          // Create a high-priority channel for sticky reminders (Required for Android 8+)
+          // Create notification channels
           if (isNative()) {
             try {
+              // 1. High importance for initial alert
               await LocalNotifications.createChannel({
                 id: 'sadhana_reminders',
                 name: 'Sadhana Reminders',
-                description: 'Crucial daily reminders for spiritual activities',
-                importance: 5, // 5 = High/Max importance
-                visibility: 1, // 1 = Public
+                description: 'Initial alert for spiritual activities',
+                importance: 5,
+                visibility: 1,
                 sound: 'default',
                 vibration: true
               });
-              console.log('✅ Notification channel created');
+              
+              // 2. Low importance for "Sticky" enforcement (No sound/vibe on re-post)
+              await LocalNotifications.createChannel({
+                id: 'sadhana_reminders_silent',
+                name: 'Sadhana Reminders (Persistent)',
+                description: 'Keeps the reminder in your tray without repeated sounds',
+                importance: 2, // Low importance = no sound/vibe
+                visibility: 1,
+                sound: null,
+                vibration: false
+              });
+              console.log('✅ Notification channels created');
             } catch (err) {
-              console.error('Failed to create notification channel:', err);
+              console.error('Failed to create notification channels:', err);
             }
           }
 
@@ -97,7 +109,6 @@ function AppRoutes() {
               console.log('Push registration success');
               try {
                 await api.post('/auth/register-device', { deviceToken: token.value });
-                // Quiet success for now, logic is solid
               } catch (err) {
                 console.error('Failed to register device token with backend:', err);
                 toast.error('Notification system sync failed');
@@ -117,22 +128,21 @@ function AppRoutes() {
               const { data } = notification;
               console.log('Push data payload: ', JSON.stringify(data, null, 2));
               
-              // 🪷 Sticky Reminder Logic
+              // 🪷 Sticky Reminder Logic (Initial High-Importance post)
               if (data && data.type === 'SADHANA_REMINDER') {
                 console.log('Targeted SADHANA_REMINDER logic triggered');
                 try {
-                  // Create a local notification that is STICKY (ongoing: true)
                   await LocalNotifications.schedule({
                     notifications: [
                       {
                         id: 108,
                         title: data.title || '🪷 Daily Sadhana Reminder',
                         body: data.body || 'Hare Krishna! Please take a moment to log yesterday\'s spiritual activities.',
-                        ongoing: true, // This makes it non-dismissable on Android
-                        autoCancel: false, // 🪷 NEW: Prevents dismissal even when clicked
-                        smallIcon: 'ic_launcher', // using standard launcher icon as fallback
-                        channelId: 'sadhana_reminders', // 🪷 Match the channel we created
-                        schedule: { at: new Date(Date.now() + 100) }, // Schedule for immediate display
+                        ongoing: true,
+                        autoCancel: false,
+                        smallIcon: 'ic_launcher',
+                        channelId: 'sadhana_reminders', // Use High Importance for initial alert
+                        schedule: { at: new Date(Date.now() + 100) },
                         extra: { type: 'sticky_reminder' }
                       }
                     ]
@@ -142,11 +152,7 @@ function AppRoutes() {
                   console.error('Failed to schedule local notification:', err);
                 }
               } else if (notification.title) {
-                // Show a nice toast if a regular (non-sticky) notification arrives while open
-                toast(notification.title, {
-                  icon: '🔔',
-                  duration: 4000
-                });
+                toast(notification.title, { icon: '🔔', duration: 4000 });
               }
             });
 
@@ -156,17 +162,10 @@ function AppRoutes() {
             });
 
             // Finally, register with FCM
-            // This will trigger the 'registration' listener above
             await PushNotifications.register();
-            
-            // Fallback: If for some reason the listener doesn't fire (already registered),
-            // you might need to check if you can get the token directly.
-            // But Capacitor doesn't provide a 'getToken' method outside the listener.
-            // So we'll rely on the register call and maybe add a small timeout check if needed.
             console.log('Push register called');
           } else {
-            // Show one-time warning if permissions are blocked at the OS level
-            toast.error('Permissions blocked. Please enable notifications in your phone settings to receive 8 AM reminders.', { duration: 6000 });
+            toast.error('Permissions blocked. Please enable notifications to receive 8 AM reminders.', { duration: 6000 });
           }
         } catch (err) {
           console.error('Push notification setup error:', err);
@@ -175,7 +174,7 @@ function AppRoutes() {
       setupPush();
     }
     
-    // Cleanup listeners on unmount (optional but recommended)
+    // Cleanup listeners on unmount
     return () => {
       if (isNative()) {
         PushNotifications.removeAllListeners();
@@ -184,19 +183,17 @@ function AppRoutes() {
   }, [user]);
 
   // 🪷 STICKY REMINDER ENFORCEMENT
-  // This ensures the notification stays in the tray even after clicks/resume
   useEffect(() => {
     if (user && isNative()) {
       const handleStateChange = async (state) => {
         if (state.isActive) {
           console.log('App became active - checking sticky reminder status');
           try {
-            // 1. Check if yesterday's report is missing
             const yesterdayStr = format(new Date(Date.now() - 86400000), 'yyyy-MM-dd');
             const { data: logs } = await api.get(`/sadhana/weekly?startDate=${yesterdayStr}&endDate=${yesterdayStr}`);
             
             if (logs.length === 0) {
-              console.log('Yesterday\'s report is still missing. Re-posting sticky reminder.');
+              console.log('Yesterday\'s report missing. Enforcing SILENT sticky reminder.');
               await LocalNotifications.schedule({
                 notifications: [{
                   id: 108,
@@ -204,14 +201,15 @@ function AppRoutes() {
                   body: 'Hare Krishna! Please take a moment to log yesterday\'s spiritual activities.',
                   ongoing: true,
                   autoCancel: false,
+                  silent: true, // 🪷 NEW: No sound/vibration on re-post
                   smallIcon: 'ic_launcher',
-                  channelId: 'sadhana_reminders',
+                  channelId: 'sadhana_reminders_silent', // 🪷 NEW: Persistent channel
                   schedule: { at: new Date(Date.now() + 100) },
                   extra: { type: 'sticky_reminder' }
                 }]
               });
             } else {
-              console.log('Yesterday\'s report is already submitted. Clearing any lingering reminders.');
+              console.log('Yesterday\'s report submitted. Clearing.');
               await LocalNotifications.cancel({ notifications: [{ id: 108 }] });
             }
           } catch (err) {
@@ -221,8 +219,6 @@ function AppRoutes() {
       };
 
       const listener = CapacitorApp.addListener('appStateChange', handleStateChange);
-      
-      // Run once on initial load
       handleStateChange({ isActive: true });
 
       return () => {
