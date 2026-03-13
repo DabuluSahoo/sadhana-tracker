@@ -302,10 +302,28 @@ exports.registerDevice = async (req, res) => {
     }
 
     try {
+        // 1. Clear this token if it belongs to any OTHER user already
+        // This prevents "Owner" notifications from arriving after we've switched to a "Devotee" account
+        await db.query('UPDATE users SET device_token = NULL WHERE device_token = ? AND id != ?', [deviceToken, userId]);
+
+        // 2. Assign token to the current user
         await db.query('UPDATE users SET device_token = ? WHERE id = ?', [deviceToken, userId]);
+        
         res.json({ message: 'Device token registered successfully' });
     } catch (err) {
         console.error('Failed to register device token:', err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+// Unregister Device Token (on Logout)
+exports.unregisterDevice = async (req, res) => {
+    const userId = req.user.id;
+    try {
+        await db.query('UPDATE users SET device_token = NULL WHERE id = ?', [userId]);
+        res.json({ message: 'Device token unregistered successfully' });
+    } catch (err) {
+        console.error('Failed to unregister device token:', err);
         res.status(500).json({ message: 'Internal server error' });
     }
 };

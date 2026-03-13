@@ -8,7 +8,8 @@ const {
     forgotPassword, 
     resetPassword, 
     setGroup,
-    approveUser 
+    approveUser,
+    unregisterDevice
 } = require('../controllers/authController');
 const { protect } = require('../middleware');
 
@@ -21,5 +22,6 @@ router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 router.put('/set-group', protect, setGroup);
 router.post('/register-device', protect, require('../controllers/authController').registerDevice);
+router.post('/unregister-device', protect, unregisterDevice);
 
 module.exports = router;
