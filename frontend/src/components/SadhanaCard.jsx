@@ -89,16 +89,16 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
             await api.post('/sadhana', { ...formData, date: format(date, 'yyyy-MM-dd') });
             toast.success('Sadhana report saved successfully');
             
-            // 🪷 Clear sticky reminder if it exists AND we are saving a report for a past date (e.g. yesterday)
+            // 🪷 Clear sticky reminder if it exists AND we are saving a report for EXACTLY yesterday
             if (isNative()) {
                 try {
-                    const todayStr = format(new Date(), 'yyyy-MM-dd');
+                    const yesterdayStr = format(new Date(Date.now() - 86400000), 'yyyy-MM-dd');
                     const reportDateStr = format(date, 'yyyy-MM-dd');
                     
-                    // Only clear if the report is for a day before today
-                    if (reportDateStr < todayStr) {
+                    // Only clear if the report is exactly for yesterday
+                    if (reportDateStr === yesterdayStr) {
                         await LocalNotifications.cancel({ notifications: [{ id: 108 }] });
-                        console.log('Sticky reminder cleared for past-date report');
+                        console.log('Sticky reminder cleared for yesterday\'s report');
                     }
                 } catch (err) {
                     console.error('Failed to clear local notification:', err);
