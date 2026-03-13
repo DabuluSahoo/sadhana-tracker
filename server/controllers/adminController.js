@@ -254,6 +254,25 @@ exports.getPendingApprovals = async (req, res) => {
     }
 };
 
+// Owner-only: reject and delete an unapproved user
+exports.rejectUser = async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const [users] = await db.query('SELECT id, is_approved FROM users WHERE id = ?', [userId]);
+        if (users.length === 0) return res.status(404).json({ message: 'User not found' });
+        
+        // Safety check: Don't allow deleting already approved users via this endpoint
+        if (users[0].is_approved) {
+            return res.status(400).json({ message: 'Cannot reject an already approved user. Use demote instead.' });
+        }
+
+        await db.query('DELETE FROM users WHERE id = ?', [userId]);
+        res.json({ message: 'Registration request rejected and user removed successfully' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
 // Owner-only: manually approve a user
 const { sendApprovalConfirmationToUser } = require('../config/mailer');
 exports.approveManual = async (req, res) => {

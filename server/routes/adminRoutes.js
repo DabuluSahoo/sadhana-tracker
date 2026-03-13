@@ -15,6 +15,7 @@ router.put('/users/:userId/assign-brahmacari', protect, ownerOnly, assignBrahmac
 router.put('/users/:userId/revoke-brahmacari', protect, ownerOnly, revokeBrahmacari);
 router.put('/users/:userId/change-group', protect, ownerOnly, changeUserGroup);
 router.put('/users/:userId/approve-manual', protect, ownerOnly, approveManual);
+router.delete('/users/:userId', protect, ownerOnly, require('../controllers/adminController').rejectUser);
 
 // Manual trigger for consolidated weekly reports (Owner only)
 router.post('/trigger-weekly-report', protect, ownerOnly, triggerWeeklyReportConsolidated);

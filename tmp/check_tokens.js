@@ -4,13 +4,9 @@ const db = require('../server/config/db');
 
 async function checkDevoteeToken() {
     try {
-        const [users] = await db.query('SELECT username, role, device_token FROM users WHERE role != "owner" AND device_token IS NOT NULL');
-        console.log('Users with device tokens (excluding owner):');
+        const [users] = await db.query('SELECT username, role, device_token FROM users');
+        console.log('All users in database:');
         console.table(users);
-        
-        const [allDevotees] = await db.query('SELECT username, role, device_token FROM users WHERE role != "owner"');
-        console.log('\nAll non-owner users:');
-        console.table(allDevotees);
     } catch (err) {
         console.error('Error checking tokens:', err);
     } finally {
