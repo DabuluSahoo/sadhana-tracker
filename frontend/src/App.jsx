@@ -193,7 +193,7 @@ function AppRoutes() {
           try {
             // 1. Check if yesterday's report is missing
             const yesterdayStr = format(new Date(Date.now() - 86400000), 'yyyy-MM-dd');
-            const { data: logs } = await api.get(`/sadhana?date=${yesterdayStr}`);
+            const { data: logs } = await api.get(`/sadhana/weekly?startDate=${yesterdayStr}&endDate=${yesterdayStr}`);
             
             if (logs.length === 0) {
               console.log('Yesterday\'s report is still missing. Re-posting sticky reminder.');
