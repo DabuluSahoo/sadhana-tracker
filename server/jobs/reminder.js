@@ -169,10 +169,12 @@ cron.schedule('29 2 * * *', async () => {
                             body: `Hare Krishna ${user.username}! Please take a moment to log yesterday's spiritual activities.`
                         }
                     });
+                    results.push({ user: user.username, status: 'SUCCESS' });
+                    console.log('✅');
+                } else {
+                    results.push({ user: user.username, status: 'SKIPPED (No Token)' });
+                    console.log('⏭️ (No Token)');
                 }
-                
-                results.push({ user: user.username, status: 'SUCCESS' });
-                console.log('✅');
                 await new Promise(resolve => setTimeout(resolve, 1500));
             } catch (err) {
                 results.push({ user: user.username, status: 'FAILED', error: err.message });

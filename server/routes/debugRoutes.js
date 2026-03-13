@@ -93,8 +93,10 @@ router.post('/trigger-reminder', protect, async (req, res) => {
                             body: `Hare Krishna ${user.username}! Please take a moment to log yesterday's spiritual activities.`
                         }
                     });
+                    results.push({ user: user.username, status: 'SUCCESS' });
+                } else {
+                    results.push({ user: user.username, status: 'SKIPPED (No Token)' });
                 }
-                results.push({ user: user.username, status: 'SUCCESS' });
                 // Add delay to prevent rate limit failures
                 await new Promise(resolve => setTimeout(resolve, 1500));
             } catch (err) {
