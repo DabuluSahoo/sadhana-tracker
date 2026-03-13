@@ -164,6 +164,32 @@ function AppRoutes() {
             // Finally, register with FCM
             await PushNotifications.register();
             console.log('Push register called');
+
+            // 🪷 One-time startup check for missing Yesterday report
+            try {
+              const yesterdayStr = format(new Date(Date.now() - 86400000), 'yyyy-MM-dd');
+              const { data: logs } = await api.get(`/sadhana/weekly?startDate=${yesterdayStr}&endDate=${yesterdayStr}`);
+              if (logs.length === 0) {
+                console.log('Startup: Yesterday report missing. Posting steady reminder.');
+                await LocalNotifications.schedule({
+                  notifications: [{
+                    id: 108,
+                    title: '🪷 Daily Sadhana Reminder',
+                    body: 'Hare Krishna! Please take a moment to log yesterday\'s spiritual activities.',
+                    ongoing: true,
+                    autoCancel: false,
+                    smallIcon: 'ic_launcher',
+                    channelId: 'sadhana_reminders',
+                    schedule: { at: new Date(Date.now() + 100) },
+                    extra: { type: 'sticky_reminder' }
+                  }]
+                });
+              } else {
+                await LocalNotifications.cancel({ notifications: [{ id: 108 }] });
+              }
+            } catch (err) {
+              console.error('Startup reminder check failed:', err);
+            }
           } else {
             toast.error('Permissions blocked. Please enable notifications to receive 8 AM reminders.', { duration: 6000 });
           }
@@ -180,51 +206,6 @@ function AppRoutes() {
         PushNotifications.removeAllListeners();
       }
     };
-  }, [user]);
-
-  // 🪷 STICKY REMINDER ENFORCEMENT
-  useEffect(() => {
-    if (user && isNative()) {
-      const handleStateChange = async (state) => {
-        if (state.isActive) {
-          console.log('App became active - checking sticky reminder status');
-          try {
-            const yesterdayStr = format(new Date(Date.now() - 86400000), 'yyyy-MM-dd');
-            const { data: logs } = await api.get(`/sadhana/weekly?startDate=${yesterdayStr}&endDate=${yesterdayStr}`);
-            
-            if (logs.length === 0) {
-              console.log('Yesterday\'s report missing. Enforcing SILENT sticky reminder.');
-              await LocalNotifications.schedule({
-                notifications: [{
-                  id: 108,
-                  title: '🪷 Daily Sadhana Reminder',
-                  body: 'Hare Krishna! Please take a moment to log yesterday\'s spiritual activities.',
-                  ongoing: true,
-                  autoCancel: false,
-                  silent: true, // 🪷 NEW: No sound/vibration on re-post
-                  smallIcon: 'ic_launcher',
-                  channelId: 'sadhana_reminders_silent', // 🪷 NEW: Persistent channel
-                  schedule: { at: new Date(Date.now() + 100) },
-                  extra: { type: 'sticky_reminder' }
-                }]
-              });
-            } else {
-              console.log('Yesterday\'s report submitted. Clearing.');
-              await LocalNotifications.cancel({ notifications: [{ id: 108 }] });
-            }
-          } catch (err) {
-            console.error('Sticky enforcement failed:', err);
-          }
-        }
-      };
-
-      const listener = CapacitorApp.addListener('appStateChange', handleStateChange);
-      handleStateChange({ isActive: true });
-
-      return () => {
-        listener.then(l => l.remove());
-      };
-    }
   }, [user]);
 
   // Show group select modal for non-owner, non-brahmacari users who haven't chosen a group yet
