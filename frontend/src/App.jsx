@@ -174,6 +174,54 @@ function AppRoutes() {
       setupPush();
     }
     
+    // 🪷 STICKY REMINDER ENFORCEMENT
+    // This ensures the notification stays in the tray even after clicks/resume
+    useEffect(() => {
+      if (user && isNative()) {
+        const handleStateChange = async (state) => {
+          if (state.isActive) {
+            console.log('App became active - checking sticky reminder status');
+            try {
+              // 1. Check if yesterday's report is missing
+              const yesterdayStr = format(new Date(Date.now() - 86400000), 'yyyy-MM-dd');
+              const { data: logs } = await api.get(`/sadhana?date=${yesterdayStr}`);
+              
+              if (logs.length === 0) {
+                console.log('Yesterday\'s report is still missing. Re-posting sticky reminder.');
+                await LocalNotifications.schedule({
+                  notifications: [{
+                    id: 108,
+                    title: '🪷 Daily Sadhana Reminder',
+                    body: 'Hare Krishna! Please take a moment to log yesterday\'s spiritual activities.',
+                    ongoing: true,
+                    autoCancel: false,
+                    smallIcon: 'ic_launcher',
+                    channelId: 'sadhana_reminders',
+                    schedule: { at: new Date(Date.now() + 100) },
+                    extra: { type: 'sticky_reminder' }
+                  }]
+                });
+              } else {
+                console.log('Yesterday\'s report is already submitted. Clearing any lingering reminders.');
+                await LocalNotifications.cancel({ notifications: [{ id: 108 }] });
+              }
+            } catch (err) {
+              console.error('Sticky enforcement failed:', err);
+            }
+          }
+        };
+
+        const listener = App.addListener('appStateChange', handleStateChange);
+        
+        // Run once on initial load
+        handleStateChange({ isActive: true });
+
+        return () => {
+          listener.then(l => l.remove());
+        };
+      }
+    }, [user]);
+
     // Cleanup listeners on unmount (optional but recommended)
     return () => {
       if (isNative()) {
