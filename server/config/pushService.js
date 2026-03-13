@@ -46,7 +46,17 @@ const sendPushNotification = async (deviceToken, { title, body, data = {} }) => 
 
     const message = {
         token: deviceToken,
-        data: { ...data, click_action: 'FLUTTER_NOTIFICATION_CLICK' }
+        data: { ...data, click_action: 'FLUTTER_NOTIFICATION_CLICK' },
+        android: {
+            priority: 'high',
+        },
+        apns: {
+            payload: {
+                aps: {
+                    contentAvailable: true,
+                },
+            },
+        },
     };
 
     // Only add notification object if title is provided
