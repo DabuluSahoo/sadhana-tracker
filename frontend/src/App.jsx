@@ -85,12 +85,12 @@ function AppRoutes() {
                 vibration: true
               });
               
-              // 2. Low importance for "Sticky" enforcement (No sound/vibe on re-post)
+              // 2. Default importance for "Sticky" enforcement (Shows icon in status bar, but no sound/vibe)
               await LocalNotifications.createChannel({
                 id: 'sadhana_reminders_silent',
                 name: 'Sadhana Reminders (Persistent)',
-                description: 'Keeps the reminder in your tray without repeated sounds',
-                importance: 2, // Low importance = no sound/vibe
+                description: 'Keeps the reminder icon visible without repeated sounds',
+                importance: 3, // 3 = Default (Shows icon in bar), but we'll set it to silent
                 visibility: 1,
                 sound: null,
                 vibration: false
