@@ -161,35 +161,50 @@ function AppRoutes() {
               console.log('Push action performed: ', notification);
             });
 
+            // 🪷 Reusable Sticky Reminder Check
+            const checkAndPostStickyReminder = async () => {
+              try {
+                const yesterdayStr = format(new Date(Date.now() - 86400000), 'yyyy-MM-dd');
+                const { data: logs } = await api.get(`/sadhana/weekly?startDate=${yesterdayStr}&endDate=${yesterdayStr}`);
+                
+                if (logs.length === 0) {
+                  console.log('Sticky Check: Yesterday report missing. Posting/Re-asserting.');
+                  await LocalNotifications.schedule({
+                    notifications: [{
+                      id: 108,
+                      title: '🪷 Daily Sadhana Reminder',
+                      body: 'Hare Krishna! Please take a moment to log yesterday\'s spiritual activities.',
+                      ongoing: true,
+                      autoCancel: false,
+                      silent: true, // Keep it hushed during re-assertion
+                      smallIcon: 'ic_launcher',
+                      channelId: 'sadhana_reminders_silent', // Use the Default/Icon channel
+                      schedule: { at: new Date(Date.now() + 100) },
+                      extra: { type: 'sticky_reminder' }
+                    }]
+                  });
+                } else {
+                  await LocalNotifications.cancel({ notifications: [{ id: 108 }] });
+                }
+              } catch (err) {
+                console.error('Sticky reminder check failed:', err);
+              }
+            };
+
+            // Handle local notification clicks (For re-assertion if clicked)
+            await LocalNotifications.addListener('localNotificationActionPerformed', (action) => {
+              if (action.notification.id === 108) {
+                console.log('Sticky reminder clicked - re-asserting if needed');
+                checkAndPostStickyReminder();
+              }
+            });
+
             // Finally, register with FCM
             await PushNotifications.register();
             console.log('Push register called');
 
-            // 🪷 One-time startup check for missing Yesterday report
-            try {
-              const yesterdayStr = format(new Date(Date.now() - 86400000), 'yyyy-MM-dd');
-              const { data: logs } = await api.get(`/sadhana/weekly?startDate=${yesterdayStr}&endDate=${yesterdayStr}`);
-              if (logs.length === 0) {
-                console.log('Startup: Yesterday report missing. Posting steady reminder.');
-                await LocalNotifications.schedule({
-                  notifications: [{
-                    id: 108,
-                    title: '🪷 Daily Sadhana Reminder',
-                    body: 'Hare Krishna! Please take a moment to log yesterday\'s spiritual activities.',
-                    ongoing: true,
-                    autoCancel: false,
-                    smallIcon: 'ic_launcher',
-                    channelId: 'sadhana_reminders',
-                    schedule: { at: new Date(Date.now() + 100) },
-                    extra: { type: 'sticky_reminder' }
-                  }]
-                });
-              } else {
-                await LocalNotifications.cancel({ notifications: [{ id: 108 }] });
-              }
-            } catch (err) {
-              console.error('Startup reminder check failed:', err);
-            }
+            // 🪷 One-time startup check
+            await checkAndPostStickyReminder();
           } else {
             toast.error('Permissions blocked. Please enable notifications to receive 8 AM reminders.', { duration: 6000 });
           }
