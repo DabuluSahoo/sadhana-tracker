@@ -732,6 +732,7 @@ const AdminDashboard = () => {
                                                         <div><span className="text-gray-500">Study:</span> <span className="font-medium">{log.study_time}m</span></div>
                                                         <div><span className="text-gray-500">Wake:</span> <span className="font-medium">{log.wakeup_time}</span></div>
                                                         <div><span className="text-gray-500">Sleep:</span> <span className="font-medium">{log.sleep_time}</span></div>
+                                                        <div><span className="text-gray-500">Rest:</span> <span className="font-medium">{log.dayrest_time || 0}m</span></div>
                                                     </div>
                                                     {log.comments && (
                                                         <div className="mt-2 bg-gray-50 p-2 rounded text-sm text-gray-600 italic">

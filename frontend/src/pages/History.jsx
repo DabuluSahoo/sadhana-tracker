@@ -116,7 +116,7 @@ const History = () => {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rounds</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">NRCM</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Read/Hear</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Study/Service</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Study/Service/Rest</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mangala In</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comments</th>
                             </tr>
@@ -145,6 +145,7 @@ const History = () => {
                                         <div className="flex flex-col gap-1">
                                             {log.study_time > 0 && <span>📖 {log.study_time}m</span>}
                                             {log.service_hours > 0 && <span>🧹 {log.service_hours}h</span>}
+                                            {log.dayrest_time > 0 && <span className="text-amber-600 font-medium">🛌 {log.dayrest_time}m</span>}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
