@@ -265,7 +265,7 @@ export const generateCustomRangeSadhanaReport = async (username, logs, startDate
         await saveOrSharePDF(doc, fileName);
     } catch (err) {
         console.error('Custom report generation crash:', err);
-        toast.error('Custom report failed. Check for emojis or special characters in your records.');
+        toast.error(`Custom PDF Crash: ${err.message}`);
     }
 };
 
