@@ -11,8 +11,9 @@ import AuthContext from '../context/AuthContext';
 const Dashboard = () => {
     const { user } = useContext(AuthContext);
 
-    // Owner and Brahmacari have admin powers but don't fill sadhana
-    if (user?.role === 'owner' || user?.group_name === 'brahmacari') {
+    // Owner, Brahmacari, and others have admin powers/exclusion but don't fill sadhana
+    const isExcluded = user?.role === 'owner' || ['brahmacari', 'other', 'yudhisthir'].includes(user?.group_name);
+    if (isExcluded) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
                 <div className="bg-white rounded-2xl shadow-md border border-amber-100 p-10 text-center max-w-md">

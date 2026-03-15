@@ -57,7 +57,10 @@ function AppRoutes() {
 
   // Push Notifications Logic
   useEffect(() => {
-    if (user && isNative()) {
+    // 🪷 Group Exclusion: Only setup notifications if user requires sadhana
+    const requiresSadhana = user && user.role !== 'owner' && !['brahmacari', 'other', 'yudhisthir'].includes(user.group_name);
+    
+    if (requiresSadhana && isNative()) {
       const setupPush = async () => {
         try {
           // Request permissions for both Push and Local notifications

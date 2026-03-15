@@ -16,7 +16,7 @@ const Layout = () => {
         navigate('/login');
     };
 
-    const noSadhana = user?.role === 'owner' || user?.group_name === 'brahmacari';
+    const noSadhana = user?.role === 'owner' || ['brahmacari', 'other', 'yudhisthir'].includes(user?.group_name);
 
     const navItems = [
         { label: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
