@@ -94,6 +94,10 @@ const Layout = () => {
                 {/* Mobile Nav */}
                 {isMobileMenuOpen && (
                     <div className="md:hidden bg-saffron-800 px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                        <div className="px-3 py-2 border-b border-saffron-700/50 mb-2 flex items-center justify-between">
+                            <span className="text-sm font-medium text-saffron-200 uppercase tracking-wider">Logged in as</span>
+                            <span className="font-bold text-white">{user?.username}</span>
+                        </div>
                         {navItems.map((item) => (
                             <Link
                                 key={item.path}
