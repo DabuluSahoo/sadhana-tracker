@@ -156,9 +156,10 @@ function AppRoutes() {
               }
             });
 
-            // Handle notification clicks
+            // Handle notification clicks (Converts system push to sticky)
             await PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
               console.log('Push action performed: ', notification);
+              checkAndPostStickyReminder();
             });
 
             // 🪷 Reusable Sticky Reminder Check (Flicker-Free)
