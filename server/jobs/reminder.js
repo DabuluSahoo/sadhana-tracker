@@ -157,10 +157,10 @@ const runNagJob = async (jobLabel = 'DAILY_REMINDER') => {
             try {
                 process.stdout.write(`Sending to ${user.username}... `);
                 await sendPushNotification(user.device_token, {
+                    title: '🪷 Daily Sadhana Reminder',
+                    body: `Hare Krishna ${user.username}! Please take a moment to log yesterday's spiritual activities.`,
                     data: { 
-                        type: 'SADHANA_REMINDER',
-                        title: '🪷 Daily Sadhana Reminder',
-                        body: `Hare Krishna ${user.username}! Please take a moment to log yesterday's spiritual activities.`
+                        type: 'SADHANA_REMINDER'
                     }
                 });
                 results.push({ user: user.username, status: 'SUCCESS' });
@@ -190,6 +190,12 @@ const runNagJob = async (jobLabel = 'DAILY_REMINDER') => {
 
 // Stage 1: 8:00 AM IST (02:30 UTC)
 cron.schedule('30 2 * * *', () => runNagJob('DAILY_REMINDER_MORNING'));
+
+// Stage 2: 1:00 PM IST (07:30 UTC)
+cron.schedule('30 7 * * *', () => runNagJob('DAILY_REMINDER_AFTERNOON_NAG'));
+
+// Stage 3: 6:00 PM IST (12:30 UTC)
+cron.schedule('30 12 * * *', () => runNagJob('DAILY_REMINDER_EVENING_NAG'));
 
 
 // ─── Daily Cleanup Job (3:30 AM IST = 22:00 UTC) ───────────────────────────
@@ -265,3 +271,6 @@ cron.schedule('0 3 * * *', async () => {
         console.error('EXPIRY WARNING JOB ERROR:', err.message);
     }
 });
+
+module.exports = { runNagJob };
+
