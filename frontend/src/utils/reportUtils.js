@@ -113,7 +113,7 @@ export const getTargetWeek = () => {
 const buildRows = (days, logs) =>
     days.map(day => {
         const log = logs.find(l => isSameDay(new Date(l.date), day));
-        if (!log) return [format(day, 'EEE, MMM d'), '-', '-', '-', '-', '-', '-', '-', '-', '-', 'NOT FILLED'];
+        if (!log) return [format(day, 'EEE, MMM d'), '-', '-', '-', '-', '-', '-', '-', '-', '-', '-', 'NOT FILLED'];
         return [
             format(day, 'EEE, MMM d'),
             log.wakeup_time ? log.wakeup_time.slice(0, 5) : '-',
@@ -124,12 +124,13 @@ const buildRows = (days, logs) =>
             `${log.hearing_time  || 0}m`,
             `${log.study_time    || 0}m`,
             `${log.service_hours || 0}h`,
+            `${log.dayrest_time  || 0}m`,
             log.mangala_aarti ? 'Yes' : 'No',
             cleanStr(log.comments),
         ];
     });
 
-const TABLE_COLS = ['Date', 'Wake', 'Sleep', 'Rounds', 'NRCM', 'Read', 'Hear', 'Study', 'Svc(h)', 'Mangala', 'Comments'];
+const TABLE_COLS = ['Date', 'Wake', 'Sleep', 'Rounds', 'NRCM', 'Read', 'Hear', 'Study', 'Svc(h)', 'Rest', 'Mangala', 'Comments'];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // addPDFHeader: standard Hare Krishna header for any PDF
@@ -207,7 +208,7 @@ export const generateWeeklySadhanaReport = async (username, logs) => {
             bodyStyles: { fontSize: 8 },
             alternateRowStyles: { fillColor: [255, 252, 240] },
             styles: { font: 'times' },
-            columnStyles: { 10: { cellWidth: 50 } },
+            columnStyles: { 11: { cellWidth: 50 } },
         });
 
         doc.setFontSize(9);
@@ -255,7 +256,7 @@ export const generateCustomRangeSadhanaReport = async (username, logs, startDate
             bodyStyles: { fontSize: 8 },
             alternateRowStyles: { fillColor: [255, 252, 240] },
             styles: { font: 'times' },
-            columnStyles: { 10: { cellWidth: 50 } },
+            columnStyles: { 11: { cellWidth: 50 } },
         });
 
         doc.setFontSize(9);
@@ -361,7 +362,7 @@ export const generateGroupReport = async (groupLabel, usersData, startDate, endD
             bodyStyles:          { fontSize: 9 },
             alternateRowStyles:  { fillColor: [255, 252, 245] },
             styles:              { font: 'times', cellPadding: 1.5 },
-            columnStyles:        { 10: { cellWidth: 45 } },
+            columnStyles:        { 11: { cellWidth: 45 } },
             margin:              { left: 14, right: 14 },
         });
 
