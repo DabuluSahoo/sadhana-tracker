@@ -12,11 +12,14 @@ import { Share } from '@capacitor/share';
  * On Native: Save to Documents folder and prompt Share dialog.
  */
 const saveOrSharePDF = async (doc, filename) => {
+    // Sanitize filename: Replace spaces and illegal characters with underscores
+    const safeFilename = filename.replace(/[^a-z0-9.]/gi, '_');
+
     if (isNative()) {
         try {
             const pdfBase64 = doc.output('datauristring').split(',')[1];
             const savedFile = await Filesystem.writeFile({
-                path: filename,
+                path: safeFilename,
                 data: pdfBase64,
                 directory: Directory.Documents,
                 recursive: true
@@ -33,10 +36,10 @@ const saveOrSharePDF = async (doc, filename) => {
             });
         } catch (err) {
             console.error('Mobile PDF error:', err);
-            toast.error('Failed to save or share report');
+            toast.error('Failed to save or share report. Please check if storage permissions are enabled.');
         }
     } else {
-        doc.save(filename);
+        doc.save(safeFilename);
         toast.success('Report downloaded!');
     }
 };
