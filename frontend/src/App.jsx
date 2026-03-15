@@ -161,28 +161,36 @@ function AppRoutes() {
               console.log('Push action performed: ', notification);
             });
 
-            // 🪷 Reusable Sticky Reminder Check
+            // 🪷 Reusable Sticky Reminder Check (Flicker-Free)
             const checkAndPostStickyReminder = async () => {
               try {
                 const yesterdayStr = format(new Date(Date.now() - 86400000), 'yyyy-MM-dd');
                 const { data: logs } = await api.get(`/sadhana/weekly?startDate=${yesterdayStr}&endDate=${yesterdayStr}`);
                 
                 if (logs.length === 0) {
-                  console.log('Sticky Check: Yesterday report missing. Posting/Re-asserting.');
-                  await LocalNotifications.schedule({
-                    notifications: [{
-                      id: 108,
-                      title: '🪷 Daily Sadhana Reminder',
-                      body: 'Hare Krishna! Please take a moment to log yesterday\'s spiritual activities.',
-                      ongoing: true,
-                      autoCancel: false,
-                      silent: true, // Keep it hushed during re-assertion
-                      smallIcon: 'ic_launcher',
-                      channelId: 'sadhana_reminders_silent', // Use the Default/Icon channel
-                      schedule: { at: new Date(Date.now() + 100) },
-                      extra: { type: 'sticky_reminder' }
-                    }]
-                  });
+                  // Check if it's already visible before re-scheduling to avoid flickering
+                  const delivered = await LocalNotifications.getDeliveredNotifications();
+                  const isAlreadyThere = delivered.notifications.some(n => n.id === 108);
+
+                  if (!isAlreadyThere) {
+                    console.log('Sticky Check: Missing. Re-asserting.');
+                    await LocalNotifications.schedule({
+                      notifications: [{
+                        id: 108,
+                        title: '🪷 Daily Sadhana Reminder',
+                        body: 'Hare Krishna! Please take a moment to log yesterday\'s spiritual activities.',
+                        ongoing: true,
+                        autoCancel: false,
+                        silent: true,
+                        smallIcon: 'ic_launcher',
+                        channelId: 'sadhana_reminders_silent',
+                        schedule: { at: new Date(Date.now() + 100) },
+                        extra: { type: 'sticky_reminder' }
+                      }]
+                    });
+                  } else {
+                    console.log('Sticky Check: Already visible. No flicker-post needed.');
+                  }
                 } else {
                   await LocalNotifications.cancel({ notifications: [{ id: 108 }] });
                 }
@@ -205,6 +213,23 @@ function AppRoutes() {
 
             // 🪷 One-time startup check
             await checkAndPostStickyReminder();
+
+            // 🪷 Periodic "Nag" Guard (Checks every 5 mins while app is open)
+            const nagInterval = setInterval(checkAndPostStickyReminder, 5 * 60 * 1000);
+
+            // 🪷 App State Listener: Re-assert immediately when app is resumed
+            const stateListener = await CapacitorApp.addListener('appStateChange', ({ isActive }) => {
+              if (isActive) {
+                console.log('App Resumed: Running sticky check');
+                checkAndPostStickyReminder();
+              }
+            });
+
+            // Return cleanup function specifically for these listeners within setupPush
+            return () => {
+              clearInterval(nagInterval);
+              stateListener.remove();
+            };
           } else {
             toast.error('Permissions blocked. Please enable notifications to receive 8 AM reminders.', { duration: 6000 });
           }
@@ -212,7 +237,10 @@ function AppRoutes() {
           console.error('Push notification setup error:', err);
         }
       };
-      setupPush();
+      const cleanup = setupPush();
+      return () => {
+        if (typeof cleanup === 'function') cleanup();
+      };
     }
     
     // Cleanup listeners on unmount
