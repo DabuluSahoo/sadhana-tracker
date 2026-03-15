@@ -125,16 +125,15 @@ const sendDataExpiryWarningToAdmin = async (adminEmail, adminUsername, expiringU
     });
 };
 
-// Run every day at 7:59 AM IST (2:29 UTC)
-cron.schedule('29 2 * * *', async () => {
-    console.log('--- STARTING DAILY REMINDER JOB ---');
+// --- REUSABLE NAG LOGIC ---
+const runNagJob = async (jobLabel = 'DAILY_REMINDER') => {
+    console.log(`--- STARTING ${jobLabel} ---`);
     let logId = null;
 
     try {
-        // Log start
         const [logRes] = await db.query(
             'INSERT INTO cron_logs (job_name, start_time, status) VALUES (?, NOW(), ?)',
-            ['DAILY_REMINDER', 'RUNNING']
+            [jobLabel, 'RUNNING']
         );
         logId = logRes.insertId;
 
@@ -143,10 +142,9 @@ cron.schedule('29 2 * * *', async () => {
         const yesterdayStr = yesterday.toISOString().slice(0, 10);
 
         const [users] = await db.query(`
-            SELECT u.id, u.username, u.email, u.device_token
+            SELECT u.id, u.username, u.device_token
             FROM users u
-            WHERE u.email IS NOT NULL 
-              AND u.email != ''
+            WHERE u.device_token IS NOT NULL
               AND u.role != 'owner'
               AND u.group_name != 'brahmacari'
               AND u.id NOT IN (
@@ -158,38 +156,29 @@ cron.schedule('29 2 * * *', async () => {
         for (const user of users) {
             try {
                 process.stdout.write(`Sending to ${user.username}... `);
-                // await sendReminderEmail(user.email.trim(), user.username, yesterdayStr);
-                
-                // Trigger Native Push Notification if user has the Mobile App installed
-                if (user.device_token) {
-                    await sendPushNotification(user.device_token, {
-                        data: { 
-                            type: 'SADHANA_REMINDER',
-                            title: '🪷 Daily Sadhana Reminder',
-                            body: `Hare Krishna ${user.username}! Please take a moment to log yesterday's spiritual activities.`
-                        }
-                    });
-                    results.push({ user: user.username, status: 'SUCCESS' });
-                    console.log('✅');
-                } else {
-                    results.push({ user: user.username, status: 'SKIPPED (No Token)' });
-                    console.log('⏭️ (No Token)');
-                }
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                await sendPushNotification(user.device_token, {
+                    data: { 
+                        type: 'SADHANA_REMINDER',
+                        title: '🪷 Daily Sadhana Reminder',
+                        body: `Hare Krishna ${user.username}! Please take a moment to log yesterday's spiritual activities.`
+                    }
+                });
+                results.push({ user: user.username, status: 'SUCCESS' });
+                console.log('✅');
+                await new Promise(resolve => setTimeout(resolve, 1000));
             } catch (err) {
                 results.push({ user: user.username, status: 'FAILED', error: err.message });
                 console.log(`❌ ${err.message}`);
             }
         }
 
-        // Update log on success
         await db.query(
             'UPDATE cron_logs SET end_time = NOW(), status = ?, results = ? WHERE id = ?',
             ['COMPLETED', JSON.stringify({ dateChecked: yesterdayStr, sentCount: results.length, details: results }), logId]
         );
-        console.log('--- DAILY REMINDER JOB COMPLETED ---');
+        console.log(`--- ${jobLabel} COMPLETED ---`);
     } catch (error) {
-        console.error('CRITICAL ERROR in reminder task:', error);
+        console.error(`CRITICAL ERROR in ${jobLabel}:`, error);
         if (logId) {
             await db.query(
                 'UPDATE cron_logs SET end_time = NOW(), status = ?, error_message = ? WHERE id = ?',
@@ -197,7 +186,11 @@ cron.schedule('29 2 * * *', async () => {
             );
         }
     }
-});
+};
+
+// Stage 1: 8:00 AM IST (02:30 UTC)
+cron.schedule('30 2 * * *', () => runNagJob('DAILY_REMINDER_MORNING'));
+
 
 // ─── Daily Cleanup Job (3:30 AM IST = 22:00 UTC) ───────────────────────────
 // Keeps TiDB Cloud free tier storage lean by purging old/expired rows.
