@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { isNative } from '../utils/platform';
 import { Preferences } from '@capacitor/preferences';
 import { BiometricAuth } from '@aparajita/capacitor-biometric-auth';
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 const AuthContext = createContext();
 
@@ -96,11 +97,15 @@ export const AuthProvider = ({ children }) => {
     const logout = async () => {
         if (isNative()) {
             try {
-                // Tell the server to remove the device token association
+                // 1. Immediately clear the sticky reminder from the tray
+                await LocalNotifications.cancel({ notifications: [{ id: 108 }] });
+                console.log('Sticky reminder cleared on logout');
+
+                // 2. Tell the server to remove the device token association
                 await api.post('/auth/unregister-device');
                 console.log('Device token unregistered from server');
             } catch (err) {
-                console.error('Failed to unregister device from server:', err);
+                console.error('Failed to cleanup notifications/token on logout:', err);
             }
             await Preferences.remove({ key: 'token' });
             await Preferences.remove({ key: 'user' });

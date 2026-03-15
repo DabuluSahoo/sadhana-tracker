@@ -244,13 +244,15 @@ function AppRoutes() {
       };
     }
     
-    // Cleanup listeners on unmount
+    // Cleanup listeners on unmount or user change
     return () => {
       if (isNative()) {
+        console.log('App unmounting/user-changed: Cleaning up push listeners');
         PushNotifications.removeAllListeners();
+        LocalNotifications.removeAllListeners();
       }
     };
-  }, [user]);
+  }, [user]); // Re-run when user changes to ensure fresh listeners or cleanup
 
   // Show group select modal for non-owner, non-brahmacari users who haven't chosen a group yet
   const needsGroupSelect = user && user.role !== 'owner' && user.group_name !== 'brahmacari' && user.group_name === null;
