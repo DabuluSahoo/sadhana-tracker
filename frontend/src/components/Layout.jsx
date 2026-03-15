@@ -79,6 +79,7 @@ const Layout = () => {
 
                         {/* Mobile Menu Button */}
                         <div className="md:hidden flex items-center space-x-2">
+                            <span className="text-sm font-semibold mr-1 text-saffron-100">{user?.username}</span>
                             {user?.role === 'owner' && <NotificationCenter />}
                             <button
                                 aria-label="Toggle Mobile Menu"

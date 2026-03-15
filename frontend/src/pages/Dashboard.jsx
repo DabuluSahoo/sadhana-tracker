@@ -84,7 +84,7 @@ const Dashboard = () => {
                     </div>
                     <div>
                         <h2 className="text-xl font-bold text-gray-800 font-serif">
-                            Hare Krishna, {user?.username}
+                            Hare Krishna
                         </h2>
                         <p className="text-xs text-gray-500 font-medium">
                             {format(currentWeekStart, 'MMM d')} - {format(addDays(currentWeekStart, 6), 'MMM d, yyyy')}
