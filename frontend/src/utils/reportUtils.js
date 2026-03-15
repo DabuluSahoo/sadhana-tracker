@@ -7,6 +7,19 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 
 /**
+ * CLEAN STRING: jsPDF's standard fonts only support WinAnsi (standard ASCII + some Western chars).
+ * Emojis (🙏) or Hindi/Devanagari chars will crash the generator.
+ * This helper cleans the string for safe PDF output.
+ */
+const cleanStr = (val) => {
+    if (val === null || val === undefined) return '';
+    const s = String(val);
+    // Replace non-WinAnsi characters with '?' or an equivalent
+    // Standard jsPDF fonts crash on anything > 255 usually, or specifically outside WinAnsi.
+    return s.replace(/[^\x00-\x7F\xA0-\xFF]/g, '?');
+};
+
+/**
  * Helper to handle PDF output across platforms.
  * On Web: Direct browser download via doc.save()
  * On Native: Save to Documents folder and prompt Share dialog.
@@ -112,7 +125,7 @@ const buildRows = (days, logs) =>
             `${log.study_time    || 0}m`,
             `${log.service_hours || 0}h`,
             log.mangala_aarti ? 'Yes' : 'No',
-            log.comments || '',
+            cleanStr(log.comments),
         ];
     });
 
@@ -130,12 +143,12 @@ const addPDFHeader = (doc, title, subtitle) => {
     doc.setFont('times', 'normal');
     doc.setTextColor(80);
     doc.setFontSize(14);
-    doc.text(title, 148, 26, { align: 'center' });
+    doc.text(cleanStr(title), 148, 26, { align: 'center' });
 
     if (subtitle) {
         doc.setFontSize(10);
         doc.setTextColor(120);
-        doc.text(subtitle, 148, 33, { align: 'center' });
+        doc.text(cleanStr(subtitle), 148, 33, { align: 'center' });
     }
 };
 
@@ -143,108 +156,117 @@ const addPDFHeader = (doc, title, subtitle) => {
 // generateWeeklySadhanaReport — single user, auto-resolved last week
 // ─────────────────────────────────────────────────────────────────────────────
 export const generateWeeklySadhanaReport = async (username, logs) => {
-    const { start, end, restrictionNote } = getTargetWeek();
-    const days = eachDayOfInterval({ start, end });
+    try {
+        const { start, end, restrictionNote } = getTargetWeek();
+        const days = eachDayOfInterval({ start, end });
 
-    const doc = new jsPDF({ orientation: 'landscape' });
-    addPDFHeader(doc, 'Sadhana Tracker – Weekly Report');
+        const doc = new jsPDF({ orientation: 'landscape' });
+        addPDFHeader(doc, 'Sadhana Tracker - Weekly Report');
 
-    let y = 38;
-    doc.setFontSize(11);
-    doc.setTextColor(60);
-    doc.text(`Devotee: ${username}`, 20, y);
-    doc.text(`Generated: ${format(new Date(), 'PPP p')}`, 20, y + 7);
-    doc.text(`Week: ${format(start, 'EEE, MMM d')} to ${format(end, 'EEE, MMM d, yyyy')}`, 20, y + 14);
-    y += 22;
+        let y = 38;
+        doc.setFontSize(11);
+        doc.setTextColor(60);
+        doc.text(`Devotee: ${cleanStr(username)}`, 20, y);
+        doc.text(`Generated: ${format(new Date(), 'PPP p')}`, 20, y + 7);
+        doc.text(`Week: ${format(start, 'EEE, MMM d')} to ${format(end, 'EEE, MMM d, yyyy')}`, 20, y + 14);
+        y += 22;
 
-    if (restrictionNote) {
+        if (restrictionNote) {
+            doc.setFontSize(9);
+            doc.setTextColor(180, 80, 0);
+            const lines = doc.splitTextToSize(`⏳ ${cleanStr(restrictionNote)}`, 256);
+            doc.text(lines, 20, y);
+            y += lines.length * 5 + 4;
+        }
+
+        // Summary box
+        const existing = days.map(d => logs.find(l => isSameDay(new Date(l.date), d))).filter(Boolean);
+        const avgRounds = existing.length ? (existing.reduce((s, l) => s + (l.rounds || 0), 0) / existing.length).toFixed(1) : 0;
+        const avgNrcm = existing.length ? (existing.reduce((s, l) => s + (l.nrcm || 0), 0) / existing.length).toFixed(1) : 0;
+        const mangala = existing.filter(l => l.mangala_aarti).length;
+
+        doc.setDrawColor(241, 140, 0);
+        doc.setFillColor(255, 247, 237);
+        doc.rect(20, y, 257, 18, 'FD');
+        doc.setTextColor(234, 88, 12);
+        doc.setFontSize(8.5);
+        doc.text('WEEKLY SUMMARY', 25, y + 6);
+        doc.setTextColor(60);
+        doc.text(`Avg Rounds: ${avgRounds}`, 30, y + 13);
+        doc.text(`Avg NRCM: ${avgNrcm}`, 90, y + 13);
+        doc.text(`Mangala Aarti: ${mangala}/${existing.length}`, 160, y + 13);
+        doc.text(`Days Logged: ${existing.length}/7`, 230, y + 13);
+        y += 22;
+
+        autoTable(doc, {
+            startY: y,
+            head: [TABLE_COLS],
+            body: buildRows(days, logs),
+            theme: 'striped',
+            headStyles: { fillColor: [234, 88, 12], fontSize: 8 },
+            bodyStyles: { fontSize: 8 },
+            alternateRowStyles: { fillColor: [255, 252, 240] },
+            styles: { font: 'times' },
+            columnStyles: { 10: { cellWidth: 50 } },
+        });
+
         doc.setFontSize(9);
-        doc.setTextColor(180, 80, 0);
-        const lines = doc.splitTextToSize(`⏳ ${restrictionNote}`, 256);
-        doc.text(lines, 20, y);
-        y += lines.length * 5 + 4;
+        doc.setTextColor(160);
+        doc.text('Your spiritual progress is a gift to the world.', 148, 195, { align: 'center' });
+        const fileName = `Weekly_Sadhana_${username}_${format(start, 'MMM_d')}.pdf`;
+        await saveOrSharePDF(doc, fileName);
+    } catch (err) {
+        console.error('Weekly report generation crash:', err);
+        toast.error('Report failed. Please check if your record contains special symbols or emojis.');
     }
-
-    // Summary box
-    const existing = days.map(d => logs.find(l => isSameDay(new Date(l.date), d))).filter(Boolean);
-    const avgRounds = existing.length ? (existing.reduce((s, l) => s + (l.rounds || 0), 0) / existing.length).toFixed(1) : 0;
-    const avgNrcm = existing.length ? (existing.reduce((s, l) => s + (l.nrcm || 0), 0) / existing.length).toFixed(1) : 0;
-    const totalStudy = existing.reduce((s, l) => s + (l.study_time || 0), 0);
-    const mangala = existing.filter(l => l.mangala_aarti).length;
-
-    doc.setDrawColor(241, 140, 0);
-    doc.setFillColor(255, 247, 237);
-    doc.rect(20, y, 257, 18, 'FD');
-    doc.setTextColor(234, 88, 12);
-    doc.setFontSize(8.5);
-    doc.text('WEEKLY SUMMARY', 25, y + 6);
-    doc.setTextColor(60);
-    doc.text(`Avg Rounds: ${avgRounds}`, 30, y + 13);
-    doc.text(`Avg NRCM: ${avgNrcm}`, 90, y + 13);
-    doc.text(`Mangala Aarti: ${mangala}/${existing.length}`, 160, y + 13);
-    doc.text(`Days Logged: ${existing.length}/7`, 230, y + 13);
-    y += 22;
-
-    autoTable(doc, {
-        startY: y,
-        head: [TABLE_COLS],
-        body: buildRows(days, logs),
-        theme: 'striped',
-        headStyles: { fillColor: [234, 88, 12], fontSize: 8 },
-        bodyStyles: { fontSize: 8 },
-        alternateRowStyles: { fillColor: [255, 252, 240] },
-        styles: { font: 'times' },
-        columnStyles: { 10: { cellWidth: 50 } },
-    });
-
-    doc.setFontSize(9);
-    doc.setTextColor(160);
-    doc.text('Your spiritual progress is a gift to the world.', 148, 195, { align: 'center' });
-    const fileName = `Weekly_Sadhana_${username}_${format(start, 'MMM_d')}.pdf`;
-    await saveOrSharePDF(doc, fileName);
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // generateCustomRangeSadhanaReport — single user, custom date range
 // ─────────────────────────────────────────────────────────────────────────────
 export const generateCustomRangeSadhanaReport = async (username, logs, startDate, endDate) => {
-    const start = new Date(startDate + 'T00:00:00');
-    const end   = new Date(endDate   + 'T23:59:59');
-    const days  = eachDayOfInterval({ start, end });
+    try {
+        const start = new Date(startDate + 'T00:00:00');
+        const end   = new Date(endDate   + 'T23:59:59');
+        const days  = eachDayOfInterval({ start, end });
 
-    const doc = new jsPDF({ orientation: 'landscape' });
-    addPDFHeader(doc, 'Sadhana Tracker – Custom Range Report');
+        const doc = new jsPDF({ orientation: 'landscape' });
+        addPDFHeader(doc, 'Sadhana Tracker – Custom Range Report');
 
-    let y = 38;
-    doc.setFontSize(11);
-    doc.setTextColor(60);
-    doc.text(`Devotee: ${username}`, 20, y);
-    doc.text(`Period: ${format(start, 'MMM d, yyyy')} to ${format(end, 'MMM d, yyyy')}`, 20, y + 7);
-    doc.text(`Generated: ${format(new Date(), 'PPP p')}`, 20, y + 14);
-    y += 22;
+        let y = 38;
+        doc.setFontSize(11);
+        doc.setTextColor(60);
+        doc.text(`Devotee: ${cleanStr(username)}`, 20, y);
+        doc.text(`Period: ${format(start, 'MMM d, yyyy')} to ${format(end, 'MMM d, yyyy')}`, 20, y + 7);
+        doc.text(`Generated: ${format(new Date(), 'PPP p')}`, 20, y + 14);
+        y += 22;
 
-    const filtered = logs.filter(l => {
-        const d = new Date(l.date);
-        return d >= start && d <= end;
-    });
+        const filtered = logs.filter(l => {
+            const d = new Date(l.date);
+            return d >= start && d <= end;
+        });
 
-    autoTable(doc, {
-        startY: y,
-        head: [TABLE_COLS],
-        body: buildRows(days, filtered),
-        theme: 'striped',
-        headStyles: { fillColor: [234, 88, 12], fontSize: 8 },
-        bodyStyles: { fontSize: 8 },
-        alternateRowStyles: { fillColor: [255, 252, 240] },
-        styles: { font: 'times' },
-        columnStyles: { 10: { cellWidth: 50 } },
-    });
+        autoTable(doc, {
+            startY: y,
+            head: [TABLE_COLS],
+            body: buildRows(days, filtered),
+            theme: 'striped',
+            headStyles: { fillColor: [234, 88, 12], fontSize: 8 },
+            bodyStyles: { fontSize: 8 },
+            alternateRowStyles: { fillColor: [255, 252, 240] },
+            styles: { font: 'times' },
+            columnStyles: { 10: { cellWidth: 50 } },
+        });
 
-    doc.setFontSize(9);
-    doc.setTextColor(160);
-    doc.text('Your spiritual progress is a gift to the world.', 148, 195, { align: 'center' });
-    const fileName = `Custom_Sadhana_${username}_${startDate}_to_${endDate}.pdf`;
-    await saveOrSharePDF(doc, fileName);
+        doc.setFontSize(9);
+        doc.setTextColor(160);
+        doc.text('Your spiritual progress is a gift to the world.', 148, 195, { align: 'center' });
+        const fileName = `Custom_Sadhana_${username}_${startDate}_to_${endDate}.pdf`;
+        await saveOrSharePDF(doc, fileName);
+    } catch (err) {
+        console.error('Custom report generation crash:', err);
+        toast.error('Custom report failed. Check for emojis or special characters in your records.');
+    }
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

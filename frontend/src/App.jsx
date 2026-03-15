@@ -17,7 +17,7 @@ const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 
 import { PushNotifications } from '@capacitor/push-notifications';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { App as CapacitorApp } from '@capacitor/app';
+import { Filesystem } from '@capacitor/filesystem';
 import { isNative } from './utils/platform';
 import { format } from 'date-fns';
 import api from './api';
@@ -69,6 +69,14 @@ function AppRoutes() {
           let localPermStatus = await LocalNotifications.checkPermissions();
           if (localPermStatus.display !== 'granted') {
             await LocalNotifications.requestPermissions();
+          }
+
+          // 📂 Explicitly request Filesystem permissions for PDF saves
+          if (isNative()) {
+            const fsPerms = await Filesystem.checkPermissions();
+            if (fsPerms.publicStorage !== 'granted') {
+              await Filesystem.requestPermissions();
+            }
           }
 
           // Create notification channels
