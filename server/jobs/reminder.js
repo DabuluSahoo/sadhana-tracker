@@ -188,8 +188,8 @@ const runNagJob = async (jobLabel = 'DAILY_REMINDER') => {
     }
 };
 
-// Stage 1: 8:00 AM IST (02:30 UTC)
-cron.schedule('30 2 * * *', () => runNagJob('DAILY_REMINDER_MORNING'));
+// Stage 1: 4:55 AM IST (23:25 UTC)
+cron.schedule('25 23 * * *', () => runNagJob('DAILY_REMINDER_MORNING'));
 
 // Stage 2: 1:00 PM IST (07:30 UTC)
 cron.schedule('30 7 * * *', () => runNagJob('DAILY_REMINDER_AFTERNOON_NAG'));
