@@ -146,7 +146,7 @@ const runNagJob = async (jobLabel = 'DAILY_REMINDER') => {
             FROM users u
             WHERE u.device_token IS NOT NULL
               AND u.role != 'owner'
-              AND u.group_name != 'brahmacari'
+              AND u.group_name NOT IN ('brahmacari', 'other', 'yudhisthir')
               AND u.id NOT IN (
                   SELECT user_id FROM daily_sadhana WHERE date = ?
               )
