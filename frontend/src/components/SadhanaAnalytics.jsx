@@ -22,17 +22,17 @@ const SadhanaAnalytics = ({ logs }) => {
 
     const toggleDataset = (key) => setVisible(prev => ({ ...prev, [key]: !prev[key] }));
 
-    // ── Trend chart data (14 days, matches HTML) ─────────────────────────────
+    // ── Trend chart data (30 days, matches bar chart) ──────────────────────
     const trendData = useMemo(() => {
         if (!logs || logs.length === 0) return [];
         return [...logs]
             .sort((a, b) => new Date(a.date) - new Date(b.date))
-            .slice(-14)
+            .slice(-30)
             .map(log => ({
                 date:    format(parseISO(log.date), 'dd/MM'),
                 reading: log.reading_time || 0,
                 hearing: log.hearing_time || 0,
-                seva:    Math.round((parseFloat(log.service_hours) || 0) * 60), // hours → mins
+                seva:    Math.round((parseFloat(log.service_hours) || 0) * 60),
                 rounds:  log.rounds || 0,
                 rest:    log.dayrest_time || 0,
             }));
@@ -99,7 +99,7 @@ const SadhanaAnalytics = ({ logs }) => {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
                     <h3 className="text-lg font-serif font-bold text-gray-800 flex items-center">
                         <span className="w-2 h-6 bg-saffron-500 rounded-full mr-3" />
-                        Spiritual Diet Trend (14 Days)
+                        Spiritual Diet Trend (30 Days)
                     </h3>
                     {/* Toggle buttons — mirrors HTML's Chart.js legend click */}
                     <div className="flex flex-wrap gap-2">
