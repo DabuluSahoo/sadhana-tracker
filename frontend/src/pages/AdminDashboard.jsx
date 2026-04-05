@@ -6,6 +6,7 @@ import AuthContext from '../context/AuthContext';
 import LoadingSpinner from '../components/LoadingSpinner';
 import SadhanaAnalytics from '../components/SadhanaAnalytics';
 import { generateWeeklySadhanaReport, generateCustomRangeSadhanaReport, generateGroupReport, getTargetWeek } from '../utils/reportUtils';
+import { calculateWeeklyStats } from '../utils/scoring';
 
 const GROUPS = ['yudhisthir', 'bhima', 'arjun', 'nakul', 'sahadev', 'other'];
 const GROUP_EMOJI = { yudhisthir: '🔥', bhima: '🏆', arjun: '🪷', nakul: '🌿', sahadev: '🌱', other: '☸️' };
@@ -39,6 +40,32 @@ const AdminDashboard = () => {
     const [releaseVersion, setReleaseVersion] = useState('');
     const [releaseFile, setReleaseFile] = useState(null);
     const [uploadingRelease, setUploadingRelease] = useState(false);
+    // Grace (Admin Comment) editing states
+    const [editingGraceId, setEditingGraceId] = useState(null);
+    const [graceText, setGraceText] = useState('');
+    const [savingGrace, setSavingGrace] = useState(false);
+    // Settings & Quota states
+    const [globalBroadcast, setGlobalBroadcast] = useState('');
+    const [savingBroadcast, setSavingBroadcast] = useState(false);
+    const [groupQuotas, setGroupQuotas] = useState({});
+    const [savingSettings, setSavingSettings] = useState(false);
+
+    const handleSaveGrace = async (log) => {
+        setSavingGrace(true);
+        try {
+            await api.put(`/admin/logs/${log.id}`, {
+                ...log,
+                admin_comment: graceText
+            });
+            // Update local state
+            setUserLogs(prev => prev.map(l => l.id === log.id ? { ...l, admin_comment: graceText } : l));
+            setEditingGraceId(null);
+        } catch (err) {
+            alert('Failed to save grace: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setSavingGrace(false);
+        }
+    };
 
     const handleTriggerConsolidatedReport = async () => {
         if (!confirm('Are you sure you want to trigger the weekly consolidated reports for ALL groups right now? \n\nThis will send emails to all Brahmacaris.')) return;
@@ -89,9 +116,54 @@ const AdminDashboard = () => {
             } catch (err) {
                 console.error("Failed to fetch current version", err);
             }
+            try {
+                const { data: quotasData } = await api.get('/settings/quotas');
+                const quotasMap = {};
+                quotasData.forEach(q => { quotasMap[q.group_name] = q; });
+                setGroupQuotas(quotasMap);
+
+                const { data: broadcastData } = await api.get('/settings/broadcast');
+                setGlobalBroadcast(broadcastData.broadcast);
+            } catch (err) {
+                console.error("Failed to fetch settings/quotas", err);
+            }
         };
         fetchSettings();
     }, []);
+
+    const handleSaveBroadcast = async () => {
+        setSavingBroadcast(true);
+        try {
+            await api.put('/settings/broadcast', { broadcast: globalBroadcast });
+            alert('Broadcast updated successfully!');
+        } catch (err) {
+            alert('Failed to update broadcast: ' + (err.response?.data?.message || err.message));
+        }
+        setSavingBroadcast(false);
+    };
+
+    const handleSaveGroupQuota = async (groupName) => {
+        const quota = groupQuotas[groupName];
+        if (!quota) return;
+        setSavingSettings(true);
+        try {
+            await api.put(`/settings/quotas/${groupName}`, quota);
+            alert(`✅ Quotas for ${groupName} updated successfully!`);
+        } catch (err) {
+            alert('Failed to save quota: ' + (err.response?.data?.message || err.message));
+        }
+        setSavingSettings(false);
+    };
+
+    const handleQuotaChange = (groupName, field, value) => {
+        setGroupQuotas(prev => ({
+            ...prev,
+            [groupName]: {
+                ...prev[groupName],
+                [field]: value
+            }
+        }));
+    };
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -261,6 +333,79 @@ const AdminDashboard = () => {
     return (
         <div className="space-y-4">
         
+        {/* System Settings Panel (Owner Only) */}
+        {user.role === 'owner' && (
+            <div className="bg-saffron-50 rounded-xl p-5 mb-4 border border-saffron-200">
+                <div className="flex items-center mb-4">
+                    <h3 className="text-lg font-bold text-saffron-800 flex items-center gap-2">
+                        <span>⚙️</span> System Settings & Quotas
+                    </h3>
+                </div>
+                
+                {/* Global Broadcast */}
+                <div className="mb-6">
+                    <label className="block text-sm font-semibold text-saffron-800 mb-1">Global Broadcast Message</label>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                        <input 
+                            type="text" 
+                            placeholder="Message to display on devotee dashboards..." 
+                            value={globalBroadcast}
+                            onChange={(e) => setGlobalBroadcast(e.target.value)}
+                            className="flex-1 text-sm border border-saffron-300 rounded-lg px-3 py-2 bg-white focus:ring-1 focus:ring-saffron-500 focus:outline-none"
+                        />
+                        <button 
+                            onClick={handleSaveBroadcast}
+                            disabled={savingBroadcast}
+                            className="px-4 py-2 bg-saffron-600 text-white font-bold text-sm rounded-lg hover:bg-saffron-700 transition-colors disabled:opacity-50 whitespace-nowrap"
+                        >
+                            {savingBroadcast ? 'Saving...' : 'Update Broadcast'}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Group Quotas */}
+                <div>
+                    <label className="block text-sm font-semibold text-saffron-800 mb-2">Group Daily Targets</label>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        {GROUPS.filter(g => !['other', 'brahmacari'].includes(g)).map(groupName => (
+                            <div key={groupName} className="bg-white border border-saffron-200 rounded-lg p-3">
+                                <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-100">
+                                    <span className="font-bold text-gray-700 capitalize flex items-center gap-2">
+                                        {GROUP_EMOJI[groupName]} {groupName}
+                                    </span>
+                                    <button
+                                        onClick={() => handleSaveGroupQuota(groupName)}
+                                        disabled={savingSettings}
+                                        className="text-xs font-bold text-saffron-600 hover:text-saffron-800 bg-saffron-50 hover:bg-saffron-100 px-2 py-1 rounded"
+                                    >
+                                        Save Targets
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                    <div>
+                                        <label className="text-gray-500 block mb-1">Wake Up</label>
+                                        <input type="time" value={groupQuotas[groupName]?.wake_target || ''} onChange={e => handleQuotaChange(groupName, 'wake_target', e.target.value)} className="w-full border rounded px-2 py-1" />
+                                    </div>
+                                    <div>
+                                        <label className="text-gray-500 block mb-1">Sleep</label>
+                                        <input type="time" value={groupQuotas[groupName]?.sleep_target || ''} onChange={e => handleQuotaChange(groupName, 'sleep_target', e.target.value)} className="w-full border rounded px-2 py-1" />
+                                    </div>
+                                    <div>
+                                        <label className="text-gray-500 block mb-1">Read (mins)</label>
+                                        <input type="number" min="0" value={groupQuotas[groupName]?.read_target || 0} onChange={e => handleQuotaChange(groupName, 'read_target', Number(e.target.value))} className="w-full border rounded px-2 py-1" />
+                                    </div>
+                                    <div>
+                                        <label className="text-gray-500 block mb-1">Hear (mins)</label>
+                                        <input type="number" min="0" value={groupQuotas[groupName]?.hear_target || 0} onChange={e => handleQuotaChange(groupName, 'hear_target', Number(e.target.value))} className="w-full border rounded px-2 py-1" />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        )}
+
         {/* Release Management Panel (Owner Only) */}
         {user.role === 'owner' && (
             <div className="bg-orange-50 rounded-xl p-5 mb-8 border border-orange-200">
@@ -713,52 +858,122 @@ const AdminDashboard = () => {
                         <div className="overflow-y-auto flex-grow p-6 space-y-8">
                             {userLogs.length > 0 ? (
                                 <>
+                                    {/* Body / Soul Score Summary (HTML-style) */}
+                                    {(() => {
+                                        const quota = groupQuotas[selectedUser?.group_name];
+                                        const weekLogs = userLogs.slice(0, 7);
+                                        const ws = quota ? calculateWeeklyStats(weekLogs, quota) : null;
+                                        if (!ws) return null;
+                                        return (
+                                            <div className="grid grid-cols-2 gap-4 mb-2">
+                                                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
+                                                    <p className="text-[10px] font-bold uppercase text-blue-400 tracking-widest mb-1">Body Score</p>
+                                                    <p className="text-3xl font-black text-blue-600">{ws.Body}%</p>
+                                                    <p className="text-[10px] text-blue-400 mt-1">Wake · Rest · Sleep</p>
+                                                </div>
+                                                <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+                                                    <p className="text-[10px] font-bold uppercase text-green-400 tracking-widest mb-1">Soul Score</p>
+                                                    <p className="text-3xl font-black text-green-600">{ws.Soul}%</p>
+                                                    <p className="text-[10px] text-green-400 mt-1">Japa · Reading · Hearing</p>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                     <SadhanaAnalytics logs={userLogs} />
                                     <div className="pt-6 border-t border-gray-100">
                                         <h3 className="font-serif font-bold text-gray-700 mb-4 text-lg">Detailed History</h3>
-                                        <div className="space-y-4">
-                                            {userLogs.map(log => (
-                                                <div key={log.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                                                    <div className="flex justify-between items-start mb-2">
-                                                        <h4 className="font-medium text-saffron-700">{format(new Date(log.date), 'EEEE, MMM d, yyyy')}</h4>
-                                                        <span className="text-xs text-gray-500">Submitted: {format(new Date(log.created_at), 'MMM d, p')}</span>
-                                                    </div>
-                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm mt-3">
-                                                        <div><span className="text-gray-500">Rounds:</span> <span className="font-medium">{log.rounds}</span> {log.japa_completed_time && <span className="text-xs text-gray-400 ml-1">({log.japa_completed_time})</span>}</div>
-                                                        <div><span className="text-gray-500">NRCM:</span> <span className="font-medium">{log.nrcm || 0}</span></div>
-                                                        <div className="col-span-2"><span className="text-gray-500">Reading:</span> <span className="font-medium">{log.reading_time}m</span> {log.reading_details && <span className="text-gray-400 text-xs ml-1">({log.reading_details})</span>}</div>
-                                                        <div className="col-span-2"><span className="text-gray-500">Hearing:</span> <span className="font-medium">{log.hearing_time}m</span> {log.hearing_details && <span className="text-gray-400 text-xs ml-1">({log.hearing_details})</span>}</div>
-                                                        <div><span className="text-gray-500">Service:</span> <span className="font-medium">{log.service_hours}h</span></div>
-                                                        <div><span className="text-gray-500">Study:</span> <span className="font-medium">{log.study_time}m</span></div>
-                                                        <div><span className="text-gray-500">Wake:</span> <span className="font-medium">{log.wakeup_time}</span></div>
-                                                        <div><span className="text-gray-500">Sleep:</span> <span className="font-medium">{log.sleep_time}</span></div>
-                                                        <div><span className="text-gray-500">Rest:</span> <span className="font-medium">{log.dayrest_time || 0}m</span></div>
-                                                    </div>
-                                                    {log.comments && (
-                                                        <div className="mt-2 bg-gray-50 p-2 rounded text-sm text-gray-600 italic">
-                                                            "{log.comments}"
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ))}
-
-                                            {hasMore && (
-                                                <button
-                                                    onClick={loadMoreLogs}
-                                                    disabled={loadingLogs}
-                                                    className="w-full py-3 mt-4 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm flex justify-center items-center"
-                                                >
-                                                    {loadingLogs ? (
-                                                        <>
-                                                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-500 border-t-transparent mr-2"></div>
-                                                            Loading more history...
-                                                        </>
-                                                    ) : (
-                                                        "Load Earlier History"
-                                                    )}
-                                                </button>
-                                            )}
+                                        <div className="overflow-x-auto">
+                                            <table className="min-w-full divide-y divide-gray-200 border border-gray-100 rounded-lg">
+                                                <thead className="bg-gray-50 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                                                    <tr>
+                                                        <th className="px-3 py-2 text-left">Date</th>
+                                                        <th className="px-3 py-2 text-left">Grace (Admin Notes)</th>
+                                                        <th className="px-3 py-2 text-left">Wake</th>
+                                                        <th className="px-3 py-2 text-left">Rounds</th>
+                                                        <th className="px-3 py-2 text-left">Japa Time</th>
+                                                        <th className="px-3 py-2 text-left">Read (m)</th>
+                                                        <th className="px-3 py-2 text-left">Hear (m)</th>
+                                                        <th className="px-3 py-2 text-left">Rest (m)</th>
+                                                        <th className="px-3 py-2 text-left">Sleep</th>
+                                                        <th className="px-3 py-2 text-left">Seva (h)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="bg-white divide-y divide-gray-200 text-xs">
+                                                    {userLogs.map(log => (
+                                                        <tr key={log.id} className="hover:bg-gray-50 group">
+                                                            <td className="px-3 py-3 font-semibold text-gray-900">{format(new Date(log.date), 'dd/MM')}</td>
+                                                            <td className="px-3 py-3">
+                                                                {editingGraceId === log.id ? (
+                                                                    <div className="flex flex-col gap-2 min-w-[200px]">
+                                                                        <textarea
+                                                                            autoFocus
+                                                                            value={graceText}
+                                                                            onChange={e => setGraceText(e.target.value)}
+                                                                            className="w-full border border-saffron-300 rounded p-2 text-[11px] focus:outline-none focus:ring-1 focus:ring-saffron-500"
+                                                                            rows="2"
+                                                                            placeholder="Type grace/notes..."
+                                                                        />
+                                                                        <div className="flex gap-2 justify-end">
+                                                                            <button 
+                                                                                disabled={savingGrace}
+                                                                                onClick={() => handleSaveGrace(log)}
+                                                                                className="px-2 py-1 bg-saffron-600 text-white rounded text-[10px] hover:bg-saffron-700 disabled:opacity-50"
+                                                                            >
+                                                                                {savingGrace ? 'Saving...' : 'Save'}
+                                                                            </button>
+                                                                            <button 
+                                                                                onClick={() => setEditingGraceId(null)}
+                                                                                className="px-2 py-1 bg-gray-200 text-gray-600 rounded text-[10px] hover:bg-gray-300"
+                                                                            >
+                                                                                Cancel
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="text-blue-700 italic font-medium truncate max-w-[150px]">
+                                                                            {log.admin_comment || <span className="text-gray-300">No notes</span>}
+                                                                        </span>
+                                                                        <button 
+                                                                            onClick={() => { setEditingGraceId(log.id); setGraceText(log.admin_comment || ''); }}
+                                                                            className="opacity-0 group-hover:opacity-100 transition-opacity text-saffron-600 hover:text-saffron-800 p-1 rounded hover:bg-saffron-50"
+                                                                            title="Edit Grace"
+                                                                        >
+                                                                            ✏️
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+                                                            </td>
+                                                            <td className="px-3 py-3 text-gray-600">{log.wakeup_time || '-'}</td>
+                                                            <td className="px-3 py-3 font-bold text-gray-800">{log.rounds || 0}</td>
+                                                            <td className="px-3 py-3 text-gray-500">{log.japa_completed_time || '-'}</td>
+                                                            <td className="px-3 py-3 text-gray-500">{log.reading_time || 0}</td>
+                                                            <td className="px-3 py-3 text-gray-500">{log.hearing_time || 0}</td>
+                                                            <td className="px-4 py-3 text-amber-600 italic">{log.dayrest_time || 0}</td>
+                                                            <td className="px-3 py-3 text-gray-500">{log.sleep_time || '-'}</td>
+                                                            <td className="px-3 py-3 text-green-700 font-bold">{log.service_hours || 0}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
                                         </div>
+
+                                        {hasMore && (
+                                            <button
+                                                onClick={loadMoreLogs}
+                                                disabled={loadingLogs}
+                                                className="w-full py-3 mt-4 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm flex justify-center items-center"
+                                            >
+                                                {loadingLogs ? (
+                                                    <>
+                                                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-500 border-t-transparent mr-2"></div>
+                                                        Loading more history...
+                                                    </>
+                                                ) : (
+                                                    "Load Earlier History"
+                                                )}
+                                            </button>
+                                        )}
                                     </div>
                                 </>
                             ) : (

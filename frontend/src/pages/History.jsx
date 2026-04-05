@@ -112,56 +112,61 @@ const History = () => {
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sleep/Wake</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rounds</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">NRCM</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Read/Hear</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Study/Service/Rest</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mangala In</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comments</th>
+                                <th className="px-3 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Date</th>
+                                <th className="px-3 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Grace</th>
+                                <th className="px-3 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Wake</th>
+                                <th className="px-3 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Rounds</th>
+                                <th className="px-3 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Japa Done</th>
+                                <th className="px-3 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Read (m)</th>
+                                <th className="px-3 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Hear (m)</th>
+                                <th className="px-3 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Rest (m)</th>
+                                <th className="px-3 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Sleep</th>
+                                <th className="px-3 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Seva (h)</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {logs.map((log) => (
                                 <tr key={log.id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {format(new Date(log.date), 'MMM d, yyyy')}
+                                    {/* Date */}
+                                    <td className="px-3 py-4 whitespace-nowrap text-xs font-semibold text-gray-900 border-r border-gray-100">
+                                        {format(new Date(log.date), 'dd/MM')}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        <div className="flex flex-col text-xs">
-                                            {log.sleep_time && <span title="Sleep Time">🌙 {log.sleep_time}</span>}
-                                            {log.wakeup_time && <span title="Wakeup Time">☀️ {log.wakeup_time}</span>}
-                                        </div>
+                                    {/* Grace (Admin Note) */}
+                                    <td className="px-3 py-4 text-[11px] text-blue-700 italic font-medium max-w-[150px] truncate border-r border-gray-100">
+                                        {log.admin_comment || '-'}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${log.rounds >= 16 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                                            {log.rounds} {log.japa_completed_time && `(${log.japa_completed_time})`}
-                                        </span>
+                                    {/* Wake */}
+                                    <td className="px-3 py-4 whitespace-nowrap text-xs text-gray-600 border-r border-gray-100">
+                                        {log.wakeup_time || '-'}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800 font-bold">
-                                        {log.nrcm || 0}
+                                    {/* Rounds */}
+                                    <td className="px-3 py-4 whitespace-nowrap text-xs font-bold text-gray-800 border-r border-gray-100">
+                                        {log.rounds || 0}
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-500 max-w-[200px]">
-                                        <div className="flex flex-col gap-1">
-                                            {log.reading_time > 0 && <span>📚 {log.reading_time}m {log.reading_details && <span className="text-gray-400 text-xs truncate">({log.reading_details})</span>}</span>}
-                                            {log.hearing_time > 0 && <span>🎧 {log.hearing_time}m {log.hearing_details && <span className="text-gray-400 text-xs truncate">({log.hearing_details})</span>}</span>}
-                                        </div>
+                                    {/* Japa Done */}
+                                    <td className="px-3 py-4 whitespace-nowrap text-xs text-gray-500 border-r border-gray-100">
+                                        {log.japa_completed_time || '-'}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        <div className="flex flex-col gap-1">
-                                            {log.study_time > 0 && <span>📖 {log.study_time}m</span>}
-                                            {log.service_hours > 0 && <span>🧹 {log.service_hours}h</span>}
-                                            {log.dayrest_time > 0 && <span className="text-amber-600 font-medium">🛌 {log.dayrest_time}m</span>}
-                                        </div>
+                                    {/* Read (m) */}
+                                    <td className="px-3 py-4 whitespace-nowrap text-xs text-gray-600 border-r border-gray-100">
+                                        {log.reading_time || 0}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {log.mangala_aarti ?
-                                            <span className="text-green-600">Yes</span> :
-                                            <span className="text-gray-400">No</span>
-                                        }
+                                    {/* Hear (m) */}
+                                    <td className="px-3 py-4 whitespace-nowrap text-xs text-gray-600 border-r border-gray-100">
+                                        {log.hearing_time || 0}
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{log.comments}</td>
+                                    {/* Rest (m) */}
+                                    <td className="px-3 py-4 whitespace-nowrap text-xs text-amber-700 font-medium border-r border-gray-100">
+                                        {log.dayrest_time || 0}
+                                    </td>
+                                    {/* Sleep */}
+                                    <td className="px-3 py-4 whitespace-nowrap text-xs text-gray-500 border-r border-gray-100">
+                                        {log.sleep_time || '-'}
+                                    </td>
+                                    {/* Seva (h) */}
+                                    <td className="px-3 py-4 whitespace-nowrap text-xs text-green-700 font-bold">
+                                        {log.service_hours || 0}
+                                    </td>
                                 </tr>
                             ))}
                             {logs.length === 0 && (

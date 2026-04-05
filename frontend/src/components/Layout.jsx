@@ -1,7 +1,7 @@
 import { useContext, useState } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
-import { LogOut, LayoutDashboard, History as HistoryIcon, Users, Menu, X, Lock } from 'lucide-react';
+import { LogOut, LayoutDashboard, History as HistoryIcon, Users, Menu, X, Lock, BarChart2 } from 'lucide-react';
 import NotificationCenter from './NotificationCenter';
 import { isNative } from '../utils/platform';
 
@@ -21,6 +21,7 @@ const Layout = () => {
     const navItems = [
         { label: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
         { label: 'History', path: '/history', icon: <HistoryIcon size={20} />, hidden: noSadhana },
+        { label: 'Stats', path: '/analytics', icon: <BarChart2 size={20} />, hidden: noSadhana },
         {
             label: user?.role === 'owner' ? 'Owner' : 'Admin',
             path: '/admin',

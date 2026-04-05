@@ -13,6 +13,7 @@ const Register = lazy(() => import('./pages/Register'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const History = lazy(() => import('./pages/History'));
+const Analytics = lazy(() => import('./pages/Analytics'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 
 import { PushNotifications } from '@capacitor/push-notifications';
@@ -267,6 +268,7 @@ function AppRoutes() {
       const prefetch = () => {
         import('./pages/Dashboard');
         import('./pages/History');
+        import('./pages/Analytics');
         import('./pages/AdminDashboard');
         import('./components/GroupSelectModal');
       };
@@ -323,6 +325,7 @@ function AppRoutes() {
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/history" element={<History />} />
+            <Route path="/analytics" element={<Analytics />} />
             <Route path="/admin" element={<AdminDashboard />} />
           </Route>
           <Route path="*" element={<Navigate to="/" />} />

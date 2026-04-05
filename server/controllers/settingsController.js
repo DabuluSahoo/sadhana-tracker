@@ -1,103 +1,67 @@
 const db = require('../config/db');
-const axios = require('axios');
 
-// Get current settings
-exports.getSettings = async (req, res) => {
+// --- Global Broadcast ---
+
+exports.getBroadcast = async (req, res) => {
     try {
-        await db.query(`CREATE TABLE IF NOT EXISTS settings (setting_key VARCHAR(255) PRIMARY KEY, setting_value TEXT) ENGINE=InnoDB`);
-        const [rows] = await db.query('SELECT setting_key, setting_value FROM settings');
-        const settings = rows.reduce((acc, row) => {
-            acc[row.setting_key] = row.setting_value;
-            return acc;
-        }, {});
-        res.json(settings);
-    } catch (error) {
-        console.error('Error fetching settings:', error);
-        res.status(500).json({ message: 'Error fetching settings' });
+        const [rows] = await db.query('SELECT value_text FROM admin_settings WHERE key_name = "global_broadcast"');
+        res.json({ broadcast: rows[0]?.value_text || '' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
 };
 
-// Upload release to GitHub and update DB
-exports.configureRelease = async (req, res) => {
+exports.updateBroadcast = async (req, res) => {
+    const { broadcast } = req.body;
     try {
-        const { version } = req.body;
-        const file = req.file;
-
-        if (!version || !file) {
-            return res.status(400).json({ message: 'Version number and APK file are required' });
-        }
-
-        const GITHUB_TOKEN = process.env.GITHUB_TOKEN?.trim();
-        const GITHUB_REPO = process.env.GITHUB_REPO?.trim();
-
-        if (!GITHUB_TOKEN || !GITHUB_REPO) {
-            console.error('Missing GitHub credentials in .env file!');
-            return res.status(500).json({ message: 'GitHub auto-updater credentials are not configured on the server.' });
-        }
-
-        console.log(`📡 Creating GitHub Release v${version}...`);
-        
-        // 1. Create Release on GitHub
-        const releaseRes = await axios.post(
-            `https://api.github.com/repos/${GITHUB_REPO}/releases`,
-            {
-                tag_name: `v${version}`,
-                name: `Sadhana Tracker v${version}`,
-                body: `Automated release v${version} for Sadhana Tracker App`,
-                draft: false,
-                prerelease: false
-            },
-            {
-                headers: {
-                    'Authorization': `token ${GITHUB_TOKEN}`,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            }
+        await db.query(
+            'INSERT INTO admin_settings (key_name, value_text) VALUES ("global_broadcast", ?) ON DUPLICATE KEY UPDATE value_text = ?',
+            [broadcast, broadcast]
         );
+        res.json({ message: 'Broadcast updated successfully', broadcast });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
 
-        // Upload URL has a template we need to format
-        const rawUploadUrl = releaseRes.data.upload_url;
-        const uploadUrl = rawUploadUrl.replace('{?name,label}', `?name=sadhana-app-v${version}.apk`);
+// --- Group Quotas ---
 
-        console.log(`📦 Uploading APK asset (${file.size} bytes) to GitHub...`);
+exports.getAllQuotas = async (req, res) => {
+    try {
+        const [rows] = await db.query('SELECT * FROM group_quotas');
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
 
-        // 2. Upload APK binary as an Asset
-        const assetRes = await axios.post(
-            uploadUrl,
-            file.buffer,
-            {
-                headers: {
-                    'Authorization': `token ${GITHUB_TOKEN}`,
-                    'Content-Type': 'application/vnd.android.package-archive',
-                    'Accept': 'application/vnd.github.v3+json'
-                },
-                maxBodyLength: Infinity,
-                maxContentLength: Infinity
-            }
+exports.getQuotaByGroup = async (req, res) => {
+    const { groupName } = req.params;
+    try {
+        const [rows] = await db.query('SELECT * FROM group_quotas WHERE group_name = ?', [groupName]);
+        if (rows.length === 0) return res.status(404).json({ message: 'Quota not found for this group' });
+        res.json(rows[0]);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+exports.updateQuota = async (req, res) => {
+    const { groupName } = req.params;
+    const { read_target, hear_target, wake_target, sleep_target } = req.body;
+    try {
+        await db.query(
+            `INSERT INTO group_quotas (group_name, read_target, hear_target, wake_target, sleep_target) 
+             VALUES (?, ?, ?, ?, ?) 
+             ON DUPLICATE KEY UPDATE 
+                read_target = VALUES(read_target), 
+                hear_target = VALUES(hear_target), 
+                wake_target = VALUES(wake_target), 
+                sleep_target = VALUES(sleep_target)`,
+            [groupName, read_target, hear_target, wake_target, sleep_target]
         );
-
-        const releaseUrl = releaseRes.data.html_url;
-        console.log(`✅ Upload complete! Release Page URL: ${releaseUrl}`);
-
-        // 3. Update database with new version and the GitHub Release Webpage (bypasses Android download intent bugs)
-        await db.query(`CREATE TABLE IF NOT EXISTS settings (setting_key VARCHAR(255) PRIMARY KEY, setting_value TEXT) ENGINE=InnoDB`);
-        await db.query('REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)', ['latest_apk_version', version]);
-        await db.query('REPLACE INTO settings (setting_key, setting_value) VALUES (?, ?)', ['apk_download_url', releaseUrl]);
-
-        res.json({ message: 'Release published to GitHub successfully', version, url: releaseUrl });
-
-    } catch (error) {
-        console.error('Error in GitHub Release process:', error.response?.data || error);
-        
-        let errorMessage = `Error: ${error.message}`;
-        if (error.response?.data) {
-            errorMessage += ` | GitHub Details: ${JSON.stringify(error.response.data)}`;
-        }
-
-        if (error.response?.status === 401) errorMessage = 'Unauthorized: Invalid GitHub Token in server config.';
-        if (error.response?.status === 404) errorMessage = 'Repository not found. Check GITHUB_REPO name.';
-        if (error.response?.data?.errors?.[0]?.code === 'already_exists') errorMessage = `Release version v${version} already exists on GitHub! Please use a higher version.`;
-        
-        res.status(500).json({ message: errorMessage });
+        res.json({ message: `Quotas for ${groupName} updated successfully` });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
 };

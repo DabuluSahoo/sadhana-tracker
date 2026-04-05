@@ -81,12 +81,12 @@ exports.getUserLogs = async (req, res) => {
 
 exports.editUserLog = async (req, res) => {
     const { logId } = req.params;
-    const { rounds, reading_time, hearing_time, mangala_aarti, wakeup_time, sleep_time, service_hours, comments } = req.body;
+    const { rounds, reading_time, hearing_time, mangala_aarti, wakeup_time, sleep_time, service_hours, comments, admin_comment } = req.body;
 
     try {
         await db.query(
-            `UPDATE daily_sadhana SET rounds=?, reading_time=?, hearing_time=?, mangala_aarti=?, wakeup_time=?, sleep_time=?, service_hours=?, comments=? WHERE id=?`,
-            [rounds, reading_time, hearing_time, mangala_aarti, wakeup_time, sleep_time, service_hours, comments, logId]
+            `UPDATE daily_sadhana SET rounds=?, reading_time=?, hearing_time=?, mangala_aarti=?, wakeup_time=?, sleep_time=?, service_hours=?, comments=?, admin_comment=? WHERE id=?`,
+            [rounds, reading_time, hearing_time, mangala_aarti, wakeup_time, sleep_time, service_hours, comments, admin_comment, logId]
         );
         res.json({ message: 'Log updated by admin' });
     } catch (err) {
