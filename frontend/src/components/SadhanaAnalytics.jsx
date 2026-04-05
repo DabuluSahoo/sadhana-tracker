@@ -121,8 +121,8 @@ const SadhanaAnalytics = ({ logs }) => {
                     </div>
                 </div>
 
-                <div ref={japaScrollRef} className="overflow-x-auto">
-                    <div style={{ minWidth: trendData.length > 7 ? `${trendData.length * 55}px` : '100%', height: '260px' }}>
+                <div ref={japaScrollRef} className="overflow-x-auto cursor-grab active:cursor-grabbing select-none">
+                    <div style={{ width: `${Math.max(trendData.length * 90, 900)}px`, height: '260px' }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={trendData} margin={{ top: 10, right: 20, left: 0, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f5f5f5" />
@@ -174,8 +174,8 @@ const SadhanaAnalytics = ({ logs }) => {
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
-                    <div style={{ minWidth: barData.length > 6 ? `${barData.length * 60}px` : '100%', height: '280px' }}>
+                <div className="overflow-x-auto cursor-grab active:cursor-grabbing select-none">
+                    <div style={{ width: `${Math.max(barData.length * 70, 900)}px`, height: '280px' }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={barData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f5f5f5" />
