@@ -235,7 +235,7 @@ const Dashboard = () => {
                         />
                     </div>
                     <p className="text-[10px] text-gray-400 mt-2 uppercase font-bold tracking-tighter">
-                        Avg of Wake · Rest · Sleep · Study  ±5 on-time
+                        Avg of Wake · Rest · Sleep  ±5 on-time
                     </p>
                 </div>
 

@@ -43,8 +43,8 @@ const isFilledOnTime = (log) => {
 export const calculateDailyScore = (log, quota) => {
     if (!log || !quota) return { bodyScore: 0, soulScore: 0 };
 
-    // ── Body Score: Wake, Rest, Sleep, Study (each 0 or 100) ─────────────────
-    let pWake = 0, pRest = 0, pSleep = 0, pStudy = 0;
+    // ── Body Score: Wake, Rest, Sleep (each 0 or 100) ± on-time bonus ─────────
+    let pWake = 0, pRest = 0, pSleep = 0;
 
     if (log.wakeup_time && quota.wake_target && log.wakeup_time <= quota.wake_target)
         pWake = 100;
@@ -56,14 +56,7 @@ export const calculateDailyScore = (log, quota) => {
         getSleepMins(log.sleep_time) <= getSleepMins(quota.sleep_target))
         pSleep = 100;
 
-    // Study: proportional to study_target if set, else 100 if any study done
-    const studyTarget = quota.study_target || 30; // fallback 30 mins
-    const studyMins   = parseInt(log.study_time) || 0;
-    pStudy = studyTarget > 0
-        ? Math.min(100, Math.round((studyMins / studyTarget) * 100))
-        : (studyMins > 0 ? 100 : 0);
-
-    const baseBody  = Math.round((pWake + pRest + pSleep + pStudy) / 4);
+    const baseBody  = Math.round((pWake + pRest + pSleep) / 3);
     const timeBonusBefore = isFilledOnTime(log) ? 5 : -5;
     const bodyScore = Math.min(100, Math.max(0, baseBody + timeBonusBefore));
 
@@ -106,43 +99,39 @@ export const calculateWeeklyStats = (logs, quota) => {
 
     const readQ       = (quota.read_target  || 0) * 7;
     const hearQ       = (quota.hear_target  || 0) * 7;
-    const studyQ      = (quota.study_target || 30) * 7;
     const nrcmTarget  = quota.nrcm_target || 1;
     const wakeT       = quota.wake_target  || '05:00';
     const sleepT      = quota.sleep_target || '22:00';
 
     const totals = {
-        read: 0, hear: 0, study: 0, nrcm: 0,
+        read: 0, hear: 0, nrcm: 0,
         wakeDays: 0, japaDays: 0, restDays: 0, sleepDays: 0, onTimeDays: 0,
         daysLogged: logs.length,
     };
 
     logs.forEach(r => {
-        totals.read  += parseInt(r.reading_time)       || 0;
-        totals.hear  += parseInt(r.hearing_time)       || 0;
-        totals.study += parseInt(r.study_time)         || 0;
-        totals.nrcm  += parseInt(r.nrcm)               || 0;
-        if ((r.wakeup_time || '23:59') <= wakeT)                                             totals.wakeDays++;
-        if ((r.japa_completed_time || '23:59') <= '10:00')                                   totals.japaDays++;
-        if ((parseInt(r.dayrest_time) || 0) <= 30)                                           totals.restDays++;
-        if (getSleepMins(r.sleep_time) <= getSleepMins(sleepT))                              totals.sleepDays++;
-        if (isFilledOnTime(r))                                                               totals.onTimeDays++;
+        totals.read  += parseInt(r.reading_time) || 0;
+        totals.hear  += parseInt(r.hearing_time) || 0;
+        totals.nrcm  += parseInt(r.nrcm)         || 0;
+        if ((r.wakeup_time || '23:59') <= wakeT)                           totals.wakeDays++;
+        if ((r.japa_completed_time || '23:59') <= '10:00')                 totals.japaDays++;
+        if ((parseInt(r.dayrest_time) || 0) <= 30)                         totals.restDays++;
+        if (getSleepMins(r.sleep_time) <= getSleepMins(sleepT))            totals.sleepDays++;
+        if (isFilledOnTime(r))                                             totals.onTimeDays++;
     });
 
-    const days = 7;
-    const pRead   = readQ  > 0 ? Math.min(100, Math.round((totals.read  / readQ)  * 100)) : 0;
-    const pHear   = hearQ  > 0 ? Math.min(100, Math.round((totals.hear  / hearQ)  * 100)) : 0;
-    const pStudy  = studyQ > 0 ? Math.min(100, Math.round((totals.study / studyQ) * 100)) : 0;
-    const pNrcm   = nrcmTarget > 0 ? Math.min(100, Math.round((totals.nrcm / (nrcmTarget * days)) * 100)) : 0;
-    const pWake   = Math.round((totals.wakeDays  / days) * 100);
-    const pJapa   = Math.round((totals.japaDays  / days) * 100);
-    const pRest   = Math.round((totals.restDays  / days) * 100);
-    const pSleep  = Math.round((totals.sleepDays / days) * 100);
+    const days  = 7;
+    const pRead  = readQ > 0 ? Math.min(100, Math.round((totals.read / readQ) * 100)) : 0;
+    const pHear  = hearQ > 0 ? Math.min(100, Math.round((totals.hear / hearQ) * 100)) : 0;
+    const pNrcm  = nrcmTarget > 0 ? Math.min(100, Math.round((totals.nrcm / (nrcmTarget * days)) * 100)) : 0;
+    const pWake  = Math.round((totals.wakeDays  / days) * 100);
+    const pJapa  = Math.round((totals.japaDays  / days) * 100);
+    const pRest  = Math.round((totals.restDays  / days) * 100);
+    const pSleep = Math.round((totals.sleepDays / days) * 100);
 
-    // Body = avg(Wake, Rest, Sleep, Study) ± on-time bonus
-    const baseBody  = Math.round((pWake + pRest + pSleep + pStudy) / 4);
+    // Body = avg(Wake, Rest, Sleep) ± on-time bonus
+    const baseBody  = Math.round((pWake + pRest + pSleep) / 3);
     const onTimePct = Math.round((totals.onTimeDays / days) * 100);
-    // bonus: +5 if majority on time, -5 if majority late
     const timeBonus = onTimePct >= 50 ? 5 : -5;
     const Body  = Math.min(100, Math.max(0, baseBody + timeBonus));
 
@@ -150,12 +139,12 @@ export const calculateWeeklyStats = (logs, quota) => {
     const Soul  = Math.min(100, Math.round((pJapa + pRead + pHear + pNrcm) / 4));
 
     return {
-        Read: pRead, Hear: pHear, Study: pStudy, Nrcm: pNrcm,
-        Wake: pWake, Japa: pJapa, Rest: pRest,  Sleep: pSleep,
+        Read: pRead, Hear: pHear, Nrcm: pNrcm,
+        Wake: pWake, Japa: pJapa, Rest: pRest, Sleep: pSleep,
         OnTime: onTimePct,
         Body, Soul,
         rawTotals: totals,
-        targets: { readQ, hearQ, studyQ },
+        targets: { readQ, hearQ },
     };
 };
 
