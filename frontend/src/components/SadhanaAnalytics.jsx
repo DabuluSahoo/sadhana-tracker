@@ -16,6 +16,7 @@ const DATASETS = [
 
 const SadhanaAnalytics = ({ logs }) => {
     const japaScrollRef = useRef(null);
+    const barScrollRef  = useRef(null);
     const [visible, setVisible] = useState(
         Object.fromEntries(DATASETS.map(d => [d.key, !d.hidden]))
     );
@@ -52,15 +53,15 @@ const SadhanaAnalytics = ({ logs }) => {
             }));
     }, [logs]);
 
+    // Auto-scroll BOTH charts to righmost (most recent) on load
     useEffect(() => {
-        if (trendData.length > 0) {
+        if (trendData.length > 0 || barData.length > 0) {
             setTimeout(() => {
-                if (japaScrollRef.current) {
-                    japaScrollRef.current.scrollLeft = japaScrollRef.current.scrollWidth;
-                }
-            }, 100);
+                if (japaScrollRef.current) japaScrollRef.current.scrollLeft = japaScrollRef.current.scrollWidth;
+                if (barScrollRef.current)  barScrollRef.current.scrollLeft  = barScrollRef.current.scrollWidth;
+            }, 150);
         }
-    }, [trendData]);
+    }, [trendData, barData]);
 
     const stats = useMemo(() => {
         if (!logs || logs.length === 0) return null;
@@ -174,7 +175,7 @@ const SadhanaAnalytics = ({ logs }) => {
                     </div>
                 </div>
 
-                <div className="overflow-x-auto cursor-grab active:cursor-grabbing select-none">
+                <div ref={barScrollRef} className="overflow-x-auto cursor-grab active:cursor-grabbing select-none">
                     <div style={{ width: `${Math.max(barData.length * 70, 900)}px`, height: '280px' }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={barData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
