@@ -75,8 +75,9 @@ exports.getWeeklyLogs = async (req, res) => {
 exports.getHistory = async (req, res) => {
     const userId = req.user.id;
     try {
+        // Fetch last 365 days — no hard cap so analytics shows true total
         const [logs] = await db.query(
-            'SELECT * FROM daily_sadhana WHERE user_id = ? ORDER BY date DESC LIMIT 30',
+            'SELECT * FROM daily_sadhana WHERE user_id = ? ORDER BY date DESC LIMIT 365',
             [userId]
         );
         res.json(logs);

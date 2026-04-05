@@ -196,7 +196,7 @@ const AdminDashboard = () => {
         if (loadingLogs) return;
         setLoadingLogs(true);
         try {
-            const { data } = await api.get(`/admin/users/${userId}/logs?page=${pageNum}&limit=30`);
+            const { data } = await api.get(`/admin/users/${userId}/logs?page=${pageNum}&limit=365`);
 
             if (pageNum === 1) {
                 setUserLogs(data.logs);
