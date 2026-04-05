@@ -3,17 +3,16 @@ import api from '../api';
 import { format, subDays } from 'date-fns';
 import { FileText, ChevronDown } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
-import SadhanaAnalytics from '../components/SadhanaAnalytics';
 import { generateWeeklySadhanaReport, generateCustomRangeSadhanaReport } from '../utils/reportUtils';
 import AuthContext from '../context/AuthContext';
 
 const History = () => {
-    const [logs, setLogs] = useState([]);
+    const [logs, setLogs]       = useState([]);
     const [loading, setLoading] = useState(true);
-    const { user } = useContext(AuthContext);
-    const [showCustom, setShowCustom] = useState(false);
+    const { user }              = useContext(AuthContext);
+    const [showCustom, setShowCustom]   = useState(false);
     const [customStart, setCustomStart] = useState('');
-    const [customEnd, setCustomEnd] = useState('');
+    const [customEnd, setCustomEnd]     = useState('');
 
     useEffect(() => {
         const fetchHistory = async () => {
@@ -31,15 +30,16 @@ const History = () => {
 
     if (loading) return <LoadingSpinner />;
 
-    const minDate = format(subDays(new Date(), 30), 'yyyy-MM-dd');
-    const maxDate = format(subDays(new Date(), 1), 'yyyy-MM-dd');
+    const minDate = format(subDays(new Date(), 365), 'yyyy-MM-dd');
+    const maxDate = format(subDays(new Date(), 1),   'yyyy-MM-dd');
 
     return (
-        <div className="space-y-8 max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h2 className="text-3xl font-serif font-bold text-gray-800">Your Sadhana Progress</h2>
+        <div className="space-y-6 max-w-7xl mx-auto">
 
-                {/* Download buttons */}
+            {/* Header + Download buttons */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <h2 className="text-3xl font-serif font-bold text-gray-800">Your Sadhana History</h2>
+
                 <div className="flex flex-wrap gap-2 items-start">
                     {/* Last completed week */}
                     <button
@@ -50,7 +50,7 @@ const History = () => {
                         Download Last Week
                     </button>
 
-                    {/* Custom range toggle */}
+                    {/* Custom range */}
                     <div className="flex flex-col gap-1">
                         <button
                             onClick={() => setShowCustom(v => !v)}
@@ -63,7 +63,7 @@ const History = () => {
 
                         {showCustom && (
                             <div className="flex flex-col gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl shadow-sm">
-                                <p className="text-xs text-amber-700 font-semibold">Select date range (last 30 days only)</p>
+                                <p className="text-xs text-amber-700 font-semibold">Select date range</p>
                                 <div className="flex gap-2 items-end flex-wrap">
                                     <div>
                                         <p className="text-[10px] text-gray-500 mb-0.5">From</p>
@@ -102,11 +102,11 @@ const History = () => {
                 </div>
             </div>
 
-            {logs.length > 0 && <SadhanaAnalytics logs={logs} />}
-
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-8">
+            {/* History Table ONLY */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div className="p-4 border-b border-gray-100 bg-gray-50/50">
                     <h3 className="font-serif font-bold text-gray-700">Detailed Logs</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">Showing up to last 365 days</p>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
@@ -127,51 +127,27 @@ const History = () => {
                         <tbody className="bg-white divide-y divide-gray-200">
                             {logs.map((log) => (
                                 <tr key={log.id} className="hover:bg-gray-50 transition-colors">
-                                    {/* Date */}
                                     <td className="px-3 py-4 whitespace-nowrap text-xs font-semibold text-gray-900 border-r border-gray-100">
-                                        {format(new Date(log.date), 'dd/MM')}
+                                        {format(new Date(log.date), 'dd/MM/yy')}
                                     </td>
-                                    {/* Grace (Admin Note) */}
                                     <td className="px-3 py-4 text-[11px] text-blue-700 italic font-medium max-w-[150px] truncate border-r border-gray-100">
                                         {log.admin_comment || '-'}
                                     </td>
-                                    {/* Wake */}
-                                    <td className="px-3 py-4 whitespace-nowrap text-xs text-gray-600 border-r border-gray-100">
-                                        {log.wakeup_time || '-'}
-                                    </td>
-                                    {/* Rounds */}
-                                    <td className="px-3 py-4 whitespace-nowrap text-xs font-bold text-gray-800 border-r border-gray-100">
-                                        {log.rounds || 0}
-                                    </td>
-                                    {/* Japa Done */}
-                                    <td className="px-3 py-4 whitespace-nowrap text-xs text-gray-500 border-r border-gray-100">
-                                        {log.japa_completed_time || '-'}
-                                    </td>
-                                    {/* Read (m) */}
-                                    <td className="px-3 py-4 whitespace-nowrap text-xs text-gray-600 border-r border-gray-100">
-                                        {log.reading_time || 0}
-                                    </td>
-                                    {/* Hear (m) */}
-                                    <td className="px-3 py-4 whitespace-nowrap text-xs text-gray-600 border-r border-gray-100">
-                                        {log.hearing_time || 0}
-                                    </td>
-                                    {/* Rest (m) */}
-                                    <td className="px-3 py-4 whitespace-nowrap text-xs text-amber-700 font-medium border-r border-gray-100">
-                                        {log.dayrest_time || 0}
-                                    </td>
-                                    {/* Sleep */}
-                                    <td className="px-3 py-4 whitespace-nowrap text-xs text-gray-500 border-r border-gray-100">
-                                        {log.sleep_time || '-'}
-                                    </td>
-                                    {/* Seva (h) */}
-                                    <td className="px-3 py-4 whitespace-nowrap text-xs text-green-700 font-bold">
-                                        {log.service_hours || 0}
-                                    </td>
+                                    <td className="px-3 py-4 whitespace-nowrap text-xs text-gray-600 border-r border-gray-100">{log.wakeup_time || '-'}</td>
+                                    <td className="px-3 py-4 whitespace-nowrap text-xs font-bold text-gray-800 border-r border-gray-100">{log.rounds || 0}</td>
+                                    <td className="px-3 py-4 whitespace-nowrap text-xs text-gray-500 border-r border-gray-100">{log.japa_completed_time || '-'}</td>
+                                    <td className="px-3 py-4 whitespace-nowrap text-xs text-gray-600 border-r border-gray-100">{log.reading_time || 0}</td>
+                                    <td className="px-3 py-4 whitespace-nowrap text-xs text-gray-600 border-r border-gray-100">{log.hearing_time || 0}</td>
+                                    <td className="px-3 py-4 whitespace-nowrap text-xs text-amber-700 font-medium border-r border-gray-100">{log.dayrest_time || 0}</td>
+                                    <td className="px-3 py-4 whitespace-nowrap text-xs text-gray-500 border-r border-gray-100">{log.sleep_time || '-'}</td>
+                                    <td className="px-3 py-4 whitespace-nowrap text-xs text-green-700 font-bold">{log.service_hours || 0}</td>
                                 </tr>
                             ))}
                             {logs.length === 0 && (
                                 <tr>
-                                    <td colSpan="8" className="px-6 py-8 text-center text-gray-500">No history found. Start your sadhana today!</td>
+                                    <td colSpan="10" className="px-6 py-8 text-center text-gray-500">
+                                        No history found. Start your sadhana today!
+                                    </td>
                                 </tr>
                             )}
                         </tbody>
