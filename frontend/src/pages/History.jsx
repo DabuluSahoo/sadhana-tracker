@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import api from '../api';
-import { format, subDays } from 'date-fns';
+import { format, subDays, parseISO } from 'date-fns';
 import { FileText, ChevronDown } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { generateWeeklySadhanaReport, generateCustomRangeSadhanaReport } from '../utils/reportUtils';
@@ -128,7 +128,7 @@ const History = () => {
                             {logs.map((log) => (
                                 <tr key={log.id} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-3 py-4 whitespace-nowrap text-xs font-semibold text-gray-900 border-r border-gray-100">
-                                        {format(new Date(log.date), 'dd/MM/yy')}
+                                        {format(parseISO(typeof log.date === 'string' ? log.date.slice(0,10) : `${log.date.getUTCFullYear()}-${String(log.date.getUTCMonth()+1).padStart(2,'0')}-${String(log.date.getUTCDate()).padStart(2,'0')}`), 'dd/MM/yy')}
                                     </td>
                                     <td className="px-3 py-4 text-[11px] text-blue-700 italic font-medium max-w-[150px] truncate border-r border-gray-100">
                                         {log.admin_comment || '-'}

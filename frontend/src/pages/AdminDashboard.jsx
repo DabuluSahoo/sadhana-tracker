@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import api from '../api';
-import { format, subDays } from 'date-fns';
+import { format, subDays, startOfWeek, addDays, parseISO } from 'date-fns';
 import { ChevronRight, FileText, Download, ChevronDown } from 'lucide-react';
 import AuthContext from '../context/AuthContext';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -892,16 +892,21 @@ const AdminDashboard = () => {
                                                         <th className="px-3 py-2 text-left">Rounds</th>
                                                         <th className="px-3 py-2 text-left">Japa Time</th>
                                                         <th className="px-3 py-2 text-left">Read (m)</th>
+                                                        <th className="px-3 py-2 text-left text-orange-600">NRCM</th>
+                                                        <th className="px-3 py-2 text-left">Study (m)</th>
                                                         <th className="px-3 py-2 text-left">Hear (m)</th>
                                                         <th className="px-3 py-2 text-left">Rest (m)</th>
                                                         <th className="px-3 py-2 text-left">Sleep</th>
                                                         <th className="px-3 py-2 text-left">Seva (h)</th>
+                                                        <th className="px-3 py-2 text-left">Details</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="bg-white divide-y divide-gray-200 text-xs">
                                                     {userLogs.map(log => (
                                                         <tr key={log.id} className="hover:bg-gray-50 group">
-                                                            <td className="px-3 py-3 font-semibold text-gray-900">{format(new Date(log.date), 'dd/MM')}</td>
+                                                            <td className="px-3 py-3 font-semibold text-gray-900">
+                                                                {format(parseISO(typeof log.date === 'string' ? log.date.slice(0,10) : `${log.date.getUTCFullYear()}-${String(log.date.getUTCMonth()+1).padStart(2,'0')}-${String(log.date.getUTCDate()).padStart(2,'0')}`), 'dd/MM')}
+                                                            </td>
                                                             <td className="px-3 py-3">
                                                                 {editingGraceId === log.id ? (
                                                                     <div className="flex flex-col gap-2 min-w-[200px]">
@@ -948,16 +953,20 @@ const AdminDashboard = () => {
                                                             <td className="px-3 py-3 font-bold text-gray-800">{log.rounds || 0}</td>
                                                             <td className="px-3 py-3 text-gray-500">{log.japa_completed_time || '-'}</td>
                                                             <td className="px-3 py-3 text-gray-500">{log.reading_time || 0}</td>
+                                                            <td className="px-3 py-3 text-orange-700 font-bold">{log.nrcm || 0}</td>
+                                                            <td className="px-3 py-3 text-gray-500">{log.study_time || 0}</td>
                                                             <td className="px-3 py-3 text-gray-500">{log.hearing_time || 0}</td>
                                                             <td className="px-4 py-3 text-amber-600 italic">{log.dayrest_time || 0}</td>
                                                             <td className="px-3 py-3 text-gray-500">{log.sleep_time || '-'}</td>
                                                             <td className="px-3 py-3 text-green-700 font-bold">{log.service_hours || 0}</td>
+                                                            <td className="px-3 py-3 text-[10px] text-gray-400 max-w-[120px] truncate">
+                                                                {log.reading_details || log.hearing_details || '-'}
+                                                            </td>
                                                         </tr>
                                                     ))}
                                                 </tbody>
                                             </table>
                                         </div>
-
                                         {hasMore && (
                                             <button
                                                 onClick={loadMoreLogs}

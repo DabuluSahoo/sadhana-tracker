@@ -149,8 +149,12 @@ const Dashboard = () => {
         const dateStr = format(date, 'yyyy-MM-dd');
         return weeklyLogs.find(log => {
             if (!log.date) return false;
-            const logDate = typeof log.date === 'string' ? log.date : format(new Date(log.date), 'yyyy-MM-dd');
-            return logDate.startsWith(dateStr);
+            // UTC-safe: prevents IST (+5:30) shifting "2026-04-04T00:00:00Z" → April 3 locally
+            const raw = log.date;
+            const logDate = typeof raw === 'string'
+                ? raw.slice(0, 10)
+                : `${raw.getUTCFullYear()}-${String(raw.getUTCMonth()+1).padStart(2,'0')}-${String(raw.getUTCDate()).padStart(2,'0')}`;
+            return logDate === dateStr;
         });
     };
 
@@ -173,6 +177,7 @@ const Dashboard = () => {
             japa:     { value: wt.japaOnTime,    max: 7, unit: ' days', label: 'Japa before 10 AM' },
             rest:     { value: wt.restOnTime,    max: 7, unit: ' days', label: 'Day Rest ≤ 30 mins' },
             sleep:    { value: wt.sleepOnTime,   max: 7, unit: ' days', label: `Sleep ≤ ${sleepT}` },
+            nrcm:     { value: wt.nrcm,          max: (quota.nrcm_target || 1) * 7, unit: ' pts' },
         };
     }, [stats]);
 
@@ -271,6 +276,7 @@ const Dashboard = () => {
                         <ProgressBar label={weeklyStats.japa.label}  value={weeklyStats.japa.value}  max={7} unit=" days" />
                         <ProgressBar label={weeklyStats.rest.label}  value={weeklyStats.rest.value}  max={7} unit=" days" />
                         <ProgressBar label={weeklyStats.sleep.label} value={weeklyStats.sleep.value} max={7} unit=" days" />
+                        <ProgressBar label="NRCM Progress"      value={weeklyStats.nrcm.value}  max={weeklyStats.nrcm.max}  unit=" pts" />
                     </div>
                 </div>
             )}

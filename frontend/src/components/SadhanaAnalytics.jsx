@@ -5,6 +5,11 @@ import {
 } from 'recharts';
 import { format, parseISO } from 'date-fns';
 
+/** UTC-safe date → 'YYYY-MM-DD' string, avoids IST (+5:30) shifting the date */
+const toDateStr = (raw) =>
+    typeof raw === 'string' ? raw.slice(0, 10)
+    : `${raw.getUTCFullYear()}-${String(raw.getUTCMonth()+1).padStart(2,'0')}-${String(raw.getUTCDate()).padStart(2,'0')}`;
+
 // ─── Dataset toggle config (matches HTML trendChart datasets) ────────────────
 const DATASETS = [
     { key: 'reading', label: 'Reading (m)',    color: '#f59e0b', hidden: false },
@@ -23,14 +28,14 @@ const SadhanaAnalytics = ({ logs }) => {
 
     const toggleDataset = (key) => setVisible(prev => ({ ...prev, [key]: !prev[key] }));
 
-    // ── Trend chart data (30 days, matches bar chart) ──────────────────────
+    // ── Trend chart data (30 days) ──────────────────────────────────────────
     const trendData = useMemo(() => {
         if (!logs || logs.length === 0) return [];
         return [...logs]
-            .sort((a, b) => new Date(a.date) - new Date(b.date))
+            .sort((a, b) => toDateStr(a.date).localeCompare(toDateStr(b.date)))
             .slice(-30)
             .map(log => ({
-                date:    format(parseISO(log.date), 'dd/MM'),
+                date:    format(parseISO(toDateStr(log.date)), 'dd/MM'),
                 reading: log.reading_time || 0,
                 hearing: log.hearing_time || 0,
                 seva:    Math.round((parseFloat(log.service_hours) || 0) * 60),
@@ -43,10 +48,10 @@ const SadhanaAnalytics = ({ logs }) => {
     const barData = useMemo(() => {
         if (!logs || logs.length === 0) return [];
         return [...logs]
-            .sort((a, b) => new Date(a.date) - new Date(b.date))
+            .sort((a, b) => toDateStr(a.date).localeCompare(toDateStr(b.date)))
             .slice(-30)
             .map(log => ({
-                date:    format(parseISO(log.date), 'MMM d'),
+                date:    format(parseISO(toDateStr(log.date)), 'MMM d'),
                 reading: log.reading_time || 0,
                 hearing: log.hearing_time || 0,
                 study:   log.study_time || 0,
