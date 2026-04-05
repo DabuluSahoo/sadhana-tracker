@@ -869,12 +869,12 @@ const AdminDashboard = () => {
                                                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
                                                     <p className="text-[10px] font-bold uppercase text-blue-400 tracking-widest mb-1">Body Score</p>
                                                     <p className="text-3xl font-black text-blue-600">{ws.Body}%</p>
-                                                    <p className="text-[10px] text-blue-400 mt-1">Wake · Rest · Sleep</p>
+                                                    <p className="text-[10px] text-blue-400 mt-1">Wake · Rest · Sleep · Study ±5</p>
                                                 </div>
                                                 <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
                                                     <p className="text-[10px] font-bold uppercase text-green-400 tracking-widest mb-1">Soul Score</p>
                                                     <p className="text-3xl font-black text-green-600">{ws.Soul}%</p>
-                                                    <p className="text-[10px] text-green-400 mt-1">Japa · Reading · Hearing</p>
+                                                    <p className="text-[10px] text-green-400 mt-1">Japa · Reading · Hearing · NRCM</p>
                                                 </div>
                                             </div>
                                         );

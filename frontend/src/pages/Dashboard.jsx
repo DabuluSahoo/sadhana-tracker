@@ -235,7 +235,7 @@ const Dashboard = () => {
                         />
                     </div>
                     <p className="text-[10px] text-gray-400 mt-2 uppercase font-bold tracking-tighter">
-                        Avg of Wake · Rest · Sleep
+                        Avg of Wake · Rest · Sleep · Study  ±5 on-time
                     </p>
                 </div>
 
@@ -253,7 +253,7 @@ const Dashboard = () => {
                         />
                     </div>
                     <p className="text-[10px] text-gray-400 mt-2 uppercase font-bold tracking-tighter">
-                        Avg of Japa · Reading · Hearing
+                        Avg of Japa · Reading · Hearing · NRCM
                     </p>
                 </div>
             </div>
