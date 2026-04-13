@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { isNative } from '../utils/platform';
 
-const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
+const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false, user }) => {
     const [formData, setFormData] = useState({
         rounds: 0,
         reading_time: 0,
@@ -23,6 +23,7 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
         reading_details: '',
         hearing_details: '',
         japa_completed_time: '',
+        placement_time: 0,
     });
 
     useEffect(() => {
@@ -42,6 +43,7 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
                 reading_details: existingData.reading_details || '',
                 hearing_details: existingData.hearing_details || '',
                 japa_completed_time: existingData.japa_completed_time || '',
+                placement_time: existingData.placement_time || 0,
             });
         } else {
             // Reset if no data for this day
@@ -60,6 +62,7 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
                 reading_details: '',
                 hearing_details: '',
                 japa_completed_time: '',
+                placement_time: 0,
             });
         }
     }, [existingData, date]);
@@ -291,6 +294,26 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false }) => {
                             className="input-field"
                         />
                     </div>
+
+                    {/* Placement — Arjun/Bhima only */}
+                    {['arjun', 'bhima'].includes((user?.group_name || '').toLowerCase()) && (
+                        <div className="space-y-2">
+                            <label className="flex items-center text-sm font-medium text-gray-700">
+                                <div className="bg-blue-100 p-1.5 rounded-md mr-2 text-blue-700"><BookOpen size={16} /></div>
+                                Placement Study (Minutes)
+                            </label>
+                            <input
+                                type="number"
+                                name="placement_time"
+                                min="0"
+                                value={formData.placement_time}
+                                onChange={handleChange}
+                                disabled={isReadOnly}
+                                className="input-field"
+                                placeholder="Placement prep mins..."
+                            />
+                        </div>
+                    )}
 
                     {/* Day Rest */}
                     <div className="space-y-2">

@@ -12,7 +12,7 @@ exports.createOrUpdateLog = async (req, res) => {
     const {
         date, rounds, reading_time, hearing_time, study_time, dayrest_time,
         mangala_aarti, wakeup_time, sleep_time, service_hours, comments,
-        nrcm, reading_details, hearing_details, japa_completed_time
+        nrcm, reading_details, hearing_details, japa_completed_time, placement_time
     } = req.body;
     const userId = req.user.id;
 
@@ -26,13 +26,14 @@ exports.createOrUpdateLog = async (req, res) => {
             await db.query(
                 `UPDATE daily_sadhana SET rounds=?, reading_time=?, hearing_time=?, study_time=?,
                  dayrest_time=?, mangala_aarti=?, wakeup_time=?, sleep_time=?, service_hours=?,
-                 comments=?, nrcm=?, reading_details=?, hearing_details=?, japa_completed_time=?
+                 comments=?, nrcm=?, reading_details=?, hearing_details=?, japa_completed_time=?,
+                 placement_time=?
                  WHERE id=?`,
                 [
                     rounds, reading_time, hearing_time, study_time || 0, dayrest_time || 0,
                     mangala_aarti, wakeup_time, sleep_time, service_hours, comments,
                     nrcm || 0, reading_details || null, hearing_details || null,
-                    japa_completed_time || null, existing[0].id
+                    japa_completed_time || null, placement_time || 0, existing[0].id
                 ]
             );
             return res.json({ message: 'Report updated' });
@@ -41,13 +42,14 @@ exports.createOrUpdateLog = async (req, res) => {
                 `INSERT INTO daily_sadhana
                  (user_id, date, rounds, reading_time, hearing_time, study_time, dayrest_time,
                   mangala_aarti, wakeup_time, sleep_time, service_hours, comments, nrcm,
-                  reading_details, hearing_details, japa_completed_time)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                  reading_details, hearing_details, japa_completed_time, placement_time)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     userId, date, rounds, reading_time, hearing_time,
                     study_time || 0, dayrest_time || 0, mangala_aarti, wakeup_time,
                     sleep_time, service_hours, comments, nrcm || 0,
-                    reading_details || null, hearing_details || null, japa_completed_time || null
+                    reading_details || null, hearing_details || null,
+                    japa_completed_time || null, placement_time || 0
                 ]
             );
             return res.status(201).json({ message: 'Report submitted' });
@@ -223,18 +225,29 @@ exports.getDashboardStats = async (req, res) => {
             }
         }
 
+        const japaT = quota.japa_target || '10:00';
+        const restT = parseInt(quota.rest_target) || 30;
+
+        const readCap = parseInt(quota.read_target) || 30;
+        const hearCap = parseInt(quota.hear_target) || 30;
+        const nrcmCap = parseInt(quota.nrcm_target) || 1;
+
         // 7. Full 6-metric weekly totals (matches HTML getStatsForTimeframe)
         const weeklyTotals = logs.reduce((acc, log) => {
             acc.rounds   += (log.rounds || 0);
-            acc.reading  += (log.reading_time || 0);
-            acc.hearing  += (log.hearing_time || 0);
+            acc.reading  += Math.min((log.reading_time || 0), readCap);
+            acc.hearing  += Math.min((log.hearing_time || 0), hearCap);
+            acc.nrcm     += Math.min((log.nrcm || 0), nrcmCap);
             acc.service  += (parseFloat(log.service_hours) || 0);
             if ((log.wakeup_time || '23:59') <= wakeT)                       acc.wakeUpOnTime++;
-            if ((log.japa_completed_time || '23:59') <= '10:00')             acc.japaOnTime++;
-            if ((parseInt(log.dayrest_time) || 0) <= 30)                     acc.restOnTime++;
+            if ((log.japa_completed_time || '23:59') <= japaT)               acc.japaOnTime++;
+            if ((parseInt(log.dayrest_time) || 0) <= restT)                  acc.restOnTime++;
             if (getSleepMins(log.sleep_time) <= getSleepMins(sleepT))        acc.sleepOnTime++;
             return acc;
-        }, { rounds: 0, reading: 0, hearing: 0, service: 0, wakeUpOnTime: 0, japaOnTime: 0, restOnTime: 0, sleepOnTime: 0 });
+        }, { rounds: 0, reading: 0, hearing: 0, nrcm: 0, service: 0, wakeUpOnTime: 0, japaOnTime: 0, restOnTime: 0, sleepOnTime: 0 });
+
+        // Ensure no property is undefined (prevents NaN in frontend)
+        Object.keys(weeklyTotals).forEach(k => { if (weeklyTotals[k] === undefined || weeklyTotals[k] === null) weeklyTotals[k] = 0; });
 
         // 8. Previous week avg score for motivation banner
         let prevWeekAvgScore = null;

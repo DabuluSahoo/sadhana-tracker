@@ -149,12 +149,12 @@ const Dashboard = () => {
         const dateStr = format(date, 'yyyy-MM-dd');
         return weeklyLogs.find(log => {
             if (!log.date) return false;
-            // UTC-safe: prevents IST (+5:30) shifting "2026-04-04T00:00:00Z" → April 3 locally
-            const raw = log.date;
-            const logDate = typeof raw === 'string'
-                ? raw.slice(0, 10)
-                : `${raw.getUTCFullYear()}-${String(raw.getUTCMonth()+1).padStart(2,'0')}-${String(raw.getUTCDate()).padStart(2,'0')}`;
-            return logDate === dateStr;
+            // Use local date parts to ensure IST (+5:30) cross-day logs match (e.g. Apr 3rd 18:30 UTC = Apr 4th IST)
+            const d = new Date(log.date);
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const dayNum = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${dayNum}` === dateStr;
         });
     };
 
@@ -171,13 +171,13 @@ const Dashboard = () => {
         const wakeT  = quota.wake_target  || '05:00';
         const sleepT = quota.sleep_target || '22:00';
         return {
-            reading:  { value: wt.reading,      max: (quota.read_target || 0) * 7, unit: 'm' },
-            hearing:  { value: wt.hearing,       max: (quota.hear_target || 0) * 7, unit: 'm' },
-            wake:     { value: wt.wakeUpOnTime,  max: 7, unit: ' days', label: `Wake ≤ ${wakeT}` },
-            japa:     { value: wt.japaOnTime,    max: 7, unit: ' days', label: 'Japa before 10 AM' },
-            rest:     { value: wt.restOnTime,    max: 7, unit: ' days', label: 'Day Rest ≤ 30 mins' },
-            sleep:    { value: wt.sleepOnTime,   max: 7, unit: ' days', label: `Sleep ≤ ${sleepT}` },
-            nrcm:     { value: wt.nrcm,          max: (quota.nrcm_target || 1) * 7, unit: ' pts' },
+            reading:  { value: wt.reading || 0,      max: (quota.read_target || 0) * 7, unit: 'm' },
+            hearing:  { value: wt.hearing || 0,      max: (quota.hear_target || 0) * 7, unit: 'm' },
+            wake:     { value: wt.wakeUpOnTime || 0, max: 7, unit: ' days', label: `Wake ≤ ${wakeT}` },
+            japa:     { value: wt.japaOnTime || 0,   max: 7, unit: ' days', label: 'Japa before 10 AM' },
+            rest:     { value: wt.restOnTime || 0,   max: 7, unit: ' days', label: 'Day Rest ≤ 30 mins' },
+            sleep:    { value: wt.sleepOnTime || 0,  max: 7, unit: ' days', label: `Sleep ≤ ${sleepT}` },
+            nrcm:     { value: wt.nrcm || 0,         max: (quota.nrcm_target || 1) * 7, unit: ' pts' },
         };
     }, [stats]);
 
@@ -357,6 +357,7 @@ const Dashboard = () => {
                     existingData={getLogForDate(selectedDate)}
                     onSave={() => { fetchWeeklyLogs(); fetchStats(); fetchAllLogs(); }}
                     isReadOnly={selectedDate >= new Date().setHours(0, 0, 0, 0)}
+                    user={user}
                 />
             </div>
         </div>

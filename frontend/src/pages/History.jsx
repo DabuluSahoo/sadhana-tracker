@@ -9,6 +9,7 @@ import AuthContext from '../context/AuthContext';
 const History = () => {
     const [logs, setLogs]       = useState([]);
     const [loading, setLoading] = useState(true);
+    const [quota, setQuota]     = useState({});
     const { user }              = useContext(AuthContext);
     const [showCustom, setShowCustom]   = useState(false);
     const [customStart, setCustomStart] = useState('');
@@ -17,8 +18,12 @@ const History = () => {
     useEffect(() => {
         const fetchHistory = async () => {
             try {
-                const { data } = await api.get('/sadhana/history');
-                setLogs(data);
+                const [histRes, statsRes] = await Promise.all([
+                    api.get('/sadhana/history'),
+                    api.get('/sadhana/stats'),
+                ]);
+                setLogs(histRes.data);
+                setQuota(statsRes.data?.quota || {});
             } catch (error) {
                 console.error('Error fetching history:', error);
             } finally {
@@ -43,7 +48,7 @@ const History = () => {
                 <div className="flex flex-wrap gap-2 items-start">
                     {/* Last completed week */}
                     <button
-                        onClick={() => generateWeeklySadhanaReport(user.username, logs)}
+                        onClick={() => generateWeeklySadhanaReport(user.username, logs, user.group_name, quota)}
                         className="flex items-center px-4 py-2 bg-saffron-600 text-white rounded-lg hover:bg-saffron-700 transition-colors shadow-md text-sm font-medium"
                     >
                         <FileText size={16} className="mr-2" />
@@ -89,7 +94,7 @@ const History = () => {
                                         onClick={() => {
                                             if (!customStart || !customEnd) return alert('Please select both dates');
                                             if (customEnd < customStart) return alert('End date must be after start date');
-                                            generateCustomRangeSadhanaReport(user.username, logs, customStart, customEnd);
+                                            generateCustomRangeSadhanaReport(user.username, logs, customStart, customEnd, user.group_name, quota);
                                         }}
                                         className="px-4 py-1.5 bg-amber-700 text-white rounded-lg text-sm font-medium hover:bg-amber-800"
                                     >
@@ -128,7 +133,10 @@ const History = () => {
                             {logs.map((log) => (
                                 <tr key={log.id} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-3 py-4 whitespace-nowrap text-xs font-semibold text-gray-900 border-r border-gray-100">
-                                        {format(parseISO(typeof log.date === 'string' ? log.date.slice(0,10) : `${log.date.getUTCFullYear()}-${String(log.date.getUTCMonth()+1).padStart(2,'0')}-${String(log.date.getUTCDate()).padStart(2,'0')}`), 'dd/MM/yy')}
+                                        {(() => {
+                                            const d = new Date(log.date);
+                                            return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getFullYear()).slice(-2)}`;
+                                        })()}
                                     </td>
                                     <td className="px-3 py-4 text-[11px] text-blue-700 italic font-medium max-w-[150px] truncate border-r border-gray-100">
                                         {log.admin_comment || '-'}

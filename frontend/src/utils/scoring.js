@@ -110,9 +110,14 @@ export const calculateWeeklyStats = (logs, quota) => {
     };
 
     logs.forEach(r => {
-        totals.read  += parseInt(r.reading_time) || 0;
-        totals.hear  += parseInt(r.hearing_time) || 0;
-        totals.nrcm  += parseInt(r.nrcm)         || 0;
+        const readVal = parseInt(r.reading_time) || 0;
+        const hearVal = parseInt(r.hearing_time) || 0;
+        const nrcmVal = parseInt(r.nrcm) || 0;
+        
+        totals.read  += readQ > 0 ? Math.min(readVal, (quota.read_target || 30)) : readVal;
+        totals.hear  += hearQ > 0 ? Math.min(hearVal, (quota.hear_target || 30)) : hearVal;
+        // nrcmTarget is typically low per day (e.g., 16 or 1)
+        totals.nrcm  += nrcmTarget > 0 ? Math.min(nrcmVal, nrcmTarget) : nrcmVal;
         if ((r.wakeup_time || '23:59') <= wakeT)                           totals.wakeDays++;
         if ((r.japa_completed_time || '23:59') <= '10:00')                 totals.japaDays++;
         if ((parseInt(r.dayrest_time) || 0) <= 30)                         totals.restDays++;

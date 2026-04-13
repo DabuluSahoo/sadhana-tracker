@@ -383,14 +383,6 @@ const AdminDashboard = () => {
                                 </div>
                                 <div className="grid grid-cols-2 gap-2 text-xs">
                                     <div>
-                                        <label className="text-gray-500 block mb-1">Wake Up</label>
-                                        <input type="time" value={groupQuotas[groupName]?.wake_target || ''} onChange={e => handleQuotaChange(groupName, 'wake_target', e.target.value)} className="w-full border rounded px-2 py-1" />
-                                    </div>
-                                    <div>
-                                        <label className="text-gray-500 block mb-1">Sleep</label>
-                                        <input type="time" value={groupQuotas[groupName]?.sleep_target || ''} onChange={e => handleQuotaChange(groupName, 'sleep_target', e.target.value)} className="w-full border rounded px-2 py-1" />
-                                    </div>
-                                    <div>
                                         <label className="text-gray-500 block mb-1">Read (mins)</label>
                                         <input type="number" min="0" value={groupQuotas[groupName]?.read_target || 0} onChange={e => handleQuotaChange(groupName, 'read_target', Number(e.target.value))} className="w-full border rounded px-2 py-1" />
                                     </div>
@@ -398,6 +390,16 @@ const AdminDashboard = () => {
                                         <label className="text-gray-500 block mb-1">Hear (mins)</label>
                                         <input type="number" min="0" value={groupQuotas[groupName]?.hear_target || 0} onChange={e => handleQuotaChange(groupName, 'hear_target', Number(e.target.value))} className="w-full border rounded px-2 py-1" />
                                     </div>
+                                    <div>
+                                        <label className="text-gray-500 block mb-1">Study (mins)</label>
+                                        <input type="number" min="0" value={groupQuotas[groupName]?.study_target || 0} onChange={e => handleQuotaChange(groupName, 'study_target', Number(e.target.value))} className="w-full border rounded px-2 py-1" />
+                                    </div>
+                                    {['arjun', 'bhima'].includes(groupName.toLowerCase()) && (
+                                        <div>
+                                            <label className="text-gray-500 block mb-1">Placement (mins)</label>
+                                            <input type="number" min="0" value={groupQuotas[groupName]?.placement_target || 0} onChange={e => handleQuotaChange(groupName, 'placement_target', Number(e.target.value))} className="w-full border rounded px-2 py-1" />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -904,8 +906,11 @@ const AdminDashboard = () => {
                                                 <tbody className="bg-white divide-y divide-gray-200 text-xs">
                                                     {userLogs.map(log => (
                                                         <tr key={log.id} className="hover:bg-gray-50 group">
-                                                            <td className="px-3 py-3 font-semibold text-gray-900">
-                                                                {format(parseISO(typeof log.date === 'string' ? log.date.slice(0,10) : `${log.date.getUTCFullYear()}-${String(log.date.getUTCMonth()+1).padStart(2,'0')}-${String(log.date.getUTCDate()).padStart(2,'0')}`), 'dd/MM')}
+                                                            <td className="px-3 py-3 font-semibold text-gray-900 text-center">
+                                                                {(() => {
+                                                                    const d = new Date(log.date);
+                                                                    return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+                                                                })()}
                                                             </td>
                                                             <td className="px-3 py-3">
                                                                 {editingGraceId === log.id ? (

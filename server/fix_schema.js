@@ -91,6 +91,41 @@ async function fixSchema() {
             console.log('✅ Index "idx_role" created.');
         }
 
+        // Add placement_time to daily_sadhana (for Arjun/Bhima groups)
+        const [ptColumns] = await db.query('SHOW COLUMNS FROM daily_sadhana LIKE "placement_time"');
+        if (ptColumns.length === 0) {
+            console.log('Adding "placement_time" column to daily_sadhana...');
+            await db.query('ALTER TABLE daily_sadhana ADD COLUMN placement_time INT DEFAULT 0');
+            console.log('✅ Column "placement_time" added successfully.');
+        }
+
+        // Add japa_target, rest_target, nrcm_target to group_quotas if missing
+        const [jtCols] = await db.query('SHOW COLUMNS FROM group_quotas LIKE "japa_target"');
+        if (jtCols.length === 0) {
+            await db.query('ALTER TABLE group_quotas ADD COLUMN japa_target VARCHAR(10) DEFAULT "10:00"');
+            console.log('✅ Column "japa_target" added to group_quotas.');
+        }
+        const [rtCols] = await db.query('SHOW COLUMNS FROM group_quotas LIKE "rest_target"');
+        if (rtCols.length === 0) {
+            await db.query('ALTER TABLE group_quotas ADD COLUMN rest_target INT DEFAULT 30');
+            console.log('✅ Column "rest_target" added to group_quotas.');
+        }
+        const [ntCols] = await db.query('SHOW COLUMNS FROM group_quotas LIKE "nrcm_target"');
+        if (ntCols.length === 0) {
+            await db.query('ALTER TABLE group_quotas ADD COLUMN nrcm_target INT DEFAULT 1');
+            console.log('✅ Column "nrcm_target" added to group_quotas.');
+        }
+        const [stCols] = await db.query('SHOW COLUMNS FROM group_quotas LIKE "study_target"');
+        if (stCols.length === 0) {
+            await db.query('ALTER TABLE group_quotas ADD COLUMN study_target INT DEFAULT 0');
+            console.log('✅ Column "study_target" added to group_quotas.');
+        }
+        const [plcCols] = await db.query('SHOW COLUMNS FROM group_quotas LIKE "placement_target"');
+        if (plcCols.length === 0) {
+            await db.query('ALTER TABLE group_quotas ADD COLUMN placement_target INT DEFAULT 0');
+            console.log('✅ Column "placement_target" added to group_quotas.');
+        }
+
         console.log('--- SCHEMA FIX COMPLETED ---');
     } catch (err) {
         console.error('❌ Error fixing schema:', err);

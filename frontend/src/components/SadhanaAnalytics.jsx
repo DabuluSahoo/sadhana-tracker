@@ -5,10 +5,14 @@ import {
 } from 'recharts';
 import { format, parseISO } from 'date-fns';
 
-/** UTC-safe date → 'YYYY-MM-DD' string, avoids IST (+5:30) shifting the date */
-const toDateStr = (raw) =>
-    typeof raw === 'string' ? raw.slice(0, 10)
-    : `${raw.getUTCFullYear()}-${String(raw.getUTCMonth()+1).padStart(2,'0')}-${String(raw.getUTCDate()).padStart(2,'0')}`;
+/** Local-safe date → 'YYYY-MM-DD' string, maps IST (+5:30) cross-day logs (Apr 3rd 18:30 UTC = Apr 4th IST) */
+const toDateStr = (raw) => {
+    const d = new Date(raw);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+};
 
 // ─── Dataset toggle config (matches HTML trendChart datasets) ────────────────
 const DATASETS = [

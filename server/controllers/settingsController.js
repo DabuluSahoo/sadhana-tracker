@@ -48,17 +48,19 @@ exports.getQuotaByGroup = async (req, res) => {
 
 exports.updateQuota = async (req, res) => {
     const { groupName } = req.params;
-    const { read_target, hear_target, wake_target, sleep_target } = req.body;
+    const { read_target, hear_target, wake_target, sleep_target, study_target, placement_target } = req.body;
     try {
         await db.query(
-            `INSERT INTO group_quotas (group_name, read_target, hear_target, wake_target, sleep_target) 
-             VALUES (?, ?, ?, ?, ?) 
+            `INSERT INTO group_quotas (group_name, read_target, hear_target, wake_target, sleep_target, study_target, placement_target) 
+             VALUES (?, ?, ?, ?, ?, ?, ?) 
              ON DUPLICATE KEY UPDATE 
                 read_target = VALUES(read_target), 
                 hear_target = VALUES(hear_target), 
                 wake_target = VALUES(wake_target), 
-                sleep_target = VALUES(sleep_target)`,
-            [groupName, read_target, hear_target, wake_target, sleep_target]
+                sleep_target = VALUES(sleep_target),
+                study_target = VALUES(study_target),
+                placement_target = VALUES(placement_target)`,
+            [groupName, read_target, hear_target, wake_target, sleep_target, study_target, placement_target]
         );
         res.json({ message: `Quotas for ${groupName} updated successfully` });
     } catch (err) {
