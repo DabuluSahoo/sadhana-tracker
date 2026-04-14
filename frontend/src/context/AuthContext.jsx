@@ -71,6 +71,19 @@ export const AuthProvider = ({ children }) => {
 
             api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
 
+            if (isNative()) {
+                const { value: fcmToken } = await Preferences.get({ key: 'fcmToken' });
+                if (fcmToken) {
+                    try {
+                        // Immediately claim this device for the newly logged-in user
+                        await api.post('/auth/register-device', { deviceToken: fcmToken });
+                        console.log('Device token bound to new session.');
+                    } catch (err) {
+                        console.error('Failed to restore token binding:', err);
+                    }
+                }
+            }
+
             setUser(data.user);
             toast.success('Welcome back!');
             return true;
@@ -100,12 +113,16 @@ export const AuthProvider = ({ children }) => {
                 // 1. Immediately clear the sticky reminder from the tray
                 await LocalNotifications.cancel({ notifications: [{ id: 108 }] });
                 console.log('Sticky reminder cleared on logout');
+            } catch (err) {
+                console.error('Failed to cleanup notifications:', err);
+            }
 
+            try {
                 // 2. Tell the server to remove the device token association
                 await api.post('/auth/unregister-device');
                 console.log('Device token unregistered from server');
             } catch (err) {
-                console.error('Failed to cleanup notifications/token on logout:', err);
+                console.error('Failed to unregister device token:', err);
             }
             await Preferences.remove({ key: 'token' });
             await Preferences.remove({ key: 'user' });

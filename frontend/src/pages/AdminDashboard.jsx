@@ -7,6 +7,8 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import SadhanaAnalytics from '../components/SadhanaAnalytics';
 import { generateWeeklySadhanaReport, generateCustomRangeSadhanaReport, generateGroupReport, getTargetWeek } from '../utils/reportUtils';
 import { calculateWeeklyStats } from '../utils/scoring';
+import { SadhanaOverlay } from '../utils/overlayPlugin';
+import { isNative } from '../utils/platform';
 
 const GROUPS = ['yudhisthir', 'bhima', 'arjun', 'nakul', 'sahadev', 'other'];
 const GROUP_EMOJI = { yudhisthir: '🔥', bhima: '🏆', arjun: '🪷', nakul: '🌿', sahadev: '🌱', other: '☸️' };
@@ -49,6 +51,7 @@ const AdminDashboard = () => {
     const [savingBroadcast, setSavingBroadcast] = useState(false);
     const [groupQuotas, setGroupQuotas] = useState({});
     const [savingSettings, setSavingSettings] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
 
     const handleSaveGrace = async (log) => {
         setSavingGrace(true);
@@ -335,12 +338,20 @@ const AdminDashboard = () => {
         
         {/* System Settings Panel (Owner Only) */}
         {user.role === 'owner' && (
-            <div className="bg-saffron-50 rounded-xl p-5 mb-4 border border-saffron-200">
-                <div className="flex items-center mb-4">
+            <div className="bg-saffron-50 rounded-xl mb-4 border border-saffron-200 overflow-hidden">
+                <button
+                    onClick={() => setShowSettings(v => !v)}
+                    className="w-full flex items-center justify-between px-5 py-4 hover:bg-saffron-100 transition-colors"
+                >
                     <h3 className="text-lg font-bold text-saffron-800 flex items-center gap-2">
                         <span>⚙️</span> System Settings & Quotas
                     </h3>
-                </div>
+                    <ChevronDown
+                        size={20}
+                        className={`text-saffron-600 transition-transform duration-200 ${showSettings ? 'rotate-180' : ''}`}
+                    />
+                </button>
+                {showSettings && <div className="px-5 pb-5">
                 
                 {/* Global Broadcast */}
                 <div className="mb-6">
@@ -405,6 +416,8 @@ const AdminDashboard = () => {
                         ))}
                     </div>
                 </div>
+
+                </div>}
             </div>
         )}
 
@@ -769,6 +782,7 @@ const AdminDashboard = () => {
                                     Test Reminders
                                 </button>
                                 
+                               
                                 {/* Download Buttons as a flex row to avoid height issues */}
                                 <div className="flex gap-2 ml-auto">
                                     <button

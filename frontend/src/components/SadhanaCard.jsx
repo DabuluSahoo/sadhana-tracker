@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import { Save, Clock, BookOpen, Music, Moon, Sun, Coffee, Award } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { isNative } from '../utils/platform';
+import { offlineManager } from '../utils/offlineManager';
 
 const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false, user }) => {
     const [formData, setFormData] = useState({
@@ -88,20 +88,21 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false, user }) =
         e.preventDefault();
         if (isReadOnly) return;
 
+        const dateStr = format(date, 'yyyy-MM-dd');
+
         try {
-            await api.post('/sadhana', { ...formData, date: format(date, 'yyyy-MM-dd') });
+            await api.post('/sadhana', { ...formData, date: dateStr });
             toast.success('Sadhana report saved successfully');
             
+            // Clear from offline queue if it was there
+            offlineManager.clearPendingLog(dateStr);
+
             // 🪷 Clear sticky reminder if it exists AND we are saving a report for EXACTLY yesterday
             if (isNative()) {
                 try {
                     const yesterdayStr = format(new Date(Date.now() - 86400000), 'yyyy-MM-dd');
-                    const reportDateStr = format(date, 'yyyy-MM-dd');
-                    
-                    // Only clear if the report is exactly for yesterday
-                    if (reportDateStr === yesterdayStr) {
+                    if (dateStr === yesterdayStr) {
                         await LocalNotifications.cancel({ notifications: [{ id: 108 }] });
-                        console.log('Sticky reminder cleared for yesterday\'s report');
                     }
                 } catch (err) {
                     console.error('Failed to clear local notification:', err);
@@ -111,8 +112,20 @@ const SadhanaCard = ({ date, existingData, onSave, isReadOnly = false, user }) =
             setShowSuccess(true);
             if (onSave) onSave();
         } catch (error) {
-            toast.error('Failed to save report');
-            console.error(error);
+            // Check if it's a network error (no response)
+            if (!error.response) {
+                console.log('Network error detected. Saving report offline...');
+                offlineManager.savePendingLog(dateStr, formData);
+                toast('Offline: Saved on phone. Will sync later.', {
+                    icon: '📡',
+                    duration: 4000
+                });
+                setShowSuccess(true);
+                if (onSave) onSave();
+            } else {
+                toast.error('Failed to save report: ' + (error.response?.data?.message || 'Server error'));
+                console.error(error);
+            }
         }
     };
 

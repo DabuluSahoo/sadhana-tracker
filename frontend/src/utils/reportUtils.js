@@ -57,87 +57,9 @@ const GROUP_COLORS = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SCORING HELPERS — all accept optional quota from group_quotas
-// Default thresholds match the standard marking scheme exactly.
-// If owner updates a target, all tiers for that field shift by the same offset.
+// SCORING HELPERS
+import { japaScore, wakeScore, restScore, sleepScore, fillingScore } from './scoring';
 // ─────────────────────────────────────────────────────────────────────────────
-
-/** Convert "HH:MM" or "HH:MM:SS" to total minutes */
-const toMins = (t) => {
-    if (!t) return null;
-    const parts = String(t).split(':').map(Number);
-    return parts[0] * 60 + (parts[1] || 0);
-};
-
-/** Japa end time → mark (25/20/15/10/5/0/-5) */
-const japaScore = (japa_completed_time) => {
-    const m = toMins(japa_completed_time);
-    if (m === null) return null;
-    if (m <= toMins('06:45')) return 25;
-    if (m <= toMins('09:00')) return 20;
-    if (m <= toMins('12:00')) return 15;
-    if (m <= toMins('15:00')) return 10;
-    if (m <= toMins('18:00')) return 5;
-    if (m <= toMins('21:00')) return 0;
-    return -5;
-};
-
-/** Wake up time → mark */
-const wakeScore = (wakeup_time) => {
-    const m = toMins(wakeup_time);
-    if (m === null) return null;
-    // Treat early AM (< 12h) as next-day by adding 24h for sleep-side fields
-    // But wake is genuinely before noon, so use as-is
-    if (m <= toMins('03:45')) return 25;
-    if (m <= toMins('03:50')) return 20;
-    if (m <= toMins('03:55')) return 15;
-    if (m <= toMins('04:00')) return 10;
-    if (m <= toMins('04:05')) return 5;
-    if (m <= toMins('04:10')) return 0;
-    return -5;
-};
-
-/** Day rest (minutes) → mark. No 0 band: goes 5 → -5 after 90 */
-const restScore = (dayrest_time) => {
-    const mins = parseInt(dayrest_time);
-    if (isNaN(mins) || dayrest_time === null || dayrest_time === undefined || dayrest_time === '') return null;
-    if (mins <= 30) return 25;
-    if (mins <= 45) return 20;
-    if (mins <= 60) return 15;
-    if (mins <= 75) return 10;
-    if (mins <= 90) return 5;
-    return -5;
-};
-
-/** To bed (sleep_time) → mark. Sleep before midnight treated normally; after midnight adds 24h */
-const sleepScore = (sleep_time) => {
-    if (!sleep_time) return null;
-    let m = toMins(sleep_time);
-    // After midnight: e.g. 00:30 → treat as 24:30
-    const h = parseInt(String(sleep_time).split(':')[0]);
-    if (h < 12) m += 24 * 60;
-    const thresh = (hh, mm) => hh * 60 + mm;
-    if (m <= thresh(21, 30)) return 25;
-    if (m <= thresh(21, 40)) return 20;
-    if (m <= thresh(21, 45)) return 15;
-    if (m <= thresh(21, 50)) return 10;
-    if (m <= thresh(21, 55)) return 5;
-    if (m <= thresh(22, 0))  return 0;
-    return -5;
-};
-
-/**
- * Filling score: +5 if submitted before 9:00 AM of the next day, else -5.
- */
-const fillingScore = (log) => {
-    if (!log.created_at || !log.date) return -5;
-    const logDate = new Date(log.date);
-    const deadline = new Date(logDate);
-    deadline.setDate(deadline.getDate() + 1);
-    deadline.setHours(9, 0, 0, 0); // Deadline: 9:00 AM of the next day
-    const submitted = new Date(log.created_at);
-    return submitted <= deadline ? 5 : -5;
-};
 
 /** Cap reading/hearing at quota daily target (default 30) */
 const cappedRead = (v, quota = {}) => Math.min(parseInt(v) || 0, parseInt(quota.read_target) || 30);

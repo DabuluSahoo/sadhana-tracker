@@ -10,102 +10,125 @@
  *   Score is clamped to [0, 100].
  */
 
-const parseTime = (timeStr) => {
-    if (!timeStr) return null;
-    const parts = timeStr.split(':').map(Number);
-    return parts[0] * 60 + parts[1];
+const toMins = (t) => {
+    if (!t) return null;
+    const parts = String(t).split(':').map(Number);
+    return parts[0] * 60 + (parts[1] || 0);
 };
 
-/** Times before noon treated as next-day (after midnight) for sleep */
-const getSleepMins = (timeStr) => {
-    if (!timeStr) return 9999;
-    const [h, m] = timeStr.split(':').map(Number);
-    const adjusted = h < 12 ? h + 24 : h;
-    return adjusted * 60 + m;
+export const japaScore = (japa_completed_time) => {
+    const m = toMins(japa_completed_time);
+    if (m === null) return null;
+    if (m <= toMins('06:45')) return 25;
+    if (m <= toMins('09:00')) return 20;
+    if (m <= toMins('12:00')) return 15;
+    if (m <= toMins('15:00')) return 10;
+    if (m <= toMins('18:00')) return 5;
+    if (m <= toMins('21:00')) return 0;
+    return -5;
 };
 
-/** Returns true if the log was filled on the same calendar day it covers */
-const isFilledOnTime = (log) => {
-    if (!log.created_at || !log.date) return false;
-    const logDate      = log.date.toString().slice(0, 10);          // 'YYYY-MM-DD'
-    const submittedDate = new Date(log.created_at)
-        .toLocaleDateString('en-CA');                                // 'YYYY-MM-DD'
-    return logDate === submittedDate;
+export const wakeScore = (wakeup_time) => {
+    const m = toMins(wakeup_time);
+    if (m === null) return null;
+    if (m <= toMins('03:45')) return 25;
+    if (m <= toMins('03:50')) return 20;
+    if (m <= toMins('03:55')) return 15;
+    if (m <= toMins('04:00')) return 10;
+    if (m <= toMins('04:05')) return 5;
+    if (m <= toMins('04:10')) return 0;
+    return -5;
+};
+
+export const restScore = (dayrest_time) => {
+    const mins = parseInt(dayrest_time);
+    if (isNaN(mins) || dayrest_time === null || dayrest_time === undefined || dayrest_time === '') return null;
+    if (mins <= 30) return 25;
+    if (mins <= 45) return 20;
+    if (mins <= 60) return 15;
+    if (mins <= 75) return 10;
+    if (mins <= 90) return 5;
+    return -5;
+};
+
+export const sleepScore = (sleep_time) => {
+    if (!sleep_time) return null;
+    let m = toMins(sleep_time);
+    const h = parseInt(String(sleep_time).split(':')[0]);
+    if (h < 12) m += 24 * 60;
+    const thresh = (hh, mm) => hh * 60 + mm;
+    if (m <= thresh(21, 30)) return 25;
+    if (m <= thresh(21, 40)) return 20;
+    if (m <= thresh(21, 45)) return 15;
+    if (m <= thresh(21, 50)) return 10;
+    if (m <= thresh(21, 55)) return 5;
+    if (m <= thresh(22, 0))  return 0;
+    return -5;
+};
+
+export const fillingScore = (log) => {
+    if (!log.created_at || !log.date) return -5;
+    const logDate = new Date(log.date);
+    const deadline = new Date(logDate);
+    deadline.setDate(deadline.getDate() + 1);
+    deadline.setHours(9, 0, 0, 0); // Deadline: 9:00 AM of the next day
+    const submitted = new Date(log.created_at);
+    return submitted <= deadline ? 5 : -5;
 };
 
 /**
  * Calculates Body & Soul scores for a SINGLE day's log.
- *
- * @param {Object} log   - daily_sadhana row
- * @param {Object} quota - group_quotas row
- * @returns {{ bodyScore, soulScore }}
  */
 export const calculateDailyScore = (log, quota) => {
     if (!log || !quota) return { bodyScore: 0, soulScore: 0 };
 
-    // ── Body Score: Wake, Rest, Sleep (each 0 or 100) ± on-time bonus ─────────
-    let pWake = 0, pRest = 0, pSleep = 0;
+    const wakeM = wakeScore(log.wakeup_time) ?? 0;
+    const pWake = (wakeM / 25) * 100;
+    
+    const restM = restScore(log.dayrest_time) ?? 0;
+    const pRest = (restM / 25) * 100;
+    
+    const sleepM = sleepScore(log.sleep_time) ?? 0;
+    const pSleep = (sleepM / 25) * 100;
+    
+    const fillM = fillingScore(log);
+    const pFill = (fillM / 5) * 100;
 
-    if (log.wakeup_time && quota.wake_target && log.wakeup_time <= quota.wake_target)
-        pWake = 100;
+    const bodyScore = Math.max(0, Math.min(100, Math.round((pWake + pRest + pSleep + pFill) / 4)));
 
-    if ((parseInt(log.dayrest_time) || 0) <= 30)
-        pRest = 100;
+    const japaM = japaScore(log.japa_completed_time) ?? 0;
+    const pJapa = (japaM / 25) * 100;
 
-    if (log.sleep_time && quota.sleep_target &&
-        getSleepMins(log.sleep_time) <= getSleepMins(quota.sleep_target))
-        pSleep = 100;
-
-    const baseBody  = Math.round((pWake + pRest + pSleep) / 3);
-    const timeBonusBefore = isFilledOnTime(log) ? 5 : -5;
-    const bodyScore = Math.min(100, Math.max(0, baseBody + timeBonusBefore));
-
-    // ── Soul Score: Japa, Read, Hear, NRCM ───────────────────────────────────
-    let pJapa = 0, pRead = 0, pHear = 0, pNrcm = 0;
-
-    // Japa before 10 AM
-    if ((log.japa_completed_time || '23:59') <= '10:00') pJapa = 100;
-
-    pRead = quota.read_target > 0
+    const pRead = quota.read_target > 0
         ? Math.min(100, Math.round(((parseInt(log.reading_time) || 0) / quota.read_target) * 100))
         : 100;
 
-    pHear = quota.hear_target > 0
+    const pHear = quota.hear_target > 0
         ? Math.min(100, Math.round(((parseInt(log.hearing_time) || 0) / quota.hear_target) * 100))
         : 100;
 
-    // NRCM: stored as integer (number of rounds / count). Treat > 0 as 100% for now.
-    // If a nrcm_target exists on quota use it, otherwise presence = full marks.
     const nrcmTarget = quota.nrcm_target || 1;
     const nrcmVal    = parseInt(log.nrcm) || 0;
-    pNrcm = nrcmTarget > 0
+    const pNrcm = nrcmTarget > 0
         ? Math.min(100, Math.round((nrcmVal / nrcmTarget) * 100))
         : (nrcmVal > 0 ? 100 : 0);
 
-    const soulScore = Math.min(100, Math.round((pJapa + pRead + pHear + pNrcm) / 4));
+    const soulScore = Math.max(0, Math.min(100, Math.round((pJapa + pRead + pHear + pNrcm) / 4)));
 
     return { bodyScore, soulScore };
+
 };
 
-/**
- * Calculates weekly aggregate Body & Soul scores for a set of logs.
- *
- * @param {Array}  logs  - array of daily_sadhana rows
- * @param {Object} quota - group_quotas row
- * @returns {{ Body, Soul, Wake, Rest, Sleep, Study, Japa, Read, Hear, Nrcm, rawTotals, targets } | null}
- */
 export const calculateWeeklyStats = (logs, quota) => {
     if (!logs || !quota) return null;
 
-    const readQ       = (quota.read_target  || 0) * 7;
-    const hearQ       = (quota.hear_target  || 0) * 7;
+    const readQ       = (quota.read_target  || 30) * 7;
+    const hearQ       = (quota.hear_target  || 30) * 7;
     const nrcmTarget  = quota.nrcm_target || 1;
-    const wakeT       = quota.wake_target  || '05:00';
-    const sleepT      = quota.sleep_target || '22:00';
 
     const totals = {
         read: 0, hear: 0, nrcm: 0,
-        wakeDays: 0, japaDays: 0, restDays: 0, sleepDays: 0, onTimeDays: 0,
+        japaMarks: 0, wakeMarks: 0, restMarks: 0, sleepMarks: 0, fillMarks: 0,
         daysLogged: logs.length,
     };
 
@@ -114,39 +137,41 @@ export const calculateWeeklyStats = (logs, quota) => {
         const hearVal = parseInt(r.hearing_time) || 0;
         const nrcmVal = parseInt(r.nrcm) || 0;
         
-        totals.read  += readQ > 0 ? Math.min(readVal, (quota.read_target || 30)) : readVal;
-        totals.hear  += hearQ > 0 ? Math.min(hearVal, (quota.hear_target || 30)) : hearVal;
-        // nrcmTarget is typically low per day (e.g., 16 or 1)
+        totals.read  += quota.read_target > 0 ? Math.min(readVal, quota.read_target) : readVal;
+        totals.hear  += quota.hear_target > 0 ? Math.min(hearVal, quota.hear_target) : hearVal;
         totals.nrcm  += nrcmTarget > 0 ? Math.min(nrcmVal, nrcmTarget) : nrcmVal;
-        if ((r.wakeup_time || '23:59') <= wakeT)                           totals.wakeDays++;
-        if ((r.japa_completed_time || '23:59') <= '10:00')                 totals.japaDays++;
-        if ((parseInt(r.dayrest_time) || 0) <= 30)                         totals.restDays++;
-        if (getSleepMins(r.sleep_time) <= getSleepMins(sleepT))            totals.sleepDays++;
-        if (isFilledOnTime(r))                                             totals.onTimeDays++;
+        
+        totals.japaMarks += japaScore(r.japa_completed_time) ?? 0;
+        totals.wakeMarks += wakeScore(r.wakeup_time) ?? 0;
+        totals.restMarks += restScore(r.dayrest_time) ?? 0;
+        totals.sleepMarks += sleepScore(r.sleep_time) ?? 0;
+        totals.fillMarks += fillingScore(r);
     });
 
-    const days  = 7;
-    const pRead  = readQ > 0 ? Math.min(100, Math.round((totals.read / readQ) * 100)) : 0;
-    const pHear  = hearQ > 0 ? Math.min(100, Math.round((totals.hear / hearQ) * 100)) : 0;
+    const days = 7;
+    
+    // Soul Averages
+    const pJapa  = Math.round((totals.japaMarks / (days * 25)) * 100);
+    const pRead  = quota.read_target > 0 ? Math.min(100, Math.round((totals.read / readQ) * 100)) : 0;
+    const pHear  = quota.hear_target > 0 ? Math.min(100, Math.round((totals.hear / hearQ) * 100)) : 0;
     const pNrcm  = nrcmTarget > 0 ? Math.min(100, Math.round((totals.nrcm / (nrcmTarget * days)) * 100)) : 0;
-    const pWake  = Math.round((totals.wakeDays  / days) * 100);
-    const pJapa  = Math.round((totals.japaDays  / days) * 100);
-    const pRest  = Math.round((totals.restDays  / days) * 100);
-    const pSleep = Math.round((totals.sleepDays / days) * 100);
 
-    // Body = avg(Wake, Rest, Sleep) ± on-time bonus
-    const baseBody  = Math.round((pWake + pRest + pSleep) / 3);
-    const onTimePct = Math.round((totals.onTimeDays / days) * 100);
-    const timeBonus = onTimePct >= 50 ? 5 : -5;
-    const Body  = Math.min(100, Math.max(0, baseBody + timeBonus));
+    // Body Averages
+    const pWake  = Math.round((totals.wakeMarks / (days * 25)) * 100);
+    const pRest  = Math.round((totals.restMarks / (days * 25)) * 100);
+    const pSleep = Math.round((totals.sleepMarks / (days * 25)) * 100);
+    const pFill  = Math.round((totals.fillMarks / 35) * 100);
+
+    // Body = avg(Wake, Rest, Sleep, Filling)
+    const Body  = Math.max(0, Math.round((pWake + pRest + pSleep + pFill) / 4));
 
     // Soul = avg(Japa, Read, Hear, NRCM)
-    const Soul  = Math.min(100, Math.round((pJapa + pRead + pHear + pNrcm) / 4));
+    const Soul  = Math.max(0, Math.round((pJapa + pRead + pHear + pNrcm) / 4));
 
     return {
         Read: pRead, Hear: pHear, Nrcm: pNrcm,
-        Wake: pWake, Japa: pJapa, Rest: pRest, Sleep: pSleep,
-        OnTime: onTimePct,
+        Wake: pWake, Japa: pJapa, Rest: pRest, Sleep: pSleep, Fill: pFill,
+        OnTime: pFill,
         Body, Soul,
         rawTotals: totals,
         targets: { readQ, hearQ },
@@ -199,7 +224,7 @@ export const getBadges = (logs) => {
         if (r.wakeup_time && r.wakeup_time <= '04:30') earlyRiserDays++;
         if ((parseInt(r.reading_time) || 0) >= 30) scholarDays++;
         totalSevaMins += (parseFloat(r.service_hours) || 0) * 60;
-        if (isFilledOnTime(r)) onTimeDays++;
+        if (fillingScore(r) === 5) onTimeDays++;
     });
 
     const badges = [];

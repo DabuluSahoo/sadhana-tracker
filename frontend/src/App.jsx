@@ -20,6 +20,7 @@ import { PushNotifications } from '@capacitor/push-notifications';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { App as CapacitorApp } from '@capacitor/app';
 import { isNative } from './utils/platform';
+import { SadhanaOverlay } from './utils/overlayPlugin';
 import { format } from 'date-fns';
 import api from './api';
 
@@ -28,6 +29,7 @@ function AppRoutes() {
   const { user, updateUser } = useContext(AuthContext);
   const [updateAvailable, setUpdateAvailable] = useState(null);
   const [updateDismissed, setUpdateDismissed] = useState(false);
+  const [showOverlayPrompt, setShowOverlayPrompt] = useState(false);
 
   // Version Check Logic
   useEffect(() => {
@@ -55,6 +57,29 @@ function AppRoutes() {
     };
     checkUpdate();
   }, [updateDismissed]);
+
+  // ── Overlay Permission & Scheduling ──────────────────────────────────────
+  useEffect(() => {
+    const requiresSadhana = user && user.role !== 'owner' &&
+        !['brahmacari', 'other'].includes(user.group_name);
+    if (!requiresSadhana || !isNative()) return;
+
+    const setupOverlay = async () => {
+      try {
+        const { granted } = await SadhanaOverlay.checkOverlayPermission();
+        if (!granted) {
+          // Show our friendly prompt banner
+          setShowOverlayPrompt(true);
+        } else {
+          // Permission already granted — just make sure alarm is scheduled
+          await SadhanaOverlay.scheduleOverlay();
+        }
+      } catch (err) {
+        console.error('Overlay setup error:', err);
+      }
+    };
+    setupOverlay();
+  }, [user]);
 
   // Push Notifications Logic
   useEffect(() => {
@@ -111,8 +136,12 @@ function AppRoutes() {
             // Handle successful registration
             await PushNotifications.addListener('registration', async (token) => {
               console.log('Push registration success');
+              await Preferences.set({ key: 'fcmToken', value: token.value });
               try {
-                await api.post('/auth/register-device', { deviceToken: token.value });
+                // If user is logged in, register with backend immediately
+                if (user) {
+                    await api.post('/auth/register-device', { deviceToken: token.value });
+                }
               } catch (err) {
                 console.error('Failed to register device token with backend:', err);
                 toast.error('Notification system sync failed');
@@ -132,6 +161,13 @@ function AppRoutes() {
               const { data } = notification;
               console.log('Push data payload: ', JSON.stringify(data, null, 2));
               
+              // 🔒 Remote Lock Trigger
+              if (data && data.type === 'REMOTE_LOCK') {
+                console.log('🔒 Received REMOTE_LOCK trigger! Activating overaly.');
+                await SadhanaOverlay.triggerOverlayNow();
+                return;
+              }
+
               // 🪷 Sticky Reminder Logic (Initial High-Importance post)
               if (data && data.type === 'SADHANA_REMINDER') {
                 console.log('Targeted SADHANA_REMINDER logic triggered');
@@ -222,18 +258,9 @@ function AppRoutes() {
             // 🪷 Periodic "Nag" Guard (Checks every 5 mins while app is open)
             const nagInterval = setInterval(checkAndPostStickyReminder, 5 * 60 * 1000);
 
-            // 🪷 App State Listener: Re-assert immediately when app is resumed
-            const stateListener = await CapacitorApp.addListener('appStateChange', ({ isActive }) => {
-              if (isActive) {
-                console.log('App Resumed: Running sticky check');
-                checkAndPostStickyReminder();
-              }
-            });
-
-            // Return cleanup function specifically for these listeners within setupPush
+            // Return cleanup function
             return () => {
               clearInterval(nagInterval);
-              stateListener.remove();
             };
           } else {
             toast.error('Permissions blocked. Please enable notifications to receive 8 AM reminders.', { duration: 6000 });
@@ -282,6 +309,44 @@ function AppRoutes() {
 
   return (
     <>
+      {/* ── One-time Overlay Permission Prompt ────────────────────────── */}
+      {showOverlayPrompt && (
+        <div className="fixed inset-0 bg-black/80 z-[200] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 text-center max-w-sm w-full mx-auto shadow-2xl">
+            <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-3xl">🔒</span>
+            </div>
+            <h2 className="text-xl font-bold text-gray-800 mb-2">One-Time Setup Required</h2>
+            <p className="text-gray-600 mb-5 text-sm leading-relaxed">
+              To ensure your daily sadhana is filled, please grant the
+              <strong> "Display over other apps"</strong> permission.
+              This is needed for the 6:30 AM reminder to work properly.
+            </p>
+            <button
+              onClick={async () => {
+                await SadhanaOverlay.requestOverlayPermission();
+                // After returning from settings, re-check and schedule
+                setTimeout(async () => {
+                  const { granted } = await SadhanaOverlay.checkOverlayPermission();
+                  if (granted) {
+                    await SadhanaOverlay.scheduleOverlay();
+                    setShowOverlayPrompt(false);
+                  }
+                }, 1500);
+              }}
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-xl transition-all text-sm mb-2"
+            >
+              Grant Permission
+            </button>
+            <button
+              onClick={() => setShowOverlayPrompt(false)}
+              className="w-full bg-gray-100 text-gray-500 font-medium py-2 px-6 rounded-xl text-sm"
+            >
+              Skip for Now
+            </button>
+          </div>
+        </div>
+      )}
       {updateAvailable && (
         <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 text-center max-w-sm w-full mx-auto shadow-2xl relative overflow-hidden animate-in fade-in zoom-in duration-300">

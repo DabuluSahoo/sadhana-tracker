@@ -4,10 +4,11 @@ import api from '../api';
 import SadhanaCard from '../components/SadhanaCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import DailyQuote from '../components/DailyQuote';
-import { ChevronLeft, ChevronRight, CheckCircle, Flame, Star, Sun, BookOpen, HandHeart } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle, Flame, Star, Sun, BookOpen, HandHeart, RefreshCw, WifiOff } from 'lucide-react';
 import clsx from 'clsx';
 import AuthContext from '../context/AuthContext';
 import { calculateDailyScore, calculateWeeklyStats, getBadges, calculateStreak } from '../utils/scoring';
+import { offlineManager } from '../utils/offlineManager';
 
 // ─── Motivation Banner ────────────────────────────────────────────────────────
 const MotivationBanner = ({ score }) => {
@@ -101,6 +102,22 @@ const Dashboard = () => {
     const [allLogs, setAllLogs]                   = useState([]);       // for badges + streak
     const [stats, setStats]                       = useState(null);
     const [loading, setLoading]                   = useState(true);
+    const [isSyncing, setIsSyncing]               = useState(false);
+    const [pendingLogs, setPendingLogs]           = useState(offlineManager.getPendingLogs());
+
+    const syncPending = async () => {
+        if (isSyncing) return;
+        setIsSyncing(true);
+        try {
+            await offlineManager.syncPendingLogs(api);
+            setPendingLogs(offlineManager.getPendingLogs());
+            fetchWeeklyLogs();
+            fetchStats();
+            fetchAllLogs();
+        } finally {
+            setIsSyncing(false);
+        }
+    };
 
     const fetchWeeklyLogs = async () => {
         try {
@@ -139,17 +156,46 @@ const Dashboard = () => {
         fetchWeeklyLogs();
         fetchStats();
         fetchAllLogs();
+        
+        // Initial sync check
+        syncPending();
+
+        // Listen for online event to auto-sync
+        const handleOnline = () => {
+            console.log('Device back online. Syncing pending reports...');
+            syncPending();
+        };
+        window.addEventListener('online', handleOnline);
+        return () => window.removeEventListener('online', handleOnline);
     }, [currentWeekStart]);
+
+    // Update pending logs whenever anything saves
+    const handleSaveRefresh = () => {
+        setPendingLogs(offlineManager.getPendingLogs());
+        fetchWeeklyLogs();
+        fetchStats();
+        fetchAllLogs();
+    };
 
     // ── Computed values ────────────────────────────────────────────────────────
     const weekDays = Array.from({ length: 7 }).map((_, i) => addDays(currentWeekStart, i));
 
     const getLogForDate = (date) => {
-        if (!weeklyLogs || !Array.isArray(weeklyLogs)) return null;
         const dateStr = format(date, 'yyyy-MM-dd');
+        
+        // Priority 1: Check if there's a pending offline log for this date
+        if (pendingLogs[dateStr]) {
+            return {
+                ...pendingLogs[dateStr].data,
+                date: dateStr,
+                isPending: true // Flag to show orange dot/indicator
+            };
+        }
+
+        // Priority 2: Check standard weekly logs from server
+        if (!weeklyLogs || !Array.isArray(weeklyLogs)) return null;
         return weeklyLogs.find(log => {
             if (!log.date) return false;
-            // Use local date parts to ensure IST (+5:30) cross-day logs match (e.g. Apr 3rd 18:30 UTC = Apr 4th IST)
             const d = new Date(log.date);
             const y = d.getFullYear();
             const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -191,6 +237,39 @@ const Dashboard = () => {
 
     return (
         <div className="space-y-5">
+
+            {/* ── Offline Sync Status ───────────────────────────────────────── */}
+            {Object.keys(pendingLogs).length > 0 && (
+                <div className={clsx(
+                    "flex items-center justify-between p-3 rounded-2xl shadow-sm border transition-colors",
+                    isSyncing ? "bg-blue-50 border-blue-100" : "bg-amber-50 border-amber-100"
+                )}>
+                    <div className="flex items-center gap-3">
+                        <div className={clsx(
+                            "p-2 rounded-full",
+                            isSyncing ? "bg-blue-100 text-blue-600" : "bg-amber-100 text-amber-600"
+                        )}>
+                            {isSyncing ? <RefreshCw className="animate-spin" size={18} /> : <WifiOff size={18} />}
+                        </div>
+                        <div>
+                            <p className="text-sm font-bold text-gray-800">
+                                {isSyncing ? "Syncing with Krishna's cloud..." : "Offline reports pending"}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                                {Object.keys(pendingLogs).length} day(s) saved on this phone
+                            </p>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={syncPending}
+                        disabled={isSyncing}
+                        className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50 flex items-center gap-2"
+                    >
+                        {!isSyncing && <RefreshCw size={14} />}
+                        {isSyncing ? "Syncing..." : "Sync Now"}
+                    </button>
+                </div>
+            )}
 
             {/* ── Ashram Broadcast ─────────────────────────────────────────── */}
             {stats?.broadcast && (
@@ -240,7 +319,7 @@ const Dashboard = () => {
                         />
                     </div>
                     <p className="text-[10px] text-gray-400 mt-2 uppercase font-bold tracking-tighter">
-                        Avg of Wake · Rest · Sleep  ±5 on-time
+                        Avg of Wake · Rest · Sleep · Filling
                     </p>
                 </div>
 
@@ -340,7 +419,10 @@ const Dashboard = () => {
                             <span className="text-base md:text-lg font-bold mt-0.5 md:mt-1">{format(day, 'd')}</span>
                             <div className="mt-1 md:mt-2 h-1.5 w-1.5 md:h-2 md:w-2 rounded-full">
                                 {log ? (
-                                    <div className={clsx('h-1.5 w-1.5 md:h-2 md:w-2 rounded-full', isSelected ? 'bg-white' : 'bg-green-500')} />
+                                    <div className={clsx(
+                                        'h-1.5 w-1.5 md:h-2 md:w-2 rounded-full', 
+                                        isSelected ? 'bg-white' : log.isPending ? 'bg-amber-500 animate-pulse' : 'bg-green-500'
+                                    )} />
                                 ) : !isFuture && (
                                     <div className={clsx('h-1.5 w-1.5 md:h-2 md:w-2 rounded-full', isSelected ? 'bg-saffron-800' : 'bg-gray-200')} />
                                 )}
@@ -355,7 +437,7 @@ const Dashboard = () => {
                 <SadhanaCard
                     date={selectedDate}
                     existingData={getLogForDate(selectedDate)}
-                    onSave={() => { fetchWeeklyLogs(); fetchStats(); fetchAllLogs(); }}
+                    onSave={handleSaveRefresh}
                     isReadOnly={selectedDate >= new Date().setHours(0, 0, 0, 0)}
                     user={user}
                 />
